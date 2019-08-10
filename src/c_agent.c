@@ -6423,6 +6423,7 @@ PRIVATE int run_yuno(hgobj gobj, hsdata hs_yuno, hgobj src)
 {
     /*
      *  Launch id
+     *  TODO cuando un yuno no arranca y no encuentra una .so, aparece como running al agente
      */
     static uint16_t counter = 0;
     uint64_t t;

@@ -1312,7 +1312,7 @@ PRIVATE json_t *cmd_dir_logs(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
 PRIVATE BOOL sumdir_cb(
     void *user_data,
     wd_found_type type,
-    const char *fullpath,
+    char *fullpath,
     const char *directory,
     char *name,             // dname[255]
     int level,
@@ -1372,7 +1372,7 @@ PRIVATE json_t *cmd_sumdir(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
 PRIVATE BOOL read_json_cb(
     void *user_data,
     wd_found_type type,     // type found
-    const char *fullpath,   // directory+filename found
+    char *fullpath,         // directory+filename found
     const char *directory,  // directory of found filename
     char *name,             // dname[255]
     int level,              // level of tree where file found
@@ -1426,7 +1426,7 @@ PRIVATE json_t* cmd_list_persistent_attrs(hgobj gobj, const char* cmd, json_t* k
 PRIVATE BOOL launch_sh_cb(
     void *user_data,
     wd_found_type type,
-    const char *fullpath,
+    char *fullpath,
     const char *directory,
     char *name,             // dname[255]
     int level,

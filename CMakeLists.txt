@@ -54,26 +54,6 @@ SET (YUNO_HDRS
 ##############################################
 ADD_EXECUTABLE(yuneta_agent ${YUNO_SRCS} ${YUNO_HDRS})
 
-if(CMAKE_BUILD_TYPE MATCHES Debug)
-TARGET_LINK_LIBRARIES(yuneta_agent
-    /yuneta/development/output/lib/libyuneta-rc_sqlite.a
-    /yuneta/development/output/lib/libyuneta-core.a
-    /yuneta/development/output/lib/libginsfsm.a
-    /yuneta/development/output/lib/libghelpersd.a
-    /yuneta/development/output/lib/libuv.a
-    /yuneta/development/output/lib/libjansson.a
-    /yuneta/development/output/lib/libunwind.a
-    /yuneta/development/output/lib/libpcre2-8.a
-
-    /yuneta/development/output/lib/libsqlite3.a
-    dl          # used by sqlite
-    m           # used by sqlite
-
-    pthread dl  # used by libuv
-    lzma        # used by libunwind
-
-)
-else(CMAKE_BUILD_TYPE MATCHES Debug)
 TARGET_LINK_LIBRARIES(yuneta_agent
     /yuneta/development/output/lib/libyuneta-rc_sqlite.a
     /yuneta/development/output/lib/libyuneta-core.a
@@ -92,7 +72,6 @@ TARGET_LINK_LIBRARIES(yuneta_agent
     lzma        # used by libunwind
 
 )
-endif(CMAKE_BUILD_TYPE MATCHES Debug)
 
 ##############################################
 #   Installation

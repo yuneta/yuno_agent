@@ -69,7 +69,7 @@ TARGET_LINK_LIBRARIES(yuneta_agent
     dl          # used by sqlite
     m           # used by sqlite
 
-    pthread     # used by libuv
+    pthread dl  # used by libuv
     lzma        # used by libunwind
 
 )
@@ -88,7 +88,7 @@ TARGET_LINK_LIBRARIES(yuneta_agent
     dl          # used by sqlite
     m           # used by sqlite
 
-    pthread     # used by libuv
+    pthread dl  # used by libuv
     lzma        # used by libunwind
 
 )

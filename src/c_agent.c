@@ -2661,7 +2661,7 @@ PRIVATE json_t *cmd_install_binary(hgobj gobj, const char *cmd, json_t *kw, hgob
         binary_version,
         TRUE
     );
-    if(!access(destination,0)==0) {
+    if(access(destination,0)!=0) {
         JSON_DECREF(jn_basic_info);
         return msg_iev_build_webix(
             gobj,
@@ -2861,7 +2861,7 @@ PRIVATE json_t *cmd_update_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
         binary_version,
         TRUE
     );
-    if(!access(destination,0)==0) {
+    if(access(destination,0)!=0) {
         JSON_DECREF(jn_basic_info);
         return msg_iev_build_webix(
             gobj,

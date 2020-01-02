@@ -11,7 +11,6 @@ scp -p \
     /yuneta/bin/ytestconfig \
     /yuneta/bin/yuneta \
     /yuneta/bin/yshutdown \
-    /yuneta/bin/time2date \
     /yuneta/bin/tranger_list \
     /yuneta/bin/trq_list \
     /yuneta/bin/msg2db_list \

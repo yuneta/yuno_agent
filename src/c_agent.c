@@ -935,7 +935,7 @@ PRIVATE void mt_create(hgobj gobj)
             "topics", json_array() // Esquema vacio, los topics se crean al estilo sqlite
     );
 
-    database = "agent.treedb"; // WARNING treedb
+    database = "agent_treedb"; // WARNING treedb
     json_t *kw_resource = json_pack("{s:s, s:s, s:I, s:I, s:o}",
         "service", "yuneta_agent",
         "database", database,

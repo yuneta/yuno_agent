@@ -55,7 +55,8 @@ SET (YUNO_HDRS
 ADD_EXECUTABLE(yuneta_agent ${YUNO_SRCS} ${YUNO_HDRS})
 
 TARGET_LINK_LIBRARIES(yuneta_agent
-    /yuneta/development/output/lib/libyuneta-rc_sqlite.a
+    /yuneta/development/output/lib/libyuneta-rc_treedb.a
+    /yuneta/development/output/lib/libyuneta-rc_sqlite.a  # TODO quita cuando rc_treedb este probado
     /yuneta/development/output/lib/libyuneta-core.a
     /yuneta/development/output/lib/libginsfsm.a
     /yuneta/development/output/lib/libghelpers.a
@@ -70,7 +71,7 @@ TARGET_LINK_LIBRARIES(yuneta_agent
 
     pthread dl  # used by libuv
     lzma        # used by libunwind
-
+    uuid
 )
 
 ##############################################

@@ -920,11 +920,28 @@ PRIVATE void mt_create(hgobj gobj)
         fclose(file);
     }
 
-    json_t *kw_resource = json_pack("{s:s, s:s, s:I, s:I}",
+// WARNING con sqlite
+//     json_t *kw_resource = json_pack("{s:s, s:s, s:I, s:I}",
+//         "service", "yuneta_agent",
+//         "database", database,
+//         "tb_resources", (json_int_t)(size_t)tb_resources,
+//         "dba", (json_int_t)(size_t)dba_rc_sqlite3()
+//     );
+
+    // WARNING treedb
+    // aquí puedo añadir "properties" al kw_resource
+    json_t *jn_properties = json_pack("{s: {s:o}}",
+        "treedb_schema",
+            "topics", json_array() // Esquema vacio, los topics se crean al estilo sqlite
+    );
+
+    database = "agent.treedb"; // WARNING treedb
+    json_t *kw_resource = json_pack("{s:s, s:s, s:I, s:I, s:o}",
         "service", "yuneta_agent",
         "database", database,
         "tb_resources", (json_int_t)(size_t)tb_resources,
-        "dba", (json_int_t)(size_t)dba_rc_sqlite3()
+        "dba", (json_int_t)(size_t)dba_rc_treedb(),
+        "properties", jn_properties
     );
 
     priv->resource = gobj_create_unique(

@@ -61,58 +61,51 @@ static char treedb_schema_yuneta_agent[]= "\
                 },                                                  \n\
                 'disabled': {                                       \n\
                     'header': 'disabled',                           \n\
-                    'type': 'integer',                              \n\
+                    'type': 'boolean',                              \n\
                     'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
+                        'persistent'                                \n\
                     ]                                               \n\
                 },                                                  \n\
                 'must_play': {                                      \n\
                     'header': 'must_play',                          \n\
-                    'type': 'integer',                              \n\
+                    'type': 'boolean',                              \n\
                     'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
+                        'persistent'                                \n\
                     ]                                               \n\
                 },                                                  \n\
                 'traced': {                                         \n\
                     'header': 'traced',                             \n\
-                    'type': 'integer',                              \n\
+                    'type': 'boolean',                              \n\
                     'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
+                        'persistent'                                \n\
                     ]                                               \n\
                 },                                                  \n\
                 'multiple': {                                       \n\
                     'header': 'multiple',                           \n\
-                    'type': 'integer',                              \n\
+                    'type': 'boolean',                              \n\
                     'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
+                        'persistent'                                \n\
                     ]                                               \n\
                 },                                                  \n\
                 'global': {                                         \n\
                     'header': 'global',                             \n\
-                    'type': 'integer',                              \n\
+                    'type': 'boolean',                              \n\
                     'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
+                        'persistent'                                \n\
                     ]                                               \n\
                 },                                                  \n\
                 'realm_id': {                                       \n\
                     'header': 'realm_id',                           \n\
                     'type': 'integer',                              \n\
                     'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
+                        'persistent'                                \n\
                     ]                                               \n\
                 },                                                  \n\
                 'binary_id': {                                      \n\
                     'header': 'binary_id',                          \n\
                     'type': 'integer',                              \n\
                     'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
+                        'persistent'                                \n\
                     ]                                               \n\
                 },                                                  \n\
                 'yuno_startdate': {                                 \n\
@@ -145,24 +138,21 @@ static char treedb_schema_yuneta_agent[]= "\
                     'header': 'grand_parent_id',                    \n\
                     'type': 'integer',                              \n\
                     'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
+                        'persistent'                                \n\
                     ]                                               \n\
                 },                                                  \n\
                 'parent_id': {                                      \n\
                     'header': 'parent_id',                          \n\
                     'type': 'integer',                              \n\
                     'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
+                        'persistent'                                \n\
                     ]                                               \n\
                 },                                                  \n\
                 'child_id': {                                       \n\
                     'header': 'child_id',                           \n\
                     'type': 'integer',                              \n\
                     'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
+                        'persistent'                                \n\
                     ]                                               \n\
                 }                                                   \n\
             }                                                       \n\
@@ -195,8 +185,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     'header': 'range_ports',                        \n\
                     'type': 'blob',                                 \n\
                     'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
+                        'persistent'                                \n\
                     ]                                               \n\
                 },                                                  \n\
                 'role': {                                           \n\
@@ -227,8 +216,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     'header': 'last_port',                          \n\
                     'type': 'integer',                              \n\
                     'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
+                        'persistent'                                \n\
                     ]                                               \n\
                 }                                                   \n\
             }                                                       \n\
@@ -285,16 +273,14 @@ static char treedb_schema_yuneta_agent[]= "\
                     'header': 'realm_id',                           \n\
                     'type': 'integer',                              \n\
                     'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
+                        'persistent'                                \n\
                     ]                                               \n\
                 },                                                  \n\
                 'yuno_id': {                                        \n\
                     'header': 'yuno_id',                            \n\
                     'type': 'integer',                              \n\
                     'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
+                        'persistent'                                \n\
                     ]                                               \n\
                 },                                                  \n\
                 'ip': {                                             \n\
@@ -309,8 +295,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     'header': 'port',                               \n\
                     'type': 'integer',                              \n\
                     'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
+                        'persistent'                                \n\
                     ]                                               \n\
                 },                                                  \n\
                 'schema': {                                         \n\
@@ -333,8 +318,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     'header': 'connector',                          \n\
                     'type': 'blob',                                 \n\
                     'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
+                        'persistent'                                \n\
                     ]                                               \n\
                 }                                                   \n\
             }                                                       \n\
@@ -407,16 +391,14 @@ static char treedb_schema_yuneta_agent[]= "\
                     'header': 'zcontent',                           \n\
                     'type': 'blob',                                 \n\
                     'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
+                        'persistent'                                \n\
                     ]                                               \n\
                 },                                                  \n\
                 'source': {                                         \n\
                     'header': 'source',                             \n\
                     'type': 'blob',                                 \n\
                     'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
+                        'persistent'                                \n\
                     ]                                               \n\
                 }                                                   \n\
             }                                                       \n\
@@ -457,8 +439,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     'header': 'size',                               \n\
                     'type': 'integer',                              \n\
                     'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
+                        'persistent'                                \n\
                     ]                                               \n\
                 },                                                  \n\
                 'date': {                                           \n\
@@ -481,32 +462,28 @@ static char treedb_schema_yuneta_agent[]= "\
                     'header': 'classifiers',                        \n\
                     'type': 'blob',                                 \n\
                     'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
+                        'persistent'                                \n\
                     ]                                               \n\
                 },                                                  \n\
                 'required_services': {                              \n\
                     'header': 'required_services',                  \n\
                     'type': 'blob',                                 \n\
                     'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
+                        'persistent'                                \n\
                     ]                                               \n\
                 },                                                  \n\
                 'public_services': {                                \n\
                     'header': 'public_services',                    \n\
                     'type': 'blob',                                 \n\
                     'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
+                        'persistent'                                \n\
                     ]                                               \n\
                 },                                                  \n\
                 'service_descriptor': {                             \n\
                     'header': 'service_descriptor',                 \n\
                     'type': 'blob',                                 \n\
                     'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
+                        'persistent'                                \n\
                     ]                                               \n\
                 },                                                  \n\
                 'binary': {                                         \n\
@@ -521,8 +498,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     'header': 'source',                             \n\
                     'type': 'blob',                                 \n\
                     'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
+                        'persistent'                                \n\
                     ]                                               \n\
                 }                                                   \n\
             }                                                       \n\
@@ -530,3 +506,8 @@ static char treedb_schema_yuneta_agent[]= "\
     ]                                                               \n\
 }                                                                   \n\
 ";
+
+
+
+
+

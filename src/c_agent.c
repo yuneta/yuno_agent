@@ -14,6 +14,7 @@
 #include <regex.h>
 #include <unistd.h>
 #include "c_agent.h"
+#include "treedb_schema_yuneta_agent.c"
 
 // TODO comando para enviar el json del agente a los nodos
 // Y tendrá que rearrancar, no?
@@ -911,6 +912,17 @@ PRIVATE void mt_create(hgobj gobj)
 {
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
 
+    helper_quote2doublequote(treedb_schema_yuneta_agent);
+
+    /*
+     *  Chequea schema fichador, exit si falla.
+     */
+    json_t *jn_treedb_schema_yuneta_agent;
+    jn_treedb_schema_yuneta_agent = legalstring2json(treedb_schema_yuneta_agent, TRUE);
+    if(!jn_treedb_schema_yuneta_agent) {
+        exit(-1);
+    }
+
     priv->timer = gobj_create("agent", GCLASS_TIMER, 0, gobj);
     const char *database = gobj_read_str_attr(gobj, "database");
 
@@ -930,9 +942,8 @@ PRIVATE void mt_create(hgobj gobj)
 
     // WARNING treedb
     // aquí puedo añadir "properties" al kw_resource
-    json_t *jn_properties = json_pack("{s: {s:o}}",
-        "treedb_schema",
-            "topics", json_array() // Esquema vacio, los topics se crean al estilo sqlite
+    json_t *jn_properties = json_pack("{s:o}",
+        "treedb_schema", jn_treedb_schema_yuneta_agent
     );
 
     database = "agent_treedb"; // WARNING treedb

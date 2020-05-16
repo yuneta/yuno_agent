@@ -932,7 +932,7 @@ PRIVATE void mt_create(hgobj gobj)
         fclose(file);
     }
 
-// WARNING con sqlite
+//     //WARNING con sqlite
 //     json_t *kw_resource = json_pack("{s:s, s:s, s:I, s:I}",
 //         "service", "yuneta_agent",
 //         "database", database,
@@ -941,11 +941,9 @@ PRIVATE void mt_create(hgobj gobj)
 //     );
 
     // WARNING treedb
-    // aquí puedo añadir "properties" al kw_resource
     json_t *jn_properties = json_pack("{s:o}",
         "treedb_schema", jn_treedb_schema_yuneta_agent
     );
-
     database = "agent_treedb"; // WARNING treedb
     json_t *kw_resource = json_pack("{s:s, s:s, s:I, s:I, s:o}",
         "service", "yuneta_agent",
@@ -4069,7 +4067,7 @@ PRIVATE json_t *cmd_top_release_yuno(hgobj gobj, const char *cmd, json_t *kw, hg
      *      Check required attrs
      *---------------------------------------------*/
     const char *yuno_role = kw_get_str(kw, "yuno_role", "", 0);
-    const char *yuno_name = kw_get_str(kw, "yuno_name", "", 0);
+    const char *yuno_name = kw_get_str(kw, "yuno_name", 0, 0);
     const char *yuno_release = kw_get_str(kw, "yuno_release", 0, 0);
     const char *alias = kw_get_str(kw, "yuno_alias", 0, 0);
     if(empty_string(yuno_role)) {
@@ -4102,11 +4100,13 @@ PRIVATE json_t *cmd_top_release_yuno(hgobj gobj, const char *cmd, json_t *kw, hg
     json_t *kw_find;
     int found;
     dl_list_t * iter_to_top;
-    kw_find = json_pack("{s:I, s:s, s:s}",
+    kw_find = json_pack("{s:I, s:s}",
         "realm_id", realm_id,
-        "yuno_role", yuno_role,
-        "yuno_name", yuno_name
+        "yuno_role", yuno_role
     );
+    if(yuno_name) {
+        json_object_set_new(kw_find, "yuno_name", json_string(yuno_name));
+    }
     if(yuno_release) {
         json_object_set_new(kw_find, "yuno_release", json_string(yuno_release));
     }
@@ -4234,7 +4234,7 @@ PRIVATE json_t *cmd_top_last_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj
      *      Check required attrs
      *---------------------------------------------*/
     const char *yuno_role = kw_get_str(kw, "yuno_role", "", 0);
-    const char *yuno_name = kw_get_str(kw, "yuno_name", "", 0);
+    const char *yuno_name = kw_get_str(kw, "yuno_name", 0, 0);
     if(empty_string(yuno_role)) {
         return msg_iev_build_webix(gobj,
             -187,
@@ -4253,11 +4253,13 @@ PRIVATE json_t *cmd_top_last_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj
     json_t *kw_find;
     dl_list_t * iter_to_top;
     int found;
-    kw_find = json_pack("{s:I, s:s, s:s}",
+    kw_find = json_pack("{s:I, s:s}",
         "realm_id", realm_id,
-        "yuno_role", yuno_role,
-        "yuno_name", yuno_name
+        "yuno_role", yuno_role
     );
+    if(yuno_name) {
+        json_object_set_new(kw_find, "yuno_name", json_string(yuno_name));
+    }
 
     iter_to_top = gobj_list_resource(priv->resource, "yunos", kw_find);
     found = dl_size(iter_to_top);
@@ -4279,11 +4281,13 @@ PRIVATE json_t *cmd_top_last_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj
     /*---------------------------------------------*
      *      Find yunos to kill
      *---------------------------------------------*/
-    kw_find = json_pack("{s:I, s:s, s:s}",
+    kw_find = json_pack("{s:I, s:s}",
         "realm_id", realm_id,
-        "yuno_role", yuno_role,
-        "yuno_name", yuno_name
+        "yuno_role", yuno_role
     );
+    if(yuno_name) {
+        json_object_set_new(kw_find, "yuno_name", json_string(yuno_name));
+    }
     hsdata hs_yuno_to_kill;
     dl_list_t * iter_to_kill = gobj_list_resource(priv->resource, "yunos", kw_find);
     rc_instance_t *i_hs = rc_last_instance(iter_to_kill, (rc_resource_t **)&hs_yuno_to_kill);
@@ -4380,7 +4384,7 @@ PRIVATE json_t *cmd_top_prev_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj
      *      Check required attrs
      *---------------------------------------------*/
     const char *yuno_role = kw_get_str(kw, "yuno_role", "", 0);
-    const char *yuno_name = kw_get_str(kw, "yuno_name", "", 0);
+    const char *yuno_name = kw_get_str(kw, "yuno_name", 0, 0);
     if(empty_string(yuno_role)) {
         return msg_iev_build_webix(gobj,
             -187,
@@ -4399,11 +4403,13 @@ PRIVATE json_t *cmd_top_prev_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj
     json_t *kw_find;
     dl_list_t * iter_to_top;
     int found;
-    kw_find = json_pack("{s:I, s:s, s:s}",
+    kw_find = json_pack("{s:I, s:s}",
         "realm_id", realm_id,
-        "yuno_role", yuno_role,
-        "yuno_name", yuno_name
+        "yuno_role", yuno_role
     );
+    if(yuno_name) {
+        json_object_set_new(kw_find, "yuno_name", json_string(yuno_name));
+    }
 
     iter_to_top = gobj_list_resource(priv->resource, "yunos", kw_find);
     found = dl_size(iter_to_top);
@@ -4426,11 +4432,13 @@ PRIVATE json_t *cmd_top_prev_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj
     /*---------------------------------------------*
      *      Find yunos to kill
      *---------------------------------------------*/
-    kw_find = json_pack("{s:I, s:s, s:s}",
+    kw_find = json_pack("{s:I, s:s}",
         "realm_id", realm_id,
-        "yuno_role", yuno_role,
-        "yuno_name", yuno_name
+        "yuno_role", yuno_role
     );
+    if(yuno_name) {
+        json_object_set_new(kw_find, "yuno_name", json_string(yuno_name));
+    }
     hsdata hs_yuno_to_kill;
     dl_list_t * iter_to_kill = gobj_list_resource(priv->resource, "yunos", kw_find);
     i_hs = rc_last_instance(iter_to_kill, (rc_resource_t **)&hs_yuno_to_kill);

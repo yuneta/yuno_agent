@@ -242,18 +242,6 @@ SDATADF (ASN_JSON,      "connector",        SDF_PERSIST,                0,      
 SDATA_END()
 };
 
-PRIVATE sdata_desc_t tb_resources[] = {
-/*-DB----type-----------name----------------flag------------------------schema----------free_fn---------header-----------*/
-SDATADB (ASN_ITER,      "realms",           SDF_RESOURCE,               tb_realms,      sdata_destroy,   "Realms"),
-SDATADB (ASN_ITER,      "binaries",         SDF_RESOURCE,               tb_binaries,    sdata_destroy,   "Binaries"),
-SDATADB (ASN_ITER,      "configurations",   SDF_RESOURCE,               tb_configs,     sdata_destroy,   "Configurations"),
-// Marca "yunos" con SDF_PURECHILD para que se cree una root table (o sea, una tabla única para el recurso)
-SDATADB (ASN_ITER,      "yunos",            SDF_RESOURCE|SDF_PURECHILD, tb_yunos,       sdata_destroy,   "Yunos"),
-SDATADB (ASN_ITER,      "public_services",  SDF_RESOURCE,               tb_public_services, sdata_destroy, "Public Services"),
-SDATA_END()
-};
-
-
 /***************************************************************************
  *          Data: config, public data, private data
  ***************************************************************************/
@@ -918,7 +906,7 @@ PRIVATE void mt_create(hgobj gobj)
 
     priv->resource = gobj_create_unique(
         "agent_resources",
-        GCLASS_RESOURCE,
+        GCLASS_NODE,
         kw_resource,
         gobj
     );
@@ -1244,8 +1232,8 @@ PRIVATE json_t *cmd_dir_logs(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
 {
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
 
-    json_int_t realm_id = kw_get_int(kw, "realm_id", 0, 0);
-    json_int_t id = kw_get_int(kw, "id", 0, 0);
+    const char *realm_id = kw_get_str(kw, "realm_id", 0, 0);
+    const char *id = kw_get_str(kw, "id", 0, 0);
     if(!id) {
         return msg_iev_build_webix(
             gobj,
@@ -2068,7 +2056,7 @@ PRIVATE json_t *cmd_list_public_services(hgobj gobj, const char *cmd, json_t *kw
         gobj,
         0,
         json_local_sprintf(cmd),
-        RESOURCE_WEBIX_SCHEMA(priv->resource, resource),
+        tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
         kw  // owned
     );
@@ -2090,7 +2078,7 @@ PRIVATE json_t *cmd_delete_public_service(hgobj gobj, const char *cmd, json_t *k
      *  Get resources to delete.
      *  Search is restricted to id only
      */
-    json_int_t id = kw_get_int(kw, "id", 0, 0);
+    const char *id = kw_get_str(kw, "id", 0, 0);
     if(!id) {
         return msg_iev_build_webix(
             gobj,
@@ -2198,7 +2186,7 @@ PRIVATE json_t *cmd_update_public_service(hgobj gobj, const char *cmd, json_t *k
         gobj,
         0,
         0,
-        RESOURCE_WEBIX_SCHEMA(priv->resource, resource),
+        tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
         kw  // owned
     );
@@ -2218,30 +2206,25 @@ PRIVATE json_t *cmd_list_realms(hgobj gobj, const char *cmd, json_t *kw, hgobj s
     /*
      *  Get a iter of matched resources
      */
-    KW_INCREF(kw);
-    dl_list_t *iter = gobj_list_resource(priv->resource, resource, kw);
-//     iter = sdata_sort_iter_by_id(iter);
-
-    /*
-     *  Convert hsdata to json
-     */
-    json_t *jn_data = sdata_iter2json(iter, SDF_PERSIST|SDF_RESOURCE|SDF_VOLATIL, 0);
+    json_t *jn_data = gobj_list_nodes(
+        priv->resource,
+        resource,
+        0, // ids
+        kw_filter_metadata(kw_incref(kw)), // filter
+        0
+    );
 
     /*
      *  Inform
      */
-    json_t *webix = msg_iev_build_webix(
+    return msg_iev_build_webix(
         gobj,
         0,
         json_local_sprintf(cmd),
-        RESOURCE_WEBIX_SCHEMA(priv->resource, resource),
+        tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
         kw  // owned
     );
-
-    rc_free_iter(iter, TRUE, 0);
-
-    return webix;
 }
 
 /***************************************************************************
@@ -2256,6 +2239,37 @@ PRIVATE json_t *cmd_create_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
     const char *role = kw_get_str(kw, "role", "", 0);
     const char *name = kw_get_str(kw, "name", "", 0);
 
+    if(empty_string(domain)) {
+        return msg_iev_build_webix(
+            gobj,
+            -1,
+            json_local_sprintf("What domain?"),
+            0,
+            0,
+            kw  // owned
+        );
+    }
+    if(empty_string(role)) {
+        return msg_iev_build_webix(
+            gobj,
+            -1,
+            json_local_sprintf("What role?"),
+            0,
+            0,
+            kw  // owned
+        );
+    }
+    if(empty_string(name)) {
+        return msg_iev_build_webix(
+            gobj,
+            -1,
+            json_local_sprintf("What name?"),
+            0,
+            0,
+            kw  // owned
+        );
+    }
+
     /*------------------------------------------------*
      *      Check if already exists
      *------------------------------------------------*/
@@ -2264,37 +2278,41 @@ PRIVATE json_t *cmd_create_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         "role", role,
         "name", name
     );
-    dl_list_t * iter_find = gobj_list_resource(priv->resource, resource, kw_find);
-    if(dl_size(iter_find)) {
+
+    json_t *jn_data = gobj_list_nodes(
+        priv->resource,
+        resource,
+        0, // ids
+        kw_find, // filter
+        0
+    );
+    if(json_array_size(jn_data)) {
         /*
          *  1 o more records, yuno already stored and without overwrite.
          */
-        json_t *jn_data = sdata_iter2json(iter_find, SDF_PERSIST, 0);
-        json_t *webix = msg_iev_build_webix(
+        return msg_iev_build_webix(
             gobj,
             -109,
             json_local_sprintf(
-                "Realm already exists."
+                "Realm already exists"
             ),
-            RESOURCE_WEBIX_SCHEMA(priv->resource, resource),
+            tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
             jn_data,
             kw  // owned
         );
-        rc_free_iter(iter_find, TRUE, 0);
-        return webix;
     }
-    rc_free_iter(iter_find, TRUE, 0);
+    JSON_DECREF(jn_data);
 
     /*
      *  Add to database
      */
     KW_INCREF(kw);
-    hsdata hs = gobj_create_resource(priv->resource, resource, kw);
-    if(!hs) {
+    json_t *node = gobj_create_node(priv->resource, resource, kw, "");
+    if(!node) {
         return msg_iev_build_webix(
             gobj,
             -110,
-            json_local_sprintf("Cannot create resource."),
+            json_local_sprintf("Cannot create node"),
             0,
             0,
             kw  // owned
@@ -2304,8 +2322,8 @@ PRIVATE json_t *cmd_create_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
     /*
      *  Convert result in json
      */
-    json_t *jn_data = json_array();
-    json_array_append_new(jn_data, sdata2json(hs, SDF_PERSIST, 0));
+    jn_data = json_array();
+    json_array_append(jn_data, node);
 
     /*
      *  Inform
@@ -2314,7 +2332,7 @@ PRIVATE json_t *cmd_create_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         gobj,
         0,
         0,
-        RESOURCE_WEBIX_SCHEMA(priv->resource, resource),
+        tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
         kw  // owned
     );
@@ -2330,7 +2348,7 @@ PRIVATE json_t *cmd_update_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
     char *resource = "realms";
 
-    /*
+   /*
      *  Get a iter of matched resources.
      *  Search is restricted to ids only
      */
@@ -2345,12 +2363,21 @@ PRIVATE json_t *cmd_update_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
             kw  // owned
         );
     }
-    dl_list_t *iter = gobj_list_resource(priv->resource, resource, kw_ids);
-    if(dl_size(iter)==0) {
+    json_t *iter = gobj_list_nodes(
+        priv->resource,
+        resource,
+        kw_incref(kw_ids), // ids
+        0,  // filter
+        0
+    );
+
+    if(json_array_size(iter)==0) {
+        JSON_DECREF(iter);
+        JSON_DECREF(kw_ids);
         return msg_iev_build_webix(
             gobj,
             -112,
-            json_local_sprintf("No resource found."),
+            json_local_sprintf("Select one realm please"),
             0,
             0,
             kw  // owned
@@ -2358,42 +2385,35 @@ PRIVATE json_t *cmd_update_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
     }
 
     /*
-     *  Convert json in hsdata
-     */
-    json2sdata_iter(iter, kw, SDF_PERSIST, 0, 0);
-
-    /*
      *  Update database
      */
-    hsdata hs; rc_instance_t *i_hs;
-    i_hs = rc_first_instance(iter, (rc_resource_t **)&hs);
-    while(i_hs) {
-        gobj_update_resource(
-            priv->resource,
-            hs
-        );
-        i_hs = rc_next_instance(i_hs, (rc_resource_t **)&hs);
+    int idx; json_t *node;
+    json_array_foreach(iter, idx, node) {
+        json_t *update = kw_duplicate(kw);
+        json_object_set(update, "id", kw_get_dict_value(node, "id",0,KW_REQUIRED));
+        gobj_update_node(priv->resource, resource, update, "");
     }
-
-    /*
-     *  Convert result in json
-     */
-    json_t *jn_data = sdata_iter2json(iter, SDF_PERSIST, 0);
+    JSON_DECREF(iter);
 
     /*
      *  Inform
      */
-    json_t *webix = msg_iev_build_webix(
+    json_t *jn_data = gobj_list_nodes(
+        priv->resource,
+        resource,
+        kw_ids, // ids
+        0,  // filter
+        0
+    );
+
+    return msg_iev_build_webix(
         gobj,
         0,
         0,
-        RESOURCE_WEBIX_SCHEMA(priv->resource, resource),
+        tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
         kw  // owned
     );
-    rc_free_iter(iter, TRUE, 0);
-
-    return webix;
 }
 
 /***************************************************************************
@@ -2408,7 +2428,7 @@ PRIVATE json_t *cmd_delete_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
      *  Get resources to delete.
      *  Search is restricted to id only
      */
-    json_int_t id = kw_get_int(kw, "id", 0, 0);
+    const char *id = kw_get_str(kw, "id", 0, 0);
     if(!id) {
         return msg_iev_build_webix(
             gobj,
@@ -2419,8 +2439,8 @@ PRIVATE json_t *cmd_delete_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
             kw  // owned
         );
     }
-    hsdata hs = gobj_get_resource(priv->resource, resource, 0, id);
-    if(!hs) {
+    json_t *node = gobj_get_node(priv->resource, resource, id);
+    if(!node) {
         return msg_iev_build_webix(
             gobj,
             -114,
@@ -2442,7 +2462,7 @@ PRIVATE json_t *cmd_delete_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         );
     }
 
-    if(gobj_delete_resource(priv->resource, hs)<0) {
+    if(gobj_delete_resource(priv->resource, node)<0) {
         return msg_iev_build_webix(
             gobj,
             -116,
@@ -2490,7 +2510,7 @@ PRIVATE json_t *cmd_list_binaries(hgobj gobj, const char *cmd, json_t *kw, hgobj
         gobj,
         0,
         json_local_sprintf(cmd),
-        RESOURCE_WEBIX_SCHEMA(priv->resource, resource),
+        tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
         kw  // owned
     );
@@ -2560,7 +2580,7 @@ PRIVATE json_t *cmd_install_binary(hgobj gobj, const char *cmd, json_t *kw, hgob
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
     char *resource = "binaries";
 
-    json_int_t id = kw_get_int(kw, "id", 0, 0);
+    const char *id = kw_get_str(kw, "id", 0, 0);
     const char *role = kw_get_str(kw, "role", "", 0);
 
     const char *content64 = kw_get_str(kw, "content64", "", 0);
@@ -2624,7 +2644,7 @@ PRIVATE json_t *cmd_install_binary(hgobj gobj, const char *cmd, json_t *kw, hgob
             json_local_sprintf(
                 "Yuno already exists."
             ),
-            RESOURCE_WEBIX_SCHEMA(priv->resource, resource),
+            tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
             jn_data,
             kw  // owned
         );
@@ -2752,7 +2772,7 @@ PRIVATE json_t *cmd_install_binary(hgobj gobj, const char *cmd, json_t *kw, hgob
         gobj,
         0,
         0,
-        RESOURCE_WEBIX_SCHEMA(priv->resource, resource),
+        tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
         kw  // owned
     );
@@ -2768,7 +2788,7 @@ PRIVATE json_t *cmd_update_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
     char *resource = "binaries";
 
-    json_int_t id = kw_get_int(kw, "id", 0, 0);
+    const char *id = kw_get_str(kw, "id", 0, 0);
     if(!id) {
         return msg_iev_build_webix(
             gobj,
@@ -2935,7 +2955,7 @@ PRIVATE json_t *cmd_update_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
         gobj,
         0,
         0,
-        RESOURCE_WEBIX_SCHEMA(priv->resource, resource),
+        tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
         kw  // owned
     );
@@ -2955,7 +2975,7 @@ PRIVATE json_t *cmd_delete_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
      *  Get resources to delete.
      *  Search is restricted to id only
      */
-    json_int_t id = kw_get_int(kw, "id", 0, 0);
+    const char *id = kw_get_str(kw, "id", 0, 0);
     if(!id) {
         return msg_iev_build_webix(
             gobj,
@@ -3057,7 +3077,7 @@ PRIVATE json_t *cmd_list_configs(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         gobj,
         0,
         json_local_sprintf(cmd),
-        RESOURCE_WEBIX_SCHEMA(priv->resource, resource),
+        tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
         kw  // owned
     );
@@ -3075,7 +3095,7 @@ PRIVATE json_t *cmd_create_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
     char *resource = "configurations";
 
-    json_int_t id = kw_get_int(kw, "id", 0, 0);
+    const char *id = kw_get_str(kw, "id", 0, 0);
     const char *name = kw_get_str(kw, "name", "", 0);
     const char *version = kw_get_str(kw, "version", "", 0);
     const char *description = kw_get_str(kw, "description", "", 0);
@@ -3101,7 +3121,7 @@ PRIVATE json_t *cmd_create_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
             json_local_sprintf(
                 "Configuration already exists."
             ),
-            RESOURCE_WEBIX_SCHEMA(priv->resource, resource),
+            tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
             jn_data,
             kw  // owned
         );
@@ -3194,7 +3214,7 @@ PRIVATE json_t *cmd_create_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
         gobj,
         0,
         0,
-        RESOURCE_WEBIX_SCHEMA(priv->resource, resource),
+        tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
         kw  // owned
     );
@@ -3214,7 +3234,7 @@ PRIVATE json_t *cmd_update_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
      *  Get resources to delete.
      *  Search is restricted to id only
      */
-    json_int_t id = kw_get_int(kw, "id", 0, 0);
+    const char *id = kw_get_str(kw, "id", 0, 0);
     if(!id) {
         return msg_iev_build_webix(
             gobj,
@@ -3286,7 +3306,7 @@ PRIVATE json_t *cmd_update_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
     json_t *webix = msg_iev_build_webix(gobj,
         0,
         0,
-        RESOURCE_WEBIX_SCHEMA(priv->resource, resource),
+        tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
         kw  // owned
     );
@@ -3314,7 +3334,7 @@ PRIVATE json_t *cmd_delete_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
      *  Get resources to delete.
      *  Search is restricted to id only
      */
-    json_int_t id = kw_get_int(kw, "id", 0, 0);
+    const char *id = kw_get_str(kw, "id", 0, 0);
     if(!id) {
         return msg_iev_build_webix(gobj,
             -139,
@@ -3411,7 +3431,7 @@ PRIVATE json_t *cmd_top_yunos(hgobj gobj, const char *cmd, json_t *kw, hgobj src
     json_t *webix = msg_iev_build_webix(gobj,
         0,
         json_local_sprintf(cmd),
-        RESOURCE_WEBIX_SCHEMA(priv->resource, resource),
+        tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
         kw  // owned
     );
@@ -3447,7 +3467,7 @@ PRIVATE json_t *cmd_list_yunos(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
     json_t *webix = msg_iev_build_webix(gobj,
         0,
         json_local_sprintf(cmd),
-        RESOURCE_WEBIX_SCHEMA(priv->resource, resource),
+        tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
         kw  // owned
     );
@@ -3499,7 +3519,7 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
         name_version = kw_get_str(kw, "name_version", 0, 0);
     }
 
-    json_int_t realm_id = kw_get_int(kw, "realm_id", 0, 0);
+    const char *realm_id = kw_get_str(kw, "realm_id", 0, 0);
     json_int_t binary_id = kw_get_int(kw, "binary_id", 0, 0);
 
     if(empty_string(yuno_role) && binary_id==0) {
@@ -3739,7 +3759,7 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
                 json_local_sprintf(
                     "Yuno already exists."
                 ),
-                RESOURCE_WEBIX_SCHEMA(priv->resource, resource),
+                tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
                 jn_data,
                 kw  // owned
             );
@@ -3809,7 +3829,7 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
     json_t *webix = msg_iev_build_webix(gobj,
         0,
         0,
-        RESOURCE_WEBIX_SCHEMA(priv->resource, resource),
+        tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
         kw  // owned
     );
@@ -3844,7 +3864,7 @@ json_t* cmd_delete_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
      *      Check Realm
      *---------------------------------------------*/
     const char *realm_name = kw_get_str(kw, "realm_name", "", 0);
-    json_int_t realm_id = kw_get_int(kw, "realm_id", 0, 0);
+    const char *realm_id = kw_get_str(kw, "realm_id", 0, 0);
     if(!realm_id) {
         realm_id = find_last_id_by_name(gobj, "realms", "name", realm_name);
         if(!realm_id) {
@@ -3988,7 +4008,7 @@ PRIVATE json_t *cmd_set_alias(hgobj gobj, const char *cmd, json_t *kw, hgobj src
     json_t *webix = msg_iev_build_webix(gobj,
         0,
         0,
-        RESOURCE_WEBIX_SCHEMA(priv->resource, resource),
+        tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
         kw  // owned
     );
@@ -4005,7 +4025,7 @@ PRIVATE json_t *cmd_top_last_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
 
     const char *realm_name = kw_get_str(kw, "realm_name", "", 0);
-    json_int_t realm_id = kw_get_int(kw, "realm_id", 0, 0);
+    const char *realm_id = kw_get_str(kw, "realm_id", 0, 0);
 
     /*---------------------------------------------*
      *      Check Realm
@@ -6473,23 +6493,21 @@ PRIVATE int run_enabled_yunos(hgobj gobj)
     /*
      *  Esta bien así, no le paso nada, que devuelva all yunos de all reinos.
      */
-    dl_list_t * iter_yunos = gobj_list_resource(priv->resource, resource, 0);
-    hsdata hs_yuno; rc_instance_t *i_hs;
-    i_hs = rc_first_instance(iter_yunos, (rc_resource_t **)&hs_yuno);
-    while(i_hs) {
+    json_t *iter_yunos = gobj_list_nodes(priv->resource, resource, 0, 0, 0);
+    int idx; json_t *yuno;
+    json_array_foreach(iter_yunos, idx, yuno) {
         /*
          *  Activate the yuno
          */
-        BOOL disabled = sdata_read_bool(hs_yuno, "disabled");
+        BOOL disabled = kw_get_bool(yuno, "disabled", 0, KW_REQUIRED);
         if(!disabled) {
-            BOOL running = sdata_read_bool(hs_yuno, "yuno_running");
+            BOOL running = kw_get_bool(yuno, "yuno_running", 0, KW_REQUIRED);
             if(!running) {
-                run_yuno(gobj, hs_yuno, 0);
+                run_yuno(gobj, yuno, 0);
             }
         }
-        i_hs = rc_next_instance(i_hs, (rc_resource_t **)&hs_yuno);
     }
-    rc_free_iter(iter_yunos, TRUE, 0);
+    JSON_DECREF(iter_yunos);
     return 0;
 }
 
@@ -6898,7 +6916,7 @@ PRIVATE int ac_edit_config(hgobj gobj, const char *event, json_t *kw, hgobj src)
     char *resource = "configurations";
 
     const char *name = kw_get_str(kw, "name", 0, 0);
-    json_int_t id = kw_get_int(kw, "id", 0, 0);
+    const char *id = kw_get_str(kw, "id", 0, 0);
     if(!name && id==0) {
         return gobj_send_event(
             src,
@@ -6943,7 +6961,7 @@ PRIVATE int ac_edit_config(hgobj gobj, const char *event, json_t *kw, hgobj src)
     json_t *webix = msg_iev_build_webix(gobj,
         0,
         0,
-        RESOURCE_WEBIX_SCHEMA(priv->resource, resource),
+        tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
         kw  // owned
     );
@@ -6966,7 +6984,7 @@ PRIVATE int ac_view_config(hgobj gobj, const char *event, json_t *kw, hgobj src)
     char *resource = "configurations";
 
     const char *name = kw_get_str(kw, "name", 0, 0);
-    json_int_t id = kw_get_int(kw, "id", 0, 0);
+    const char *id = kw_get_str(kw, "id", 0, 0);
     if(!name && id==0) {
         return gobj_send_event(
             src,
@@ -7120,7 +7138,7 @@ PRIVATE int ac_edit_yuno_config(hgobj gobj, const char *event, json_t *kw, hgobj
     json_t *webix = msg_iev_build_webix(gobj,
         0,
         0,
-        RESOURCE_WEBIX_SCHEMA(priv->resource, resource),
+        tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
         kw  // owned
     );
@@ -7228,7 +7246,7 @@ PRIVATE int ac_view_yuno_config(hgobj gobj, const char *event, json_t *kw, hgobj
     json_t *webix = msg_iev_build_webix(gobj,
         0,
         0,
-        RESOURCE_WEBIX_SCHEMA(priv->resource, resource),
+        tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
         kw  // owned
     );

@@ -837,7 +837,7 @@ SDATA_END()
  *---------------------------------------------*/
 PRIVATE sdata_desc_t tattr_desc[] = {
 /*-ATTR-type------------name----------------flag----------------default---------description---------- */
-SDATA (ASN_OCTET_STR,   "database",         SDF_RD|SDF_REQUIRED,"agent.db",     "Database name"),
+SDATA (ASN_OCTET_STR,   "database",         SDF_RD|SDF_REQUIRED,"agent_treedb", "Database name"),
 SDATA (ASN_OCTET_STR,   "startup_command",  SDF_RD,             0,              "Command to execute at startup"),
 SDATA (ASN_JSON,        "agent_environment",SDF_RD,             0,              "Agent environment. Override the yuno environment."),
 SDATA (ASN_JSON,        "node_variables",   SDF_RD,             0,              "Global to Node json config variables."),
@@ -910,25 +910,10 @@ PRIVATE void mt_create(hgobj gobj)
         fclose(file);
     }
 
-//     //WARNING con sqlite
-//     json_t *kw_resource = json_pack("{s:s, s:s, s:I, s:I}",
-//         "service", "yuneta_agent",
-//         "database", database,
-//         "tb_resources", (json_int_t)(size_t)tb_resources,
-//         "dba", (json_int_t)(size_t)dba_rc_sqlite3()
-//     );
-
-    // WARNING treedb
-    json_t *jn_properties = json_pack("{s:o}",
-        "treedb_schema", jn_treedb_schema_yuneta_agent
-    );
-    database = "agent_treedb"; // WARNING treedb
-    json_t *kw_resource = json_pack("{s:s, s:s, s:I, s:I, s:o}",
+    json_t *kw_resource = json_pack("{s:s, s:s, s:o}",
         "service", "yuneta_agent",
         "database", database,
-        "tb_resources", (json_int_t)(size_t)tb_resources,
-        "dba", (json_int_t)(size_t)dba_rc_treedb(),
-        "properties", jn_properties
+        "treedb_schema", jn_treedb_schema_yuneta_agent
     );
 
     priv->resource = gobj_create_unique(
@@ -8472,18 +8457,18 @@ PRIVATE GCLASS _gclass = {
         0, //mt_publication_filter,
         0, //mt_future38,
         0, //mt_future39,
-        0, //mt_future40,
-        0, //mt_future41,
-        0, //mt_future42,
-        0, //mt_future43,
-        0, //mt_future44,
-        0, //mt_future45,
-        0, //mt_future46,
-        0, //mt_future47,
-        0, //mt_future48,
-        0, //mt_future49,
-        0, //mt_future50,
-        0, //mt_future51,
+        0, //mt_create_node,
+        0, //mt_update_node,
+        0, //mt_delete_node,
+        0, //mt_link_nodes,
+        0, //mt_link_nodes2,
+        0, //mt_unlink_nodes,
+        0, //mt_unlink_nodes2,
+        0, //mt_get_node,
+        0, //mt_list_nodes,
+        0, //mt_snap_nodes,
+        0, //mt_set_nodes_snap,
+        0, //mt_list_nodes_snaps,
         0, //mt_future52,
         0, //mt_future53,
         0, //mt_future54,

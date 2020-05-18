@@ -1647,7 +1647,7 @@ PRIVATE json_t *cmd_replicate_node(hgobj gobj, const char *cmd, json_t *kw, hgob
 //         /*
 //          *  The rule: only enabled yunos and aliased yunos are replicated.
 //          */
-//         BOOL yuno_disabled = sdata_read_bool(hs_yuno, "disabled");
+//         BOOL yuno_disabled = kw_get_bool(yuno, "disabled");
 //         const char *alias = kw_get_str(yuno, "yuno_alias");
 //         if(empty_string(alias)) {
 //             if(yuno_disabled) {
@@ -3752,7 +3752,7 @@ PRIVATE json_t *cmd_top_yunos(hgobj gobj, const char *cmd, json_t *kw, hgobj src
     char *resource = "yunos";
 
     /*
-     *  Get a iter of matched resources.
+     *  Get a iter of matched resources
      */
     json_t *kw_ids = json_array();
     if(kw_has_key(kw, "id")) {
@@ -3768,32 +3768,19 @@ PRIVATE json_t *cmd_top_yunos(hgobj gobj, const char *cmd, json_t *kw, hgobj src
         json_object_del(kw, "__ids__");
     }
 
-    json_t *kw_filter = 0;
     if(kw_has_key(kw, "__filter__")) {
-        kw_filter = kw_get_dict_value(kw, "__filter__", 0, KW_EXTRACT);
+        json_t *kw_filter = kw_get_dict_value(kw, "__filter__", 0, KW_EXTRACT);
+        json_object_update(kw, kw_filter);
+        JSON_DECREF(kw_filter);
     }
 
     json_t *iter = gobj_list_nodes(
         priv->resource,
         resource,
-        kw_incref(kw_ids), // ids
-        kw_incref(kw_filter),  // filter
+        kw_ids, // ids
+        kw_filter_metadata(kw_incref(kw)), // filter
         0
     );
-
-    if(json_array_size(iter)==0) {
-        JSON_DECREF(iter);
-        JSON_DECREF(kw_ids);
-        JSON_DECREF(kw_filter);
-        return msg_iev_build_webix(
-            gobj,
-            -158,
-            json_local_sprintf("Select some yuno please"),
-            0,
-            0,
-            kw  // owned
-        );
-    }
 
     /*
      *  Inform
@@ -3801,13 +3788,11 @@ PRIVATE json_t *cmd_top_yunos(hgobj gobj, const char *cmd, json_t *kw, hgobj src
     json_t *jn_data = json_array();
     int idx; json_t *node;
     json_array_foreach(iter, idx, node) {
-
         BOOL disabled = kw_get_bool(node, "disabled", 0, KW_REQUIRED);
         const char *yuno_alias = kw_get_str(node, "yuno_alias", 0, KW_REQUIRED);
         if(!disabled || !empty_string(yuno_alias)) {
             json_array_append(jn_data, node);
         }
-
     }
     JSON_DECREF(iter);
 
@@ -3830,31 +3815,49 @@ PRIVATE json_t *cmd_list_yunos(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
     char *resource = "yunos";
 
     /*
-     *  Get a iter of matched resources
+     *  Get a iter of matched resources.
      */
-    KW_INCREF(kw);
-    dl_list_t *iter = gobj_list_resource(priv->resource, resource, kw);
-//     iter = sdata_sort_iter_by_id(iter);
+    json_t *kw_ids = json_array();
+    if(kw_has_key(kw, "id")) {
+        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "id", 0, 0));
+        json_array_extend(kw_ids, ids_);
+        JSON_DECREF(ids_);
+        json_object_del(kw, "id");
+    }
+    if(kw_has_key(kw, "__ids__")) {
+        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "__ids__", 0, 0));
+        json_array_extend(kw_ids, ids_);
+        JSON_DECREF(ids_);
+        json_object_del(kw, "__ids__");
+    }
 
-    /*
-     *  Convert hsdata to json
-     */
-    json_t *jn_data = sdata_iter2json(iter, SDF_PERSIST|SDF_RESOURCE|SDF_VOLATIL, 0);
+    if(kw_has_key(kw, "__filter__")) {
+        json_t *kw_filter = kw_get_dict_value(kw, "__filter__", 0, KW_EXTRACT);
+        json_object_update(kw, kw_filter);
+        JSON_DECREF(kw_filter);
+    }
+
+    json_t *iter = gobj_list_nodes(
+        priv->resource,
+        resource,
+        kw_ids, // ids
+        kw_filter_metadata(kw_incref(kw)), // filter
+        0
+    );
 
     /*
      *  Inform
      */
-    json_t *webix = msg_iev_build_webix(gobj,
+    json_t *jn_data = iter;
+
+    return msg_iev_build_webix(
+        gobj,
         0,
-        json_local_sprintf(cmd),
+        0,
         tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
         kw  // owned
     );
-
-    rc_free_iter(iter, TRUE, 0);
-
-    return webix;
 }
 
 /***************************************************************************
@@ -4331,23 +4334,45 @@ PRIVATE json_t *cmd_run_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
     char *resource = "yunos";
 
-    /*------------------------------------------------*
-     *      Get the yunos
-     *------------------------------------------------*/
-    if(kw) {
-        KW_INCREF(kw);
-    } else {
-        kw = json_object();
-    }
+    /*
+     *  Get a iter of matched resources.
+     */
+    json_t *kw_ids = json_array();
+
     json_object_set_new(kw, "disabled", json_false());
-    dl_list_t * iter_yunos = gobj_list_resource(priv->resource, resource, kw);
-    int found = rc_iter_size(iter_yunos);
-    if(found == 0) {
-        rc_free_iter(iter_yunos, TRUE, 0);
+
+    if(kw_has_key(kw, "id")) {
+        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "id", 0, 0));
+        json_array_extend(kw_ids, ids_);
+        JSON_DECREF(ids_);
+        json_object_del(kw, "id");
+    }
+    if(kw_has_key(kw, "__ids__")) {
+        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "__ids__", 0, 0));
+        json_array_extend(kw_ids, ids_);
+        JSON_DECREF(ids_);
+        json_object_del(kw, "__ids__");
+    }
+
+    if(kw_has_key(kw, "__filter__")) {
+        json_t *kw_filter = kw_get_dict_value(kw, "__filter__", 0, KW_EXTRACT);
+        json_object_update(kw, kw_filter);
+        JSON_DECREF(kw_filter);
+    }
+
+    json_t *iter = gobj_list_nodes(
+        priv->resource,
+        resource,
+        kw_ids, // ids
+        kw_filter_metadata(kw_incref(kw)), // filter
+        0
+    );
+    if(json_array_size(iter)==0) {
+        JSON_DECREF(iter);
         return msg_iev_build_webix(gobj,
             -161,
             json_local_sprintf(
-                "No yuno found to run."
+                "No yuno found"
             ),
             0,
             0,
@@ -4362,30 +4387,30 @@ PRIVATE json_t *cmd_run_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
      *------------------------------------------------*/
     json_t *filterlist = json_array();
     int total_run = 0;
-    json_t *yuno; rc_instance_t *i_hs;
-    i_hs = rc_first_instance(iter_yunos, (rc_resource_t **)&hs_yuno);
-    while(i_hs) {
+
+    int idx; json_t *yuno;
+    json_array_foreach(iter, idx, yuno) {
         /*
          *  Run the yuno
          */
-        BOOL disabled = sdata_read_bool(hs_yuno, "disabled");
-        BOOL yuno_running = sdata_read_bool(hs_yuno, "yuno_running");
+        BOOL disabled = kw_get_bool(yuno, "disabled", 0, KW_REQUIRED);
+        BOOL yuno_running = kw_get_bool(yuno, "yuno_running", 0, KW_REQUIRED);
         if(!disabled && !yuno_running) {
-            int r = run_yuno(gobj, hs_yuno, src);
+            int r = run_yuno(gobj, yuno, src);
             if(r==0) {
-                json_int_t id = SDATA_GET_ID(hs_yuno);
-                json_t *jn_EvChkItem = json_pack("{s:s, s:{s:I, s:I, s:I}}",
+                const char *id = SDATA_GET_ID(yuno);
+                json_t *jn_EvChkItem = json_pack("{s:s, s:{s:s, s:s, s:s}}",
                     "event", "EV_ON_OPEN",
                     "filters",
-                        "identity_card`realm_id", sdata_read_uint64(hs_yuno, "realm_id"),
+                        "identity_card`realm_id", kw_get_str(yuno, "realm_id", "", KW_REQUIRED),
                         "identity_card`yuno_id", id,
-                        "identity_card`launch_id", sdata_read_uint64(hs_yuno, "launch_id")
+                        "identity_card`launch_id", kw_get_str(yuno, "launch_id", "", KW_REQUIRED)
                 );
                 json_array_append_new(filterlist, jn_EvChkItem);
                 if(src != gobj) {
-                    sdata_write_str(hs_yuno, "solicitante", gobj_name(src));
+                    json_object_set_new(yuno, "solicitante", json_string(gobj_name(src)));
                 } else {
-                    sdata_write_str(hs_yuno, "solicitante", "");
+                    json_object_set_new(yuno, "solicitante", json_string(""));
                 }
                 total_run++;
             } else {
@@ -4401,12 +4426,11 @@ PRIVATE json_t *cmd_run_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
             }
 
         }
-        i_hs = rc_next_instance(i_hs, (rc_resource_t **)&hs_yuno);
     }
 
     if(!total_run) {
-        rc_free_iter(iter_yunos, TRUE, 0);
         JSON_DECREF(filterlist);
+        JSON_DECREF(iter);
         return msg_iev_build_webix(gobj,
             -162,
             json_local_sprintf(
@@ -4433,7 +4457,7 @@ PRIVATE json_t *cmd_run_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
         "max_count", total_run,
         "expiration_timeout", 10*1000,
         "input_schema", filterlist, // owned
-        "user_data", (json_int_t)(size_t)iter_yunos,    // HACK free en diferido, en ac_final_count()
+        "user_data", (json_int_t)(size_t)iter,    // HACK free en diferido, en ac_final_count()
         "user_data2", (json_int_t)(size_t)kw_answer     // HACK free en diferido, ac_final_count()
     );
 
@@ -4445,7 +4469,12 @@ PRIVATE json_t *cmd_run_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
     json_t *kw_sub = json_pack("{s:{s:s}}",
         "__config__", "__rename_event_name__", "EV_COUNT"
     );
-    gobj_subscribe_event(gobj_child_by_name(gobj, "__input_side__", 0), "EV_ON_OPEN", kw_sub, gobj_counter);
+    gobj_subscribe_event(
+        gobj_child_by_name(gobj, "__input_side__", 0),
+        "EV_ON_OPEN",
+        kw_sub,
+        gobj_counter
+    );
 
 // KKK
     /*
@@ -4497,20 +4526,45 @@ PRIVATE json_t *cmd_kill_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
     /*------------------------------------------------*
      *      Get the yunos
      *------------------------------------------------*/
-    if(kw) {
-        KW_INCREF(kw);
-    } else {
-        kw = json_object();
+    /*
+     *  Get a iter of matched resources.
+     */
+    json_t *kw_ids = json_array();
+
+    json_object_set_new(kw, "disabled", json_false());
+
+    if(kw_has_key(kw, "id")) {
+        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "id", 0, 0));
+        json_array_extend(kw_ids, ids_);
+        JSON_DECREF(ids_);
+        json_object_del(kw, "id");
     }
-    json_object_set_new(kw, "yuno_running", json_true());
-    dl_list_t * iter_yunos = gobj_list_resource(priv->resource, resource, kw);
-    int total_to_kill = rc_iter_size(iter_yunos);
-    if(total_to_kill == 0) {
-        rc_free_iter(iter_yunos, TRUE, 0);
+    if(kw_has_key(kw, "__ids__")) {
+        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "__ids__", 0, 0));
+        json_array_extend(kw_ids, ids_);
+        JSON_DECREF(ids_);
+        json_object_del(kw, "__ids__");
+    }
+
+    if(kw_has_key(kw, "__filter__")) {
+        json_t *kw_filter = kw_get_dict_value(kw, "__filter__", 0, KW_EXTRACT);
+        json_object_update(kw, kw_filter);
+        JSON_DECREF(kw_filter);
+    }
+
+    json_t *iter = gobj_list_nodes(
+        priv->resource,
+        resource,
+        kw_ids, // ids
+        kw_filter_metadata(kw_incref(kw)), // filter
+        0
+    );
+    if(json_array_size(iter)==0) {
+        JSON_DECREF(iter);
         return msg_iev_build_webix(gobj,
-            -164,
+            -161,
             json_local_sprintf(
-                "No yuno found to kill."
+                "No yuno found"
             ),
             0,
             0,
@@ -4531,21 +4585,19 @@ PRIVATE json_t *cmd_kill_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
      *------------------------------------------------*/
     json_t *filterlist = json_array();
     int total_killed = 0;
-    json_t *yuno; rc_instance_t *i_hs;
-    i_hs = rc_last_instance(iter_yunos, (rc_resource_t **)&hs_yuno);
-    while(i_hs) {
+    int idx; json_t *yuno;
+    json_array_foreach(iter, idx, yuno) {
         /*
          *  Kill the yuno
          */
-        BOOL yuno_running = sdata_read_bool(hs_yuno, "yuno_running");
-        json_int_t id = SDATA_GET_ID(hs_yuno);
-        if(app && id < 1000) {
-            i_hs = rc_prev_instance(i_hs, (rc_resource_t **)&hs_yuno);
+        BOOL yuno_running = kw_get_bool(yuno, "yuno_running", 0, KW_REQUIRED);
+        const char *id = SDATA_GET_ID(yuno);
+        if(app && atoi(id) < 1000) {
             continue;
         }
         if(yuno_running) {
-            if(kill_yuno(gobj, hs_yuno)==0) {
-                json_int_t channel_gobj = (json_int_t)(size_t)sdata_read_pointer(hs_yuno, "channel_gobj");
+            if(kill_yuno(gobj, yuno)==0) {
+                json_int_t channel_gobj = (json_int_t)(size_t)kw_get_int(yuno, "channel_gobj", 0, KW_REQUIRED);
                 json_t *jn_EvChkItem = json_pack("{s:s, s:{s:I}}",
                     "event", "EV_ON_CLOSE",
                     "filters",
@@ -4557,7 +4609,7 @@ PRIVATE json_t *cmd_kill_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
                 if(force) {
                     gobj_write_int32_attr(gobj, "signal2kill", prev_signal2kill);
                 }
-                rc_free_iter(iter_yunos, TRUE, 0);
+                JSON_DECREF(iter);
                 JSON_DECREF(filterlist);
                 return msg_iev_build_webix(gobj,
                     -165,
@@ -4570,7 +4622,6 @@ PRIVATE json_t *cmd_kill_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
                 );
             }
         }
-        i_hs = rc_prev_instance(i_hs, (rc_resource_t **)&hs_yuno);
     }
 
     if(force) {
@@ -4578,7 +4629,7 @@ PRIVATE json_t *cmd_kill_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
     }
 
     if(!total_killed) {
-        rc_free_iter(iter_yunos, TRUE, 0);
+        JSON_DECREF(iter);
         JSON_DECREF(filterlist);
         return msg_iev_build_webix(gobj,
             -166,
@@ -4606,7 +4657,7 @@ PRIVATE json_t *cmd_kill_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
         "max_count", total_killed,
         "expiration_timeout", 10*1000,
         "input_schema", filterlist, // owned
-        "user_data", (json_int_t)(size_t)iter_yunos,    // HACK free en diferido, en ac_final_count()
+        "user_data", (json_int_t)(size_t)iter,    // HACK free en diferido, en ac_final_count()
         "user_data2", (json_int_t)(size_t)kw_answer     // HACK free en diferido, ac_final_count()
     );
 
@@ -4618,7 +4669,12 @@ PRIVATE json_t *cmd_kill_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
     /*
      *  Subcribe al objeto counter a los eventos del router
      */
-    gobj_subscribe_event(gobj_child_by_name(gobj, "__input_side__", 0), "EV_ON_CLOSE", kw_sub, gobj_counter);
+    gobj_subscribe_event(
+        gobj_child_by_name(gobj, "__input_side__", 0),
+        "EV_ON_CLOSE",
+        kw_sub,
+        gobj_counter
+    );
 
 // KKK
     /*
@@ -4659,19 +4715,42 @@ PRIVATE json_t *cmd_play_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
     /*------------------------------------------------*
      *      Get the yunos
      *------------------------------------------------*/
-    if(kw) {
-        KW_INCREF(kw);
-    } else {
-        kw = json_object();
-    }
+    json_t *kw_ids = json_array();
+
     json_object_set_new(kw, "disabled", json_false());
-    dl_list_t * iter_yunos = gobj_list_resource(priv->resource, resource, kw);
-    if(rc_iter_size(iter_yunos) == 0) {
-        rc_free_iter(iter_yunos, TRUE, 0);
+
+    if(kw_has_key(kw, "id")) {
+        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "id", 0, 0));
+        json_array_extend(kw_ids, ids_);
+        JSON_DECREF(ids_);
+        json_object_del(kw, "id");
+    }
+    if(kw_has_key(kw, "__ids__")) {
+        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "__ids__", 0, 0));
+        json_array_extend(kw_ids, ids_);
+        JSON_DECREF(ids_);
+        json_object_del(kw, "__ids__");
+    }
+
+    if(kw_has_key(kw, "__filter__")) {
+        json_t *kw_filter = kw_get_dict_value(kw, "__filter__", 0, KW_EXTRACT);
+        json_object_update(kw, kw_filter);
+        JSON_DECREF(kw_filter);
+    }
+
+    json_t *iter = gobj_list_nodes(
+        priv->resource,
+        resource,
+        kw_ids, // ids
+        kw_filter_metadata(kw_incref(kw)), // filter
+        0
+    );
+    if(json_array_size(iter)==0) {
+        JSON_DECREF(iter);
         return msg_iev_build_webix(gobj,
-            -168,
+            -161,
             json_local_sprintf(
-                "No yuno found to play."
+                "No yuno found"
             ),
             0,
             0,
@@ -4688,24 +4767,28 @@ PRIVATE json_t *cmd_play_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
     int total_already_playing = 0;
     int total_to_played = 0;
     int total_to_preplayed = 0;
-    json_t *yuno; rc_instance_t *i_hs;
-    i_hs = rc_first_instance(iter_yunos, (rc_resource_t **)&hs_yuno);
-    while(i_hs) {
+    int idx; json_t *yuno;
+    json_array_foreach(iter, idx, yuno) {
         /*
          *  Play the yuno
          */
-        if(!sdata_read_bool(hs_yuno, "must_play")) {
-            sdata_write_bool(hs_yuno, "must_play", TRUE);
-            gobj_update_resource(priv->resource, hs_yuno);
+        if(!kw_get_bool(yuno, "must_play", 0, KW_REQUIRED)) {
+            json_object_set_new(yuno, "must_play", json_true());
+
+            gobj_update_node( // Return is NOT YOURS
+                gobj,
+                resource,
+                kw_incref(yuno),    // owned
+                ""
+            );
             total_to_preplayed++;
         }
 
-        BOOL yuno_running = sdata_read_bool(hs_yuno, "yuno_running");
+        BOOL yuno_running = kw_get_bool(yuno, "yuno_running", 0, KW_REQUIRED);
         if(!yuno_running) {
-            i_hs = rc_next_instance(i_hs, (rc_resource_t **)&hs_yuno);
             continue;
         }
-        BOOL yuno_playing = sdata_read_bool(hs_yuno, "yuno_playing");
+        BOOL yuno_playing = kw_get_bool(yuno, "yuno_playing", 0, KW_REQUIRED);
         if(!yuno_playing) {
             /*
              *  HACK le meto un id al mensaje de petición PLAY_YUNO
@@ -4714,7 +4797,7 @@ PRIVATE json_t *cmd_play_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
             json_int_t filter_ref = (json_int_t)long_reference();
             json_t *jn_msg = json_object();
             kw_set_subdict_value(jn_msg, "__md_iev__", "__id__", json_integer(filter_ref));
-            if(play_yuno(gobj, hs_yuno, jn_msg, src)==0) {
+            if(play_yuno(gobj, yuno, jn_msg, src)==0) {
                 /*
                  *  HACK Guarda el filtro para el counter.
                  *  Realmente solo se necesita para informar al cliente
@@ -4731,15 +4814,9 @@ PRIVATE json_t *cmd_play_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
         } else {
             total_already_playing++;
         }
-        i_hs = rc_next_instance(i_hs, (rc_resource_t **)&hs_yuno);
     }
 
     if(!total_to_played && !total_to_preplayed) {
-        json_t *jn_data = 0;
-        if(total_already_playing) {
-            jn_data = sdata_iter2json(iter_yunos, SDF_PERSIST|SDF_RESOURCE|SDF_VOLATIL, 0);
-        }
-        rc_free_iter(iter_yunos, TRUE, 0);
         JSON_DECREF(filterlist);
         return msg_iev_build_webix(gobj,
             0,
@@ -4747,12 +4824,12 @@ PRIVATE json_t *cmd_play_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
                 "No yuno found to play."
             ),
             0,
-            jn_data, // owned
+            iter, // owned
             kw  // owned
         );
     }
     if(!total_to_played) {
-        rc_free_iter(iter_yunos, TRUE, 0);
+        JSON_DECREF(iter);
         JSON_DECREF(filterlist);
         return msg_iev_build_webix(gobj,
             0,
@@ -4784,7 +4861,7 @@ PRIVATE json_t *cmd_play_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
         "max_count", total_to_played,
         "expiration_timeout", 10*1000,
         "input_schema", filterlist, // owned
-        "user_data", (json_int_t)(size_t)iter_yunos,    // HACK free en diferido, en ac_final_count()
+        "user_data", (json_int_t)(size_t)iter,    // HACK free en diferido, en ac_final_count()
         "user_data2", (json_int_t)(size_t)kw_answer     // HACK free en diferido, ac_final_count()
     );
 
@@ -4842,19 +4919,42 @@ PRIVATE json_t *cmd_pause_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
     /*------------------------------------------------*
      *      Get the yunos
      *------------------------------------------------*/
-    if(kw) {
-        KW_INCREF(kw);
-    } else {
-        kw = json_object();
-    }
+    json_t *kw_ids = json_array();
+
     json_object_set_new(kw, "disabled", json_false());
-    dl_list_t * iter_yunos = gobj_list_resource(priv->resource, resource, kw);
-    if(rc_iter_size(iter_yunos) == 0) {
-        rc_free_iter(iter_yunos, TRUE, 0);
+
+    if(kw_has_key(kw, "id")) {
+        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "id", 0, 0));
+        json_array_extend(kw_ids, ids_);
+        JSON_DECREF(ids_);
+        json_object_del(kw, "id");
+    }
+    if(kw_has_key(kw, "__ids__")) {
+        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "__ids__", 0, 0));
+        json_array_extend(kw_ids, ids_);
+        JSON_DECREF(ids_);
+        json_object_del(kw, "__ids__");
+    }
+
+    if(kw_has_key(kw, "__filter__")) {
+        json_t *kw_filter = kw_get_dict_value(kw, "__filter__", 0, KW_EXTRACT);
+        json_object_update(kw, kw_filter);
+        JSON_DECREF(kw_filter);
+    }
+
+    json_t *iter = gobj_list_nodes(
+        priv->resource,
+        resource,
+        kw_ids, // ids
+        kw_filter_metadata(kw_incref(kw)), // filter
+        0
+    );
+    if(json_array_size(iter)==0) {
+        JSON_DECREF(iter);
         return msg_iev_build_webix(gobj,
-            -172,
+            -161,
             json_local_sprintf(
-                "No yuno found to pause."
+                "No yuno found"
             ),
             0,
             0,
@@ -4871,23 +4971,28 @@ PRIVATE json_t *cmd_pause_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
     int total_already_pausing = 0;
     int total_to_paused = 0;
     int total_to_prepaused = 0;
-    json_t *yuno; rc_instance_t *i_hs;
-    i_hs = rc_last_instance(iter_yunos, (rc_resource_t **)&hs_yuno);
-    while(i_hs) {
+    int idx; json_t *yuno;
+    json_array_foreach(iter, idx, yuno) {
         /*
          *  Pause the yuno
          */
-        if(sdata_read_bool(hs_yuno, "must_play")) {
-            sdata_write_bool(hs_yuno, "must_play", FALSE);
-            gobj_update_resource(priv->resource, hs_yuno);
+        if(kw_get_bool(yuno, "must_play", 0, KW_REQUIRED)) {
+            json_object_set_new(yuno, "must_play", json_false());
+
+            gobj_update_node( // Return is NOT YOURS
+                gobj,
+                resource,
+                kw_incref(yuno),    // owned
+                ""
+            );
             total_to_prepaused++;
         }
-        BOOL yuno_playing = sdata_read_bool(hs_yuno, "yuno_playing");
+        BOOL yuno_playing = kw_get_bool(yuno, "yuno_playing", 0, KW_REQUIRED);
         if(yuno_playing) {
             json_int_t filter_ref = (json_int_t)long_reference();
             json_t *jn_msg = json_object();
             kw_set_dict_value(jn_msg, "__md_iev__`__id__", json_integer(filter_ref));
-            if(pause_yuno(gobj, hs_yuno, jn_msg, src)==0) {
+            if(pause_yuno(gobj, yuno, jn_msg, src)==0) {
                 json_t *jn_EvChkItem = json_pack("{s:s, s:{s:I}}",
                     "event", "EV_PAUSE_YUNO_ACK",
                     "filters",
@@ -4899,15 +5004,9 @@ PRIVATE json_t *cmd_pause_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
         } else {
             total_already_pausing++;
         }
-        i_hs = rc_prev_instance(i_hs, (rc_resource_t **)&hs_yuno);
     }
 
     if(!total_to_paused && !total_to_prepaused) {
-        json_t *jn_data = 0;
-        if(total_already_pausing) {
-            jn_data = sdata_iter2json(iter_yunos, SDF_PERSIST|SDF_RESOURCE|SDF_VOLATIL, 0);
-        }
-        rc_free_iter(iter_yunos, TRUE, 0);
         JSON_DECREF(filterlist);
         return msg_iev_build_webix(gobj,
             0,
@@ -4915,12 +5014,12 @@ PRIVATE json_t *cmd_pause_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
                 "No yuno found to pause."
             ),
             0,
-            jn_data,
+            iter,
             kw  // owned
         );
     }
     if(!total_to_paused) {
-        rc_free_iter(iter_yunos, TRUE, 0);
+        JSON_DECREF(iter);
         JSON_DECREF(filterlist);
         return msg_iev_build_webix(gobj,
             0,
@@ -4952,7 +5051,7 @@ PRIVATE json_t *cmd_pause_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
         "max_count", total_to_paused,
         "expiration_timeout", 10*1000,
         "input_schema", filterlist, // owned
-        "user_data", (json_int_t)(size_t)iter_yunos,    // HACK free en diferido, en ac_final_count()
+        "user_data", (json_int_t)(size_t)iter,    // HACK free en diferido, en ac_final_count()
         "user_data2", (json_int_t)(size_t)kw_answer     // HACK free en diferido, ac_final_count()
     );
 
@@ -5036,7 +5135,7 @@ PRIVATE json_t* cmd_enable_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj s
         /*
          *  Enable yuno
          */
-        BOOL disabled = sdata_read_bool(hs_yuno, "disabled");
+        BOOL disabled = kw_get_bool(yuno, "disabled");
         if(disabled) {
             enable_yuno(gobj, hs_yuno);
         }
@@ -5090,13 +5189,13 @@ PRIVATE json_t* cmd_disable_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj 
         /*
          *  Disable yuno
          */
-        BOOL disabled = sdata_read_bool(hs_yuno, "disabled");
+        BOOL disabled = kw_get_bool(yuno, "disabled");
         if(!disabled) {
-            BOOL playing = sdata_read_bool(hs_yuno, "yuno_playing");
+            BOOL playing = kw_get_bool(yuno, "yuno_playing");
             if(playing) {
                 pause_yuno(gobj, hs_yuno, 0, src);
             }
-            BOOL running = sdata_read_bool(hs_yuno, "yuno_running");
+            BOOL running = kw_get_bool(yuno, "yuno_running");
             if(running) {
                 kill_yuno(gobj, hs_yuno);
             }
@@ -5312,7 +5411,7 @@ PRIVATE json_t *cmd_command_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         /*
          *  Command to yuno
          */
-        BOOL running = sdata_read_bool(hs_yuno, "yuno_running");
+        BOOL running = kw_get_bool(yuno, "yuno_running");
         if(running) {
             json_t *kw_yuno = json_deep_copy(kw);
             command_to_yuno(gobj, hs_yuno, command, kw_yuno, src);
@@ -5390,7 +5489,7 @@ PRIVATE json_t *cmd_stats_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
         /*
          *  Stats of yuno
          */
-        BOOL running = sdata_read_bool(hs_yuno, "yuno_running");
+        BOOL running = kw_get_bool(yuno, "yuno_running");
         if(running) {
             json_t *kw_yuno = json_deep_copy(kw);
             stats_to_yuno(gobj, hs_yuno, stats, kw_yuno, src);
@@ -7061,7 +7160,7 @@ PRIVATE int register_public_services(hgobj gobj, json_t *yuno)
              *  Write calculated fields: ip, port (__service_ip__, __service_port__)
              */
             const char *ip;
-            BOOL public_ = sdata_read_bool(hs_yuno, "global");
+            BOOL public_ = kw_get_bool(yuno, "global");
             if(public_) {
                 ip = sdata_read_str(hs_realm, "bind_ip");
             } else {
@@ -8341,7 +8440,7 @@ PRIVATE int ac_on_open(hgobj gobj, const char *event, json_t *kw, hgobj src)
      *---------------*/
     if(!playing) {
         const char *solicitante = kw_get_str(yuno, "solicitante");
-        BOOL must_play = sdata_read_bool(hs_yuno, "must_play");
+        BOOL must_play = kw_get_bool(yuno, "must_play");
         if(must_play) {
             hgobj gobj_requester = 0;
             if(!empty_string(solicitante)) {

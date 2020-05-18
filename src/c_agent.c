@@ -93,7 +93,7 @@ PRIVATE int stats_to_yuno(
 );
 PRIVATE int total_yunos_in_realm(hgobj gobj, const char *realm_id);
 PRIVATE int total_binary_in_yunos(hgobj gobj, const char *binary_id);
-PRIVATE int total_config_in_yunos(hgobj gobj, json_int_t config_id);
+PRIVATE int total_config_in_yunos(hgobj gobj, const char *config_id);
 PRIVATE int audit_command_cb(const char *command, json_t *kw, void *user_data);
 
 PRIVATE hsdata get_hs_by_id(hgobj gobj, const char *resource, json_int_t parent_id, json_int_t id);
@@ -342,7 +342,6 @@ PRIVATE json_t *cmd_delete_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
 PRIVATE json_t *cmd_list_configs(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_create_config(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_update_config(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
-PRIVATE json_t *cmd_upgrade_config(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_delete_config(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 
 PRIVATE json_t *cmd_top_yunos(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
@@ -686,7 +685,7 @@ SDATA_END()
 
 PRIVATE sdata_desc_t pm_edit_config[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
-SDATAPM (ASN_JSON,      "id",           0,              0,          "Id"),
+SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id"),
 SDATAPM (ASN_OCTET_STR, "name",         0,              0,          "configuration name"),
 SDATAPM (ASN_OCTET_STR, "version",      0,              0,          "configuration version"),
 SDATA_END()
@@ -694,7 +693,7 @@ SDATA_END()
 
 PRIVATE sdata_desc_t pm_view_config[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
-SDATAPM (ASN_JSON,      "id",           0,              0,          "Id"),
+SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id"),
 SDATAPM (ASN_OCTET_STR, "name",         0,              0,          "configuration name"),
 SDATAPM (ASN_OCTET_STR, "version",      0,              0,          "configuration version"),
 SDATA_END()
@@ -702,16 +701,7 @@ SDATA_END()
 
 PRIVATE sdata_desc_t pm_update_config[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
-SDATAPM (ASN_JSON,      "id",           0,              0,          "id"),
-SDATAPM (ASN_OCTET_STR, "version",      0,              0,          "configuration version"),
-SDATAPM (ASN_OCTET_STR, "description",  0,              0,          "description"),
-SDATAPM (ASN_OCTET_STR, "content64",    0,              0,          "content in base64"),
-SDATA_END()
-};
-PRIVATE sdata_desc_t pm_upgrade_config[] = {
-/*-PM----type-----------name------------flag------------default-----description---------- */
-SDATAPM (ASN_JSON,      "id",           0,              0,          "id"),
-SDATAPM (ASN_OCTET_STR, "name",         0,              0,          "configuration name"),
+SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id"),
 SDATAPM (ASN_OCTET_STR, "version",      0,              0,          "configuration version"),
 SDATAPM (ASN_OCTET_STR, "description",  0,              0,          "description"),
 SDATAPM (ASN_OCTET_STR, "content64",    0,              0,          "content in base64"),
@@ -819,7 +809,6 @@ SDATACM2 (ASN_SCHEMA,   "create-config",    0,                  0,              
 SDATACM2 (ASN_SCHEMA,   "edit-config",      0,                  a_edit_config,      pm_edit_config, 0,              "Edit configuration"),
 SDATACM2 (ASN_SCHEMA,   "view-config",      0,                  a_view_config,      pm_view_config, 0,              "View configuration"),
 SDATACM2 (ASN_SCHEMA,   "update-config",    0,                  0,                  pm_update_config,cmd_update_config, "Update configuration"),
-SDATACM2 (ASN_SCHEMA,   "upgrade-config",   0,                  0,                  pm_upgrade_config,cmd_upgrade_config, "Upgrade configuration (create a new id)"),
 SDATACM2 (ASN_SCHEMA,   "delete-config",    0,                  0,                  pm_delete_config,cmd_delete_config, "Delete configuration"),
 SDATACM2 (ASN_SCHEMA,   "",                 0,                  0,                  0,              0,              ""),
 SDATACM2 (ASN_SCHEMA,   "create-yuno",      0,                  0,                  pm_create_yuno, cmd_create_yuno, "Create yuno"),
@@ -2396,9 +2385,9 @@ PRIVATE json_t *cmd_update_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
     char *resource = "realms";
 
-   /*
-    *  Get a iter of matched resources.
-    */
+    /*
+     *  Get a iter of matched resources.
+     */
     json_t *kw_ids = json_array();
     if(kw_has_key(kw, "id")) {
         json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "id", 0, 0));
@@ -2482,9 +2471,9 @@ PRIVATE json_t *cmd_delete_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
 
     BOOL force = kw_get_bool(kw, "force", 0, 0);
 
-   /*
-    *  Get a iter of matched resources.
-    */
+    /*
+     *  Get a iter of matched resources.
+     */
     json_t *kw_ids = json_array();
     if(kw_has_key(kw, "id")) {
         json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "id", 0, 0));
@@ -2539,7 +2528,7 @@ PRIVATE json_t *cmd_delete_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
             return msg_iev_build_webix(
                 gobj,
                 -115,
-                json_local_sprintf("Cannot delete realm '%s'. It has %d yunos.",
+                json_local_sprintf("Cannot delete realm '%s'. Using in %d yunos.",
                     kw_get_str(node, "id", "", KW_REQUIRED),
                     use
                 ),
@@ -2553,7 +2542,9 @@ PRIVATE json_t *cmd_delete_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
     /*
      *  Delete
      */
+    json_t *jn_data = json_array();
     json_array_foreach(iter, idx, node) {
+        json_array_append_new(jn_data, json_string(kw_get_str(node, "name", "", 0)));
         if(gobj_delete_node(priv->resource, resource, node, force?"force":"")<0) {
             JSON_DECREF(iter);
             JSON_DECREF(kw_ids);
@@ -2570,19 +2561,14 @@ PRIVATE json_t *cmd_delete_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
     }
 
     JSON_DECREF(iter);
+    JSON_DECREF(kw_ids);
+    JSON_DECREF(kw_filter);
 
-    json_t *jn_data = gobj_list_nodes(
-        priv->resource,
-        resource,
-        kw_ids, // ids
-        kw_filter,  // filter
-        0
-    );
     return msg_iev_build_webix(
         gobj,
         0,
         json_local_sprintf("%d realms deleted", idx),
-        tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
+        0,
         jn_data,
         kw  // owned
     );
@@ -3095,9 +3081,9 @@ PRIVATE json_t *cmd_delete_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
 
     BOOL force = kw_get_bool(kw, "force", 0, 0);
 
-   /*
-    *  Get a iter of matched resources.
-    */
+    /*
+     *  Get a iter of matched resources.
+     */
     json_t *kw_ids = json_array();
     if(kw_has_key(kw, "id")) {
         json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "id", 0, 0));
@@ -3152,7 +3138,7 @@ PRIVATE json_t *cmd_delete_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
             return msg_iev_build_webix(
                 gobj,
                 -131,
-                json_local_sprintf("Cannot delete binary '%s'. It has %d yunos.",
+                json_local_sprintf("Cannot delete binary '%s'. Using in %d yunos.",
                     kw_get_str(node, "id", "", KW_REQUIRED),
                     use
                 ),
@@ -3229,19 +3215,38 @@ PRIVATE json_t *cmd_list_configs(hgobj gobj, const char *cmd, json_t *kw, hgobj 
     /*
      *  Get a iter of matched resources
      */
-    KW_INCREF(kw);
-    dl_list_t *iter = gobj_list_resource(priv->resource, resource, kw);
-//     iter = sdata_sort_iter_by_id(iter);
+    json_t *kw_ids = json_array();
+    if(kw_has_key(kw, "id")) {
+        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "id", 0, 0));
+        json_array_extend(kw_ids, ids_);
+        JSON_DECREF(ids_);
+        json_object_del(kw, "id");
+    }
+    if(kw_has_key(kw, "__ids__")) {
+        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "__ids__", 0, 0));
+        json_array_extend(kw_ids, ids_);
+        JSON_DECREF(ids_);
+        json_object_del(kw, "__ids__");
+    }
 
-    /*
-     *  Convert hsdata to json
-     */
-    json_t *jn_data = sdata_iter2json(iter, SDF_PERSIST|SDF_RESOURCE|SDF_VOLATIL, 0);
+    if(kw_has_key(kw, "__filter__")) {
+        json_t *kw_filter = kw_get_dict_value(kw, "__filter__", 0, KW_EXTRACT);
+        json_object_update(kw, kw_filter);
+        JSON_DECREF(kw_filter);
+    }
+
+    json_t *jn_data = gobj_list_nodes(
+        priv->resource,
+        resource,
+        kw_ids, // ids
+        kw_filter_metadata(kw_incref(kw)), // filter
+        0
+    );
 
     /*
      *  Inform
      */
-    json_t *webix = msg_iev_build_webix(
+    return msg_iev_build_webix(
         gobj,
         0,
         json_local_sprintf(cmd),
@@ -3249,10 +3254,6 @@ PRIVATE json_t *cmd_list_configs(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         jn_data, // owned
         kw  // owned
     );
-
-    rc_free_iter(iter, TRUE, 0);
-
-    return webix;
 }
 
 /***************************************************************************
@@ -3277,26 +3278,29 @@ PRIVATE json_t *cmd_create_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
         "name", name,
         "version", version
     );
-    dl_list_t * iter_find = gobj_list_resource(priv->resource, resource, kw_find);
-    if(dl_size(iter_find)) {
+    json_t *iter = gobj_list_nodes(
+        priv->resource,
+        resource,
+        0, // ids
+        kw_find, // filter
+        0
+    );
+    if(json_array_size(iter)) {
         /*
          *  1 o more records, yuno already stored and without overwrite.
          */
-        json_t *jn_data = sdata_iter2json(iter_find, SDF_PERSIST, 0);
-        json_t *webix = msg_iev_build_webix(
+        return msg_iev_build_webix(
             gobj,
             -133,
             json_local_sprintf(
-                "Configuration already exists."
+                "Configuration already exists"
             ),
             tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
-            jn_data,
+            iter,
             kw  // owned
         );
-        rc_free_iter(iter_find, TRUE, 0);
-        return webix;
     }
-    rc_free_iter(iter_find, TRUE, 0);
+    JSON_DECREF(iter);
 
     /*
      *  Get content in base64 and decode
@@ -3350,19 +3354,19 @@ PRIVATE json_t *cmd_create_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
         json_object_set_new(
             kw_configuration,
             "id",
-            json_integer(id)
+            json_string(id)
         );
     }
 
-    /*------------------------------------------------*
-     *      Store in db
-     *------------------------------------------------*/
-    hsdata hs = gobj_create_resource(priv->resource, resource, kw_configuration);
-    if(!hs) {
+    /*
+     *  Add to database
+     */
+    json_t *node = gobj_create_node(priv->resource, resource, kw_configuration, "");
+    if(!node) {
         return msg_iev_build_webix(
             gobj,
             -135,
-            json_local_sprintf("Cannot create resource"),
+            json_local_sprintf("Cannot create node"),
             0,
             0,
             kw  // owned
@@ -3370,15 +3374,12 @@ PRIVATE json_t *cmd_create_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
     }
 
     /*
-     *  Convert result in json
-     */
-    json_t *jn_data = json_array();
-    json_array_append_new(jn_data, sdata2json(hs, SDF_PERSIST, 0));
-
-    /*
      *  Inform
      */
-    json_t *webix = msg_iev_build_webix(
+    json_t *jn_data = json_array();
+    json_array_append(jn_data, node);
+
+    return msg_iev_build_webix(
         gobj,
         0,
         0,
@@ -3386,8 +3387,6 @@ PRIVATE json_t *cmd_create_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
         jn_data, // owned
         kw  // owned
     );
-
-    return webix;
 }
 
 /***************************************************************************
@@ -3413,8 +3412,9 @@ PRIVATE json_t *cmd_update_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
             kw  // owned
         );
     }
-    hsdata hs = gobj_get_resource(priv->resource, resource, 0, id);
-    if(!hs) {
+
+    json_t *node = gobj_get_node(priv->resource, resource, id);
+    if(!node) {
         return msg_iev_build_webix(
             gobj,
             -137,
@@ -3448,30 +3448,22 @@ PRIVATE json_t *cmd_update_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
                 kw  // owned
             );
         }
-        sdata_write_json(hs, "zcontent", jn_config);
-        JSON_DECREF(jn_config);
+        json_object_set_new(node, "zcontent", jn_config);
     }
 
     /*
      *  Update config
      */
-    json2sdata(hs, kw, SDF_PERSIST, 0, 0);
-
-    gobj_update_resource(
-        priv->resource,
-        hs
-    );
-
-    /*
-     *  Convert result in json
-     */
-    json_t *jn_data = json_array();
-    json_array_append_new(jn_data, sdata2json(hs, SDF_PERSIST, 0));
+    node = gobj_update_node(priv->resource, resource, kw_incref(node), "");
 
     /*
      *  Inform
      */
-    json_t *webix = msg_iev_build_webix(gobj,
+    json_t *jn_data = json_array();
+    json_array_append(jn_data, node);
+
+    json_t *webix = msg_iev_build_webix(
+        gobj,
         0,
         0,
         tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
@@ -3485,69 +3477,115 @@ PRIVATE json_t *cmd_update_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
 /***************************************************************************
  *
  ***************************************************************************/
-PRIVATE json_t *cmd_upgrade_config(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
-{
-    return cmd_create_config(gobj, cmd, kw, src);
-}
-
-/***************************************************************************
- *
- ***************************************************************************/
 PRIVATE json_t *cmd_delete_config(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
 {
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
     char *resource = "configurations";
 
+    BOOL force = kw_get_bool(kw, "force", 0, 0);
+
     /*
-     *  Get resources to delete.
-     *  Search is restricted to id only
+     *  Get a iter of matched resources.
      */
-    const char *id = kw_get_str(kw, "id", 0, 0);
-    if(!id) {
-        return msg_iev_build_webix(gobj,
-            -139,
-            json_local_sprintf("'id' required"),
-            0,
-            0,
-            kw  // owned
-        );
+    json_t *kw_ids = json_array();
+    if(kw_has_key(kw, "id")) {
+        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "id", 0, 0));
+        json_array_extend(kw_ids, ids_);
+        JSON_DECREF(ids_);
+        json_object_del(kw, "id");
     }
-    hsdata hs = gobj_get_resource(priv->resource, resource, 0, id);
-    if(!hs) {
-        return msg_iev_build_webix(gobj,
-            -140,
-            json_local_sprintf("Configuration not found"),
-            0,
-            0,
-            kw  // owned
-        );
+    if(kw_has_key(kw, "__ids__")) {
+        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "__ids__", 0, 0));
+        json_array_extend(kw_ids, ids_);
+        JSON_DECREF(ids_);
+        json_object_del(kw, "__ids__");
     }
-    int use = total_config_in_yunos(gobj, id);
-    if(use > 0) {
-        return msg_iev_build_webix(gobj,
-            -141,
-            json_local_sprintf("Cannot delete configuration. It's using in %d yunos.", use),
+
+    json_t *kw_filter = 0;
+    if(kw_has_key(kw, "__filter__")) {
+        kw_filter = kw_get_dict_value(kw, "__filter__", 0, KW_EXTRACT);
+    }
+
+    json_t *iter = gobj_list_nodes(
+        priv->resource,
+        resource,
+        kw_incref(kw_ids), // ids
+        kw_incref(kw_filter),  // filter
+        0
+    );
+
+    if(json_array_size(iter)==0) {
+        JSON_DECREF(iter);
+        JSON_DECREF(kw_ids);
+        JSON_DECREF(kw_filter);
+        return msg_iev_build_webix(
+            gobj,
+            -130,
+            json_local_sprintf("Select one configuration please"),
             0,
             0,
             kw  // owned
         );
     }
 
-    if(gobj_delete_resource(priv->resource, hs)<0) {
-        return msg_iev_build_webix(gobj,
-            -142,
-            json_local_sprintf("Cannot delete the configuration"),
-            0,
-            0,
-            kw  // owned
-        );
+    /*
+     *  Check conditions to delete
+     */
+    int idx; json_t *node;
+    json_array_foreach(iter, idx, node) {
+        int use = total_config_in_yunos(gobj, kw_get_str(node, "id", "", KW_REQUIRED));
+        if(use > 0) {
+            JSON_DECREF(iter);
+            JSON_DECREF(kw_ids);
+            JSON_DECREF(kw_filter);
+            return msg_iev_build_webix(
+                gobj,
+                -141,
+                json_local_sprintf("Cannot delete configuration '%s'. Using in %d yunos.",
+                    kw_get_str(node, "id", "", KW_REQUIRED),
+                    use
+                ),
+                0,
+                0,
+                kw  // owned
+            );
+        }
     }
 
-    return msg_iev_build_webix(gobj,
+    /*
+     *  Delete
+     */
+    json_t *jn_data = json_array();
+    json_array_foreach(iter, idx, node) {
+        const char *name = kw_get_str(node, "name", "", KW_REQUIRED);
+        const char *version = kw_get_str(node, "version", "", KW_REQUIRED);
+
+        if(gobj_delete_node(priv->resource, resource, node, force?"force":"")<0) {
+            JSON_DECREF(iter);
+            JSON_DECREF(kw_ids);
+            JSON_DECREF(kw_filter);
+            return msg_iev_build_webix(
+                gobj,
+                -142,
+                json_local_sprintf("Cannot delete the configuration: %s %s", name, version),
+                0,
+                0,
+                kw  // owned
+            );
+        }
+        json_array_append_new(jn_data, json_string(name));
+    }
+
+    JSON_DECREF(iter);
+    JSON_DECREF(kw_ids);
+    JSON_DECREF(kw_filter);
+
+    return msg_iev_build_webix(
+        gobj,
         0,
-        json_local_sprintf("Configuration deleted"),
+        json_local_sprintf("%d configurations deleted", idx),
         0,
-        0,
+        jn_data,
         kw  // owned
     );
 }
@@ -6638,11 +6676,11 @@ PRIVATE int total_binary_in_yunos(hgobj gobj, const char *binary_id)
 /***************************************************************************
  *
  ***************************************************************************/
-PRIVATE int total_config_in_yunos(hgobj gobj, json_int_t config_id)
+PRIVATE int total_config_in_yunos(hgobj gobj, const char *config_id)
 {
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
 
-    json_t *kw_find = json_pack("{s:[I]}",
+    json_t *kw_find = json_pack("{s:s}",
         "config_ids", config_id
     );
     /*

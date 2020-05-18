@@ -87,7 +87,8 @@ static char treedb_schema_yuneta_agent[]= "\
                     'fillspace': 22,                                \n\
                     'type': 'blob',                                 \n\
                     'flag': [                                       \n\
-                        'persistent'                                \n\
+                        'persistent',                               \n\
+                        'required'                                  \n\
                     ]                                               \n\
                 },                                                  \n\
                 'role': {                                           \n\
@@ -337,8 +338,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     'fillspace': 30,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
+                        'persistent'                                \n\
                     ]                                               \n\
                 },                                                  \n\
                 'type': {                                           \n\
@@ -346,8 +346,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     'fillspace': 20,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
+                        'persistent'                                \n\
                     ]                                               \n\
                 },                                                  \n\
                 'destination': {                                    \n\
@@ -355,8 +354,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     'fillspace': 30,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
+                        'persistent'                                \n\
                     ]                                               \n\
                 },                                                  \n\
                 'date': {                                           \n\
@@ -379,7 +377,8 @@ static char treedb_schema_yuneta_agent[]= "\
                     'fillspace': 35,                                \n\
                     'type': 'blob',                                 \n\
                     'flag': [                                       \n\
-                        'persistent'                                \n\
+                        'persistent',                               \n\
+                        'required'                                  \n\
                     ]                                               \n\
                 },                                                  \n\
                 'source': {                                         \n\
@@ -450,8 +449,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     'fillspace': 22,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
+                        'persistent'                                \n\
                     ]                                               \n\
                 },                                                  \n\
                 'classifiers': {                                    \n\
@@ -543,8 +541,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     'fillspace': 18,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
+                        'persistent'                                \n\
                     ]                                               \n\
                 },                                                  \n\
                 'yuno_role': {                                      \n\

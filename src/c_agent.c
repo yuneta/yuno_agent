@@ -2059,83 +2059,43 @@ PRIVATE json_t *cmd_list_public_services(hgobj gobj, const char *cmd, json_t *kw
     /*
      *  Get a iter of matched resources
      */
-    KW_INCREF(kw);
-    dl_list_t *iter = gobj_list_resource(priv->resource, resource, kw);
-//     iter = sdata_sort_iter_by_id(iter);
+    json_t *kw_ids = json_array();
+    if(kw_has_key(kw, "id")) {
+        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "id", 0, 0));
+        json_array_extend(kw_ids, ids_);
+        JSON_DECREF(ids_);
+        json_object_del(kw, "id");
+    }
+    if(kw_has_key(kw, "__ids__")) {
+        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "__ids__", 0, 0));
+        json_array_extend(kw_ids, ids_);
+        JSON_DECREF(ids_);
+        json_object_del(kw, "__ids__");
+    }
 
-    /*
-     *  Convert hsdata to json
-     */
-    json_t *jn_data = sdata_iter2json(iter, SDF_PERSIST|SDF_RESOURCE|SDF_VOLATIL, 0);
+    if(kw_has_key(kw, "__filter__")) {
+        json_t *kw_filter = kw_get_dict_value(kw, "__filter__", 0, KW_EXTRACT);
+        json_object_update(kw, kw_filter);
+        JSON_DECREF(kw_filter);
+    }
+
+    json_t *jn_data = gobj_list_nodes(
+        priv->resource,
+        resource,
+        kw_ids, // ids
+        kw_filter_metadata(kw_incref(kw)), // filter
+        0
+    );
 
     /*
      *  Inform
      */
-    json_t *webix = msg_iev_build_webix(
+    return msg_iev_build_webix(
         gobj,
         0,
         json_local_sprintf(cmd),
         tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
-        kw  // owned
-    );
-
-    rc_free_iter(iter, TRUE, 0);
-
-    return webix;
-}
-
-/***************************************************************************
- *
- ***************************************************************************/
-PRIVATE json_t *cmd_delete_public_service(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
-{
-    PRIVATE_DATA *priv = gobj_priv_data(gobj);
-    char *resource = "public_services";
-
-    /*
-     *  Get resources to delete.
-     *  Search is restricted to id only
-     */
-    const char *id = kw_get_str(kw, "id", 0, 0);
-    if(!id) {
-        return msg_iev_build_webix(
-            gobj,
-            -104,
-            json_local_sprintf("'id' required"),
-            0,
-            0,
-            kw  // owned
-        );
-    }
-    hsdata hs = gobj_get_resource(priv->resource, resource, 0, id);
-    if(!hs) {
-        return msg_iev_build_webix(
-            gobj,
-            -105,
-            json_local_sprintf("Service not found"),
-            0,
-            0,
-            kw  // owned
-        );
-    }
-    if(gobj_delete_resource(priv->resource, hs)<0) {
-        return msg_iev_build_webix(
-            gobj,
-            -106,
-            json_local_sprintf("Cannot delete the service"),
-            0,
-            0,
-            kw  // owned
-        );
-    }
-
-    return msg_iev_build_webix(
-        gobj,
-        0,
-        json_local_sprintf("Service deleted"),
-        0,
-        0,
         kw  // owned
     );
 }
@@ -2150,58 +2110,71 @@ PRIVATE json_t *cmd_update_public_service(hgobj gobj, const char *cmd, json_t *k
 
     /*
      *  Get a iter of matched resources.
-     *  Search is restricted to ids only
      */
-    json_t *kw_ids = kwids_extract_and_expand_ids(kw);
-    if(!kw_ids) {
+    json_t *kw_ids = json_array();
+    if(kw_has_key(kw, "id")) {
+        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "id", 0, 0));
+        json_array_extend(kw_ids, ids_);
+        JSON_DECREF(ids_);
+        json_object_del(kw, "id");
+    }
+    if(kw_has_key(kw, "__ids__")) {
+        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "__ids__", 0, 0));
+        json_array_extend(kw_ids, ids_);
+        JSON_DECREF(ids_);
+        json_object_del(kw, "__ids__");
+    }
+
+    json_t *kw_filter = 0;
+    if(kw_has_key(kw, "__filter__")) {
+        kw_filter = kw_get_dict_value(kw, "__filter__", 0, KW_EXTRACT);
+    }
+
+    json_t *iter = gobj_list_nodes(
+        priv->resource,
+        resource,
+        kw_incref(kw_ids), // ids
+        kw_incref(kw_filter),  // filter
+        0
+    );
+
+    if(json_array_size(iter)==0) {
+        JSON_DECREF(iter);
+        JSON_DECREF(kw_ids);
+        JSON_DECREF(kw_filter);
         return msg_iev_build_webix(
             gobj,
             -107,
-            json_local_sprintf("'id' or 'ids' are required"),
+            json_local_sprintf("Select one public service please"),
             0,
             0,
             kw  // owned
         );
     }
-    dl_list_t *iter = gobj_list_resource(priv->resource, resource, kw_ids);
-    if(dl_size(iter)==0) {
-        return msg_iev_build_webix(
-            gobj,
-            -108,
-            json_local_sprintf("No resource found"),
-            0,
-            0,
-            kw  // owned
-        );
-    }
-
-    /*
-     *  Convert json in hsdata
-     */
-    json2sdata_iter(iter, kw, SDF_PERSIST, 0, 0);
 
     /*
      *  Update database
      */
-    hsdata hs; rc_instance_t *i_hs;
-    i_hs = rc_first_instance(iter, (rc_resource_t **)&hs);
-    while(i_hs) {
-        gobj_update_resource(
-            priv->resource,
-            hs
-        );
-        i_hs = rc_next_instance(i_hs, (rc_resource_t **)&hs);
+    int idx; json_t *node;
+    json_array_foreach(iter, idx, node) {
+        json_t *update = kw_duplicate(kw);
+        json_object_set(update, "id", kw_get_dict_value(node, "id", 0, KW_REQUIRED));
+        gobj_update_node(priv->resource, resource, update, "");
     }
-
-    /*
-     *  Convert result in json
-     */
-    json_t *jn_data = sdata_iter2json(iter, SDF_PERSIST, 0);
+    JSON_DECREF(iter);
 
     /*
      *  Inform
      */
-    json_t *webix = msg_iev_build_webix(
+    json_t *jn_data = gobj_list_nodes(
+        priv->resource,
+        resource,
+        kw_ids, // ids
+        kw_filter,  // filter
+        0
+    );
+
+    return msg_iev_build_webix(
         gobj,
         0,
         0,
@@ -2209,9 +2182,96 @@ PRIVATE json_t *cmd_update_public_service(hgobj gobj, const char *cmd, json_t *k
         jn_data, // owned
         kw  // owned
     );
-    rc_free_iter(iter, TRUE, 0);
+}
 
-    return webix;
+/***************************************************************************
+ *
+ ***************************************************************************/
+PRIVATE json_t *cmd_delete_public_service(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
+{
+    PRIVATE_DATA *priv = gobj_priv_data(gobj);
+    char *resource = "public_services";
+
+     BOOL force = kw_get_bool(kw, "force", 0, 0);
+
+    /*
+     *  Get a iter of matched resources.
+     */
+    json_t *kw_ids = json_array();
+    if(kw_has_key(kw, "id")) {
+        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "id", 0, 0));
+        json_array_extend(kw_ids, ids_);
+        JSON_DECREF(ids_);
+        json_object_del(kw, "id");
+    }
+    if(kw_has_key(kw, "__ids__")) {
+        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "__ids__", 0, 0));
+        json_array_extend(kw_ids, ids_);
+        JSON_DECREF(ids_);
+        json_object_del(kw, "__ids__");
+    }
+
+    json_t *kw_filter = 0;
+    if(kw_has_key(kw, "__filter__")) {
+        kw_filter = kw_get_dict_value(kw, "__filter__", 0, KW_EXTRACT);
+    }
+
+    json_t *iter = gobj_list_nodes(
+        priv->resource,
+        resource,
+        kw_incref(kw_ids), // ids
+        kw_incref(kw_filter),  // filter
+        0
+    );
+
+    if(json_array_size(iter)==0) {
+        JSON_DECREF(iter);
+        JSON_DECREF(kw_ids);
+        JSON_DECREF(kw_filter);
+        return msg_iev_build_webix(
+            gobj,
+            -104,
+            json_local_sprintf("Select one public service please"),
+            0,
+            0,
+            kw  // owned
+        );
+    }
+
+    /*
+     *  Delete
+     */
+    json_t *jn_data = json_array();
+    int idx; json_t *node;
+    json_array_foreach(iter, idx, node) {
+        json_array_append_new(jn_data, json_string(kw_get_str(node, "name", "", 0)));
+        if(gobj_delete_node(priv->resource, resource, node, force?"force":"")<0) {
+            JSON_DECREF(iter);
+            JSON_DECREF(kw_ids);
+            JSON_DECREF(kw_filter);
+            return msg_iev_build_webix(
+                gobj,
+                -116,
+                json_local_sprintf("Cannot delete the public service"),
+                0,
+                0,
+                kw  // owned
+            );
+        }
+    }
+
+    JSON_DECREF(iter);
+    JSON_DECREF(kw_ids);
+    JSON_DECREF(kw_filter);
+
+    return msg_iev_build_webix(
+        gobj,
+        0,
+        json_local_sprintf("%d public service deleted", idx),
+        0,
+        jn_data,
+        kw  // owned
+    );
 }
 
 /***************************************************************************

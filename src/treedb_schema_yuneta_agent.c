@@ -64,7 +64,7 @@ static char treedb_schema_yuneta_agent[]= "\
             'topic_options': '',                                    \n\
             'cols': {                                               \n\
                 'id': {                                             \n\
-                    'header': 'Id',                                 \n\
+                    'header': 'id',                                 \n\
                     'fillspace': 8,                                 \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
@@ -74,7 +74,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'domain': {                                         \n\
-                    'header': 'Realm Domain',                       \n\
+                    'header': 'domain',                             \n\
                     'fillspace': 22,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
@@ -83,7 +83,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'range_ports': {                                    \n\
-                    'header': 'Range Ports',                        \n\
+                    'header': 'range_ports',                        \n\
                     'fillspace': 22,                                \n\
                     'type': 'blob',                                 \n\
                     'flag': [                                       \n\
@@ -91,7 +91,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'role': {                                           \n\
-                    'header': 'Realm Role',                         \n\
+                    'header': 'role',                               \n\
                     'fillspace': 22,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
@@ -100,7 +100,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'name': {                                           \n\
-                    'header': 'Realm Name',                         \n\
+                    'header': 'name',                               \n\
                     'fillspace': 22,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
@@ -109,7 +109,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'bind_ip': {                                        \n\
-                    'header': 'Bind IP',                            \n\
+                    'header': 'bind_ip',                            \n\
                     'fillspace': 22,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
@@ -118,7 +118,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'last_port': {                                      \n\
-                    'header': 'Last Port',                          \n\
+                    'header': 'last_port',                          \n\
                     'fillspace': 10,                                \n\
                     'type': 'integer',                              \n\
                     'flag': [                                       \n\
@@ -126,7 +126,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'yunos': {                                          \n\
-                    'header': 'Yunos',                              \n\
+                    'header': 'yunos',                              \n\
                     'fillspace': 22,                                \n\
                     'type': 'array',                                \n\
                     'flag': ['hook'],                               \n\
@@ -145,7 +145,7 @@ static char treedb_schema_yuneta_agent[]= "\
             'topic_options': '',                                    \n\
             'cols': {                                               \n\
                 'id': {                                             \n\
-                    'header': 'Id',                                 \n\
+                    'header': 'id',                                 \n\
                     'fillspace': 8,                                 \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
@@ -155,7 +155,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'realm_name': {                                     \n\
-                    'header': 'Realm Name',                         \n\
+                    'header': 'realm_name',                         \n\
                     'fillspace': 16,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
@@ -164,7 +164,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'yuno_role': {                                      \n\
-                    'header': 'Yuno Role',                          \n\
+                    'header': 'yuno_role',                          \n\
                     'fillspace': 16,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
@@ -173,7 +173,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'yuno_name': {                                      \n\
-                    'header': 'Yuno Name',                          \n\
+                    'header': 'yuno_name',                          \n\
                     'fillspace': 16,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
@@ -182,7 +182,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'yuno_release': {                                   \n\
-                    'header': 'Yuno Release',                       \n\
+                    'header': 'yuno_release',                       \n\
                     'fillspace': 16,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
@@ -191,7 +191,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'yuno_alias': {                                     \n\
-                    'header': 'Yuno Alias',                         \n\
+                    'header': 'yuno_alias',                         \n\
                     'fillspace': 16,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
@@ -200,28 +200,28 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'yuno_running': {                                   \n\
-                    'header': 'Running',                            \n\
+                    'header': 'yuno_running',                       \n\
                     'fillspace': 7,                                 \n\
                     'type': 'boolean',                              \n\
                     'flag': [                                       \n\
                     ]                                               \n\
                 },                                                  \n\
                 'yuno_playing': {                                   \n\
-                    'header': 'Playing',                            \n\
+                    'header': 'yuno_playing',                       \n\
                     'fillspace': 7,                                 \n\
                     'type': 'boolean',                              \n\
                     'flag': [                                       \n\
                     ]                                               \n\
                 },                                                  \n\
                 'yuno_pid': {                                       \n\
-                    'header': 'Pid',                                \n\
+                    'header': 'yuno_pid',                           \n\
                     'fillspace': 7,                                 \n\
                     'type': 'integer',                              \n\
                     'flag': [                                       \n\
                     ]                                               \n\
                 },                                                  \n\
                 'disabled': {                                       \n\
-                    'header': 'Disabled',                           \n\
+                    'header': 'disabled',                           \n\
                     'fillspace': 8,                                 \n\
                     'type': 'boolean',                              \n\
                     'flag': [                                       \n\
@@ -229,7 +229,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'must_play': {                                      \n\
-                    'header': 'MustPlay',                           \n\
+                    'header': 'must_play',                          \n\
                     'fillspace': 8,                                 \n\
                     'type': 'boolean',                              \n\
                     'flag': [                                       \n\
@@ -237,7 +237,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'traced': {                                         \n\
-                    'header': 'Traced',                             \n\
+                    'header': 'traced',                             \n\
                     'fillspace': 6,                                 \n\
                     'type': 'boolean',                              \n\
                     'flag': [                                       \n\
@@ -245,7 +245,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'multiple': {                                       \n\
-                    'header': 'Multiple',                           \n\
+                    'header': 'multiple',                           \n\
                     'fillspace': 6,                                 \n\
                     'type': 'boolean',                              \n\
                     'flag': [                                       \n\
@@ -253,7 +253,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'global': {                                         \n\
-                    'header': 'Global',                             \n\
+                    'header': 'global',                             \n\
                     'fillspace': 6,                                 \n\
                     'type': 'boolean',                              \n\
                     'flag': [                                       \n\
@@ -261,7 +261,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'realm_id': {                                       \n\
-                    'header': 'Realm Id',                           \n\
+                    'header': 'realm_id',                           \n\
                     'fillspace': 8,                                 \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
@@ -269,15 +269,15 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'binary_id': {                                      \n\
-                    'header': 'Binary Id',                          \n\
+                    'header': 'binary_id',                          \n\
                     'fillspace': 8,                                 \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
                         'fkey'                                      \n\
                     ]                                               \n\
                 },                                                  \n\
-                'configurations': {                                 \n\
-                    'header': 'Configurations',                     \n\
+                'config_ids': {                                     \n\
+                    'header': 'config_ids',                         \n\
                     'fillspace': 15,                                \n\
                     'type': 'array',                                \n\
                     'flag': ['hook'],                               \n\
@@ -286,7 +286,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     }                                               \n\
                 },                                                  \n\
                 'yuno_startdate': {                                 \n\
-                    'header': 'Start Date',                         \n\
+                    'header': 'yuno_startdate',                     \n\
                     'fillspace': 10,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
@@ -305,7 +305,7 @@ static char treedb_schema_yuneta_agent[]= "\
             'topic_options': '',                                    \n\
             'cols': {                                               \n\
                 'id': {                                             \n\
-                    'header': 'Id',                                 \n\
+                    'header': 'id',                                 \n\
                     'fillspace': 8,                                 \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
@@ -315,7 +315,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'name': {                                           \n\
-                    'header': 'Configuration Name',                 \n\
+                    'header': 'name',                               \n\
                     'fillspace': 30,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
@@ -324,7 +324,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'version': {                                        \n\
-                    'header': 'Configuration Version',              \n\
+                    'header': 'version',                            \n\
                     'fillspace': 22,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
@@ -333,7 +333,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'description': {                                    \n\
-                    'header': 'Description',                        \n\
+                    'header': 'description',                        \n\
                     'fillspace': 30,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
@@ -342,7 +342,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'type': {                                           \n\
-                    'header': 'Type',                               \n\
+                    'header': 'type',                               \n\
                     'fillspace': 20,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
@@ -351,7 +351,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'destination': {                                    \n\
-                    'header': 'Destination',                        \n\
+                    'header': 'destination',                        \n\
                     'fillspace': 30,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
@@ -360,7 +360,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'date': {                                           \n\
-                    'header': 'Date',                               \n\
+                    'header': 'date',                               \n\
                     'fillspace': 21,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
@@ -369,13 +369,13 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'yunos': {                                          \n\
-                    'header': 'Yunos',                              \n\
+                    'header': 'yunos',                              \n\
                     'fillspace': 22,                                \n\
                     'type': 'array',                                \n\
                     'flag': ['fkey']                                \n\
                 },                                                  \n\
                 'zcontent': {                                       \n\
-                    'header': 'Content',                            \n\
+                    'header': 'zcontent',                           \n\
                     'fillspace': 35,                                \n\
                     'type': 'blob',                                 \n\
                     'flag': [                                       \n\
@@ -383,7 +383,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'source': {                                         \n\
-                    'header': 'Source',                             \n\
+                    'header': 'source',                             \n\
                     'fillspace': 0,                                 \n\
                     'type': 'blob',                                 \n\
                     'flag': [                                       \n\
@@ -401,7 +401,7 @@ static char treedb_schema_yuneta_agent[]= "\
             'topic_options': '',                                    \n\
             'cols': {                                               \n\
                 'id': {                                             \n\
-                    'header': 'Id',                                 \n\
+                    'header': 'id',                                 \n\
                     'fillspace': 8,                                 \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
@@ -411,7 +411,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'role': {                                           \n\
-                    'header': 'Binary Role',                        \n\
+                    'header': 'role',                               \n\
                     'fillspace': 18,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
@@ -420,7 +420,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'version': {                                        \n\
-                    'header': 'Binary Version',                     \n\
+                    'header': 'version',                            \n\
                     'fillspace': 14,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
@@ -429,7 +429,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'size': {                                           \n\
-                    'header': 'Size',                               \n\
+                    'header': 'size',                               \n\
                     'fillspace': 10,                                \n\
                     'type': 'integer',                              \n\
                     'flag': [                                       \n\
@@ -437,7 +437,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'date': {                                           \n\
-                    'header': 'Date',                               \n\
+                    'header': 'date',                               \n\
                     'fillspace': 22,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
@@ -446,7 +446,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'description': {                                    \n\
-                    'header': 'Description',                        \n\
+                    'header': 'description',                        \n\
                     'fillspace': 22,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
@@ -455,7 +455,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'classifiers': {                                    \n\
-                    'header': 'Classifiers',                        \n\
+                    'header': 'classifiers',                        \n\
                     'fillspace': 22,                                \n\
                     'type': 'blob',                                 \n\
                     'flag': [                                       \n\
@@ -463,7 +463,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'required_services': {                              \n\
-                    'header': 'Required Services',                  \n\
+                    'header': 'required_services',                  \n\
                     'fillspace': 22,                                \n\
                     'type': 'blob',                                 \n\
                     'flag': [                                       \n\
@@ -471,7 +471,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'public_services': {                                \n\
-                    'header': 'Public Services',                    \n\
+                    'header': 'public_services',                    \n\
                     'fillspace': 22,                                \n\
                     'type': 'blob',                                 \n\
                     'flag': [                                       \n\
@@ -479,7 +479,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'service_descriptor': {                             \n\
-                    'header': 'Service Descriptor',                 \n\
+                    'header': 'service_descriptor',                 \n\
                     'fillspace': 22,                                \n\
                     'type': 'blob',                                 \n\
                     'flag': [                                       \n\
@@ -487,7 +487,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'binary': {                                         \n\
-                    'header': 'Binary',                             \n\
+                    'header': 'binary',                             \n\
                     'fillspace': 22,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
@@ -496,13 +496,13 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'yunos': {                                          \n\
-                    'header': 'Yunos',                              \n\
+                    'header': 'yunos',                              \n\
                     'fillspace': 22,                                \n\
                     'type': 'array',                                \n\
                     'flag': ['fkey']                                \n\
                 },                                                  \n\
                 'source': {                                         \n\
-                    'header': 'Source',                             \n\
+                    'header': 'source',                             \n\
                     'fillspace': 0,                                 \n\
                     'type': 'blob',                                 \n\
                     'flag': [                                       \n\
@@ -520,7 +520,7 @@ static char treedb_schema_yuneta_agent[]= "\
             'topic_options': '',                                    \n\
             'cols': {                                               \n\
                 'id': {                                             \n\
-                    'header': 'Id',                                 \n\
+                    'header': 'id',                                 \n\
                     'fillspace': 8,                                 \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
@@ -530,7 +530,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'service': {                                        \n\
-                    'header': 'Service',                            \n\
+                    'header': 'service',                            \n\
                     'fillspace': 18,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
@@ -539,7 +539,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'description': {                                    \n\
-                    'header': 'Description',                        \n\
+                    'header': 'description',                        \n\
                     'fillspace': 18,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
@@ -548,7 +548,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'yuno_role': {                                      \n\
-                    'header': 'Yuno Role',                          \n\
+                    'header': 'yuno_role',                          \n\
                     'fillspace': 18,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
@@ -557,7 +557,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'yuno_name': {                                      \n\
-                    'header': 'Yuno Name',                          \n\
+                    'header': 'yuno_name',                          \n\
                     'fillspace': 18,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
@@ -566,7 +566,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'realm_id': {                                       \n\
-                    'header': 'Realm Id',                           \n\
+                    'header': 'realm_id',                           \n\
                     'fillspace': 8,                                 \n\
                     'type': 'integer',                              \n\
                     'flag': [                                       \n\
@@ -574,7 +574,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'yuno_id': {                                        \n\
-                    'header': 'Yuno Id',                            \n\
+                    'header': 'yuno_id',                            \n\
                     'fillspace': 8,                                 \n\
                     'type': 'integer',                              \n\
                     'flag': [                                       \n\
@@ -582,7 +582,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'ip': {                                             \n\
-                    'header': 'Ip',                                 \n\
+                    'header': 'ip',                                 \n\
                     'fillspace': 16,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
@@ -591,7 +591,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'port': {                                           \n\
-                    'header': 'Port',                               \n\
+                    'header': 'port',                               \n\
                     'fillspace': 5,                                 \n\
                     'type': 'integer',                              \n\
                     'flag': [                                       \n\
@@ -599,7 +599,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'schema': {                                         \n\
-                    'header': 'Schema',                             \n\
+                    'header': 'schema',                             \n\
                     'fillspace': 6,                                 \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
@@ -608,7 +608,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'url': {                                            \n\
-                    'header': 'Url',                                \n\
+                    'header': 'url',                                \n\
                     'fillspace': 22,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
@@ -617,7 +617,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'connector': {                                      \n\
-                    'header': 'Connector',                          \n\
+                    'header': 'connector',                          \n\
                     'fillspace': 12,                                \n\
                     'type': 'blob',                                 \n\
                     'flag': [                                       \n\

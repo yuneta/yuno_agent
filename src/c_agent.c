@@ -3751,53 +3751,74 @@ PRIVATE json_t *cmd_top_yunos(hgobj gobj, const char *cmd, json_t *kw, hgobj src
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
     char *resource = "yunos";
 
-    // TODO serí así con Regular expressions:
-    //json_object_set_new(kw, "yuno_alias", json_string("^(?!\s*$).+"));
-    // Aunque obligaría a usar re siempre en todas las búsquedas.
-    // Porqué no hacer una nueva API que use re? (Suma en vez de sustituir!).
-
-    //json_object_set_new(kw, "disabled", json_false()); A pelo todo de momento.
-
     /*
-     *  Get a iter of matched resources
+     *  Get a iter of matched resources.
      */
-    KW_INCREF(kw);
-    dl_list_t *iter = gobj_list_resource(priv->resource, resource, kw);
-
-    dl_list_t *top_iter = rc_init_iter(0);
-
-
-    json_t *yuno; rc_instance_t *i_hs;
-    i_hs = rc_first_instance(iter, (rc_resource_t **)&hs_yuno);
-    while(i_hs) {
-        BOOL disabled = sdata_read_bool(hs_yuno, "disabled");
-        const char *yuno_alias = kw_get_str(yuno, "yuno_alias");
-        if(!disabled || !empty_string(yuno_alias)) {
-            rc_add_instance(top_iter, hs_yuno, 0);
-        }
-        i_hs = rc_next_instance(i_hs, (rc_resource_t **)&hs_yuno);
+    json_t *kw_ids = json_array();
+    if(kw_has_key(kw, "id")) {
+        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "id", 0, 0));
+        json_array_extend(kw_ids, ids_);
+        JSON_DECREF(ids_);
+        json_object_del(kw, "id");
     }
-    rc_free_iter(iter, TRUE, 0);
+    if(kw_has_key(kw, "__ids__")) {
+        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "__ids__", 0, 0));
+        json_array_extend(kw_ids, ids_);
+        JSON_DECREF(ids_);
+        json_object_del(kw, "__ids__");
+    }
 
-    /*
-     *  Convert hsdata to json
-     */
-    json_t *jn_data = sdata_iter2json(top_iter, SDF_PERSIST|SDF_RESOURCE|SDF_VOLATIL, 0);
+    json_t *kw_filter = 0;
+    if(kw_has_key(kw, "__filter__")) {
+        kw_filter = kw_get_dict_value(kw, "__filter__", 0, KW_EXTRACT);
+    }
+
+    json_t *iter = gobj_list_nodes(
+        priv->resource,
+        resource,
+        kw_incref(kw_ids), // ids
+        kw_incref(kw_filter),  // filter
+        0
+    );
+
+    if(json_array_size(iter)==0) {
+        JSON_DECREF(iter);
+        JSON_DECREF(kw_ids);
+        JSON_DECREF(kw_filter);
+        return msg_iev_build_webix(
+            gobj,
+            -158,
+            json_local_sprintf("Select some yuno please"),
+            0,
+            0,
+            kw  // owned
+        );
+    }
 
     /*
      *  Inform
      */
-    json_t *webix = msg_iev_build_webix(gobj,
+    json_t *jn_data = json_array();
+    int idx; json_t *node;
+    json_array_foreach(iter, idx, node) {
+
+        BOOL disabled = kw_get_bool(node, "disabled", 0, KW_REQUIRED);
+        const char *yuno_alias = kw_get_str(node, "yuno_alias", 0, KW_REQUIRED);
+        if(!disabled || !empty_string(yuno_alias)) {
+            json_array_append(jn_data, node);
+        }
+
+    }
+    JSON_DECREF(iter);
+
+    return msg_iev_build_webix(
+        gobj,
         0,
-        json_local_sprintf(cmd),
+        0,
         tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
         kw  // owned
     );
-
-    rc_free_iter(top_iter, TRUE, 0);
-
-    return 0;
 }
 
 /***************************************************************************

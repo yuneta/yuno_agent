@@ -884,10 +884,10 @@ SDATA_END()
  *      GClass trace levels
  *---------------------------------------------*/
 enum {
-    TRACE_USER = 0x0001,
+    TRACE_MESSAGES = 0x0001,
 };
 PRIVATE const trace_level_t s_user_trace_level[16] = {
-{"trace_user",        "Trace user description"},
+{"messages",        "Trace messages"},
 {0, 0},
 };
 
@@ -1063,6 +1063,28 @@ PRIVATE json_t *mt_authenticate(hgobj gobj, const char *service, json_t *kw, hgo
     );
 
     return webix;
+}
+
+/***************************************************************************
+ *      Framework Method
+ ***************************************************************************/
+PRIVATE int mt_trace_on(hgobj gobj, const char *level, json_t *kw)
+{
+    treedb_set_trace(TRUE);
+
+    KW_DECREF(kw);
+    return 0;
+}
+
+/***************************************************************************
+ *      Framework Method
+ ***************************************************************************/
+PRIVATE int mt_trace_off(hgobj gobj, const char *level, json_t *kw)
+{
+    treedb_set_trace(FALSE);
+
+    KW_DECREF(kw);
+    return 0;
 }
 
 
@@ -4227,8 +4249,6 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
         json_object_set_new(kw_yuno, "id", json_string(yuno_id));
     }
 
-print_json(kw_yuno); // TODO TEST
-
     json_t *yuno = gobj_create_node(
         priv->resource,
         resource,
@@ -7310,9 +7330,6 @@ PRIVATE int register_public_services(hgobj gobj, json_t *yuno)
              */
             json_object_set_new(hs_service, "yuno_id", json_string(yuno_id));
             gobj_update_node(priv->resource, "public_services", kw_incref(hs_service), 0);
-            if(hs_service) { // TODO TEST
-                print_json(hs_service);
-            }
         }
     }
 
@@ -9045,8 +9062,8 @@ PRIVATE GCLASS _gclass = {
         0, //mt_stats_updated,
         0, //mt_disable,
         0, //mt_enable,
-        0, //mt_trace_on,
-        0, //mt_trace_off,
+        mt_trace_on,
+        mt_trace_off,
         0, //mt_gobj_created,
         0, //mt_future33,
         0, //mt_future34,

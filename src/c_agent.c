@@ -4852,7 +4852,7 @@ PRIVATE json_t *cmd_play_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
             json_object_set_new(yuno, "must_play", json_true());
 
             gobj_update_node( // Return is NOT YOURS
-                gobj,
+                priv->resource,
                 resource,
                 kw_incref(yuno),    // owned
                 ""
@@ -5056,7 +5056,7 @@ PRIVATE json_t *cmd_pause_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
             json_object_set_new(yuno, "must_play", json_false());
 
             gobj_update_node( // Return is NOT YOURS
-                gobj,
+                priv->resource,
                 resource,
                 kw_incref(yuno),    // owned
                 ""
@@ -8544,8 +8544,45 @@ PRIVATE int ac_on_open(hgobj gobj, const char *event, json_t *kw, hgobj src)
         return 0;
     }
 
-    const char *realm_id = kw_get_str(kw, "identity_card`realm_id", "", KW_REQUIRED);
-    const char *yuno_id = kw_get_str(kw, "identity_card`yuno_id", "", KW_REQUIRED);
+    json_t *jn_realm_id = kw_get_dict_value(kw, "identity_card`realm_id", 0, KW_REQUIRED);
+    json_t *jn_yuno_id = kw_get_dict_value(kw, "identity_card`yuno_id", 0, KW_REQUIRED);
+    if(!jn_realm_id || !jn_yuno_id ||
+        !(json_is_integer(jn_realm_id) || json_is_string(jn_realm_id)) ||
+        !(json_is_integer(jn_yuno_id) || json_is_string(jn_yuno_id))
+    ) {
+        log_error(0,
+            "gobj",         "%s", gobj_full_name(gobj),
+            "function",     "%s", __FUNCTION__,
+            "msgset",       "%s", MSGSET_INTERNAL_ERROR,
+            "msg",          "%s", "realm_id,yuno_id required and string/integer",
+            NULL
+        );
+        KW_DECREF(kw);
+        return -1; // TODO comprueba que retorno negativo corta la conexión
+    }
+    const char *realm_id = "";
+    const char *yuno_id = "";
+    char _realm_id[256]={0};
+    char _yuno_id[256]={0};
+    if(json_is_string(jn_realm_id)) {
+        realm_id = json_string_value(jn_realm_id);
+    } else {
+        snprintf(_realm_id, sizeof(_realm_id),
+            "%"JSON_INTEGER_FORMAT,
+            json_integer_value(jn_realm_id)
+        );
+        realm_id = _realm_id;
+    }
+    if(json_is_string(jn_yuno_id)) {
+        yuno_id = json_string_value(jn_yuno_id);
+    } else {
+        snprintf(_yuno_id, sizeof(_yuno_id),
+            "%"JSON_INTEGER_FORMAT,
+            json_integer_value(jn_yuno_id)
+        );
+        yuno_id = _yuno_id;
+    }
+
     json_int_t pid = kw_get_int(kw, "identity_card`pid", 0, KW_REQUIRED);
     BOOL playing = kw_get_bool(kw, "identity_card`playing", 0, KW_REQUIRED);
     const char *yuno_role = kw_get_str(kw, "identity_card`yuno_role", "", KW_REQUIRED);

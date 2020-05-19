@@ -5517,8 +5517,9 @@ PRIVATE json_t *cmd_command_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj 
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
     char *resource = "yunos";
 
-    const char *command = kw_get_str(kw, "command", 0, 0);
-    if(empty_string(command)) {
+    json_t *jn_command = kw_get_dict_value(kw, "command", 0, KW_EXTRACT);
+    if(empty_string(json_string_value(jn_command))) {
+        JSON_DECREF(jn_command);
         return msg_iev_build_webix(gobj,
             -178,
             json_local_sprintf(
@@ -5566,6 +5567,7 @@ PRIVATE json_t *cmd_command_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj 
     );
     if(json_array_size(iter)==0) {
         JSON_DECREF(iter);
+        JSON_DECREF(jn_command);
         return msg_iev_build_webix(gobj,
             -161,
             json_local_sprintf(
@@ -5586,9 +5588,10 @@ PRIVATE json_t *cmd_command_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj 
          *  Command to yuno
          */
         json_t *kw_yuno = json_deep_copy(kw);
-        command_to_yuno(gobj, yuno, command, kw_yuno, src);
+        command_to_yuno(gobj, yuno, json_string_value(jn_command), kw_yuno, src);
     }
     JSON_DECREF(iter);
+    JSON_DECREF(jn_command);
 
     KW_DECREF(kw);
     return 0;   /* Asynchronous response */

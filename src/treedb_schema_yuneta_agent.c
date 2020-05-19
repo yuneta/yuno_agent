@@ -291,8 +291,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     'fillspace': 10,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
+                        'persistent'                                \n\
                     ]                                               \n\
                 }                                                   \n\
             }                                                       \n\
@@ -565,7 +564,7 @@ static char treedb_schema_yuneta_agent[]= "\
                 'realm_id': {                                       \n\
                     'header': 'realm_id',                           \n\
                     'fillspace': 8,                                 \n\
-                    'type': 'integer',                              \n\
+                    'type': 'string',                               \n\
                     'flag': [                                       \n\
                         'persistent'                                \n\
                     ]                                               \n\
@@ -573,7 +572,7 @@ static char treedb_schema_yuneta_agent[]= "\
                 'yuno_id': {                                        \n\
                     'header': 'yuno_id',                            \n\
                     'fillspace': 8,                                 \n\
-                    'type': 'integer',                              \n\
+                    'type': 'string',                               \n\
                     'flag': [                                       \n\
                         'persistent'                                \n\
                     ]                                               \n\
@@ -583,8 +582,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     'fillspace': 16,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
+                        'persistent'                                \n\
                     ]                                               \n\
                 },                                                  \n\
                 'port': {                                           \n\
@@ -609,8 +607,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     'fillspace': 22,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
+                        'persistent'                                \n\
                     ]                                               \n\
                 },                                                  \n\
                 'connector': {                                      \n\

@@ -2835,6 +2835,8 @@ PRIVATE json_t *cmd_install_binary(hgobj gobj, const char *cmd, json_t *kw, hgob
         /*
          *  1 o more records, yuno already stored and without overwrite.
          */
+        JSON_DECREF(iter);
+        JSON_DECREF(jn_basic_info);
         return msg_iev_build_webix(
             gobj,
             -119,
@@ -3978,7 +3980,8 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
                 kw  // owned
             );
         }
-        json_object_set_new(kw, "realm_name", json_string(SDATA_GET_STR(hs_realm, "name")));
+        realm_id = SDATA_GET_STR(hs_realm, "id");
+        json_object_set_new(kw, "realm_id", json_string(realm_id));
     }
 
     /*---------------------------------------------*
@@ -4216,11 +4219,15 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
         0
     };
     json_t *kw_yuno = kw_duplicate_with_only_keys(kw, keys);
+
     const char *yuno_id = kw_get_str(kw, "id", 0, 0);
     if(!empty_string(yuno_id)) {
-        // Cannot be done in kw_duplicate_with_only_keys(). The 'id' key must not exist if is 0.
+        // Cannot be done in kw_duplicate_with_only_keys().
+        // The 'id' key must not exist if is 0.
         json_object_set_new(kw_yuno, "id", json_string(yuno_id));
     }
+
+print_json(kw_yuno); // TODO TEST
 
     json_t *yuno = gobj_create_node(
         priv->resource,
@@ -4242,7 +4249,7 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
     /*-----------------------------*
      *  Register public services
      *-----------------------------*/
-    register_public_services(gobj, yuno);
+    int result = register_public_services(gobj, yuno);
 
     /*
      *  Convert result in json
@@ -4254,7 +4261,7 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
      *  Inform
      */
     json_t *webix = msg_iev_build_webix(gobj,
-        0,
+        result,
         0,
         tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
@@ -6032,7 +6039,7 @@ PRIVATE const char *find_bind_ip(hgobj gobj, const char *realm_id)
 /***************************************************************************
  *  Find a service for client
  ***************************************************************************/
-PRIVATE hsdata find_service_for_client(hgobj gobj, const char *service_, json_t *yuno)
+PRIVATE json_t *find_service_for_client(hgobj gobj, const char *service_, json_t *yuno)
 {
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
     char *resource = "public_services";
@@ -6985,7 +6992,7 @@ PRIVATE json_t *find_last_id_by_name(hgobj gobj, const char *resource, const cha
         /*
          *  1 o more records
          */
-        json_t *node = kw_incref(json_array_get(iter_find, 0));
+        json_t *node = json_array_get(iter_find, 0);
         JSON_DECREF(iter_find);
         return node;
     } else {
@@ -7032,7 +7039,6 @@ PRIVATE json_t *find_binary_version(
             break;
         }
     }
-    hs = kw_incref(hs);
     JSON_DECREF(iter_find);
 
     return hs;
@@ -7081,7 +7087,6 @@ PRIVATE json_t *find_configuration_version(
             break;
         }
     }
-    hs = kw_incref(hs);
     JSON_DECREF(iter_find);
 
     return hs;
@@ -7185,8 +7190,8 @@ PRIVATE int get_new_service_port(hgobj gobj, json_t *hs_realm)
         }
         new_port = json_list_int(jn_port_list, idx);
     }
-    sdata_write_uint32(hs_realm, "last_port", new_port);
-    gobj_update_node(priv->resource, "realms", hs_realm, 0);
+    SDATA_SET_INT(hs_realm, "last_port", new_port);
+    gobj_update_node(priv->resource, "realms", kw_incref(hs_realm), 0);
 
     JSON_DECREF(jn_port_list);
     return new_port;
@@ -7198,6 +7203,8 @@ PRIVATE int get_new_service_port(hgobj gobj, json_t *hs_realm)
 PRIVATE int register_public_services(hgobj gobj, json_t *yuno)
 {
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
+    int ret = 0;
+
     char *resource = "public_services";
 
     const char *yuno_id = SDATA_GET_ID(yuno);
@@ -7275,6 +7282,7 @@ PRIVATE int register_public_services(hgobj gobj, json_t *yuno)
                         "service",      "%s", service,
                         NULL
                     );
+                    ret += -1;
                     continue;
                 }
                 port = get_new_service_port(gobj, hs_realm);
@@ -7301,11 +7309,14 @@ PRIVATE int register_public_services(hgobj gobj, json_t *yuno)
              *  yuno_id will change with each new yuno release
              */
             json_object_set_new(hs_service, "yuno_id", json_string(yuno_id));
-            gobj_update_node(priv->resource, "public_services", hs_service, 0);
+            gobj_update_node(priv->resource, "public_services", kw_incref(hs_service), 0);
+            if(hs_service) { // TODO TEST
+                print_json(hs_service);
+            }
         }
     }
 
-    return 0;
+    return ret;
 }
 
 
@@ -8359,7 +8370,7 @@ PRIVATE int ac_play_yuno_ack(hgobj gobj, const char *event, json_t *kw, hgobj sr
             return 0;
         }
         json_object_set_new(yuno, "yuno_playing", json_true());
-        gobj_update_node(priv->resource, resource, yuno, ""); // TODO comprueba que no salve volatiles
+        gobj_update_node(priv->resource, resource, kw_incref(yuno), ""); // TODO comprueba que no salve volatiles
         gobj_publish_event(
             gobj,
             event,
@@ -8398,7 +8409,7 @@ PRIVATE int ac_pause_yuno_ack(hgobj gobj, const char *event, json_t *kw, hgobj s
             return 0;
         }
         json_object_set_new(yuno, "yuno_playing", json_false());
-        gobj_update_node(priv->resource, resource, yuno, ""); // TODO comprueba que no salve volatiles
+        gobj_update_node(priv->resource, resource, kw_incref(yuno), ""); // TODO comprueba que no salve volatiles
         gobj_publish_event(
             gobj,
             event,
@@ -8740,7 +8751,7 @@ PRIVATE int ac_on_open(hgobj gobj, const char *event, json_t *kw, hgobj src)
         json_object_set_new(yuno, "solicitante", json_string(""));
     }
 
-    gobj_update_node(priv->resource, "yunos", yuno, ""); // TODO salvo volatiles?
+    gobj_update_node(priv->resource, "yunos", kw_incref(yuno), ""); // TODO salvo volatiles?
 
     JSON_DECREF(iter_yunos);
     KW_DECREF(kw);
@@ -8804,7 +8815,7 @@ PRIVATE int ac_on_close(hgobj gobj, const char *event, json_t *kw, hgobj src)
     json_object_set_new(yuno, "yuno_pid", json_integer(0));
     json_object_set_new(yuno, "channel_gobj", json_integer(0));
 
-    gobj_update_node(priv->resource, "yunos", yuno, ""); // TODO salvo volatiles?
+    gobj_update_node(priv->resource, "yunos", kw_incref(yuno), ""); // TODO salvo volatiles?
 
     KW_DECREF(kw);
     return 0;
@@ -8822,12 +8833,12 @@ PRIVATE int ac_final_count(hgobj gobj, const char *event, json_t *kw, hgobj src)
 
 // KKK
 
-    dl_list_t * iter_yunos = gobj_read_pointer_attr(src, "user_data");
+    json_t *iter_yunos = gobj_read_pointer_attr(src, "user_data");
     json_t *kw_answer = gobj_read_pointer_attr(src, "user_data2");
 
     json_t *jn_request = msg_iev_pop_stack(kw, "requester_stack");
     if(!jn_request) {
-        rc_free_iter(iter_yunos, TRUE, 0);
+        JSON_DECREF(iter_yunos);
         KW_DECREF(kw_answer);
         KW_DECREF(kw);
         return -1;
@@ -8848,7 +8859,7 @@ PRIVATE int ac_final_count(hgobj gobj, const char *event, json_t *kw, hgobj src)
             "child",        "%s", requester,
             NULL
         );
-        rc_free_iter(iter_yunos, TRUE, 0);
+        JSON_DECREF(iter_yunos);
         JSON_DECREF(jn_request);
         KW_DECREF(kw_answer);
         KW_DECREF(kw);
@@ -8865,9 +8876,7 @@ PRIVATE int ac_final_count(hgobj gobj, const char *event, json_t *kw, hgobj src)
         cur_count
     );
 
-    json_t *jn_data = sdata_iter2json(iter_yunos, SDF_PERSIST|SDF_RESOURCE|SDF_VOLATIL, 0);
-
-    rc_free_iter(iter_yunos, TRUE, 0);
+    json_t *jn_data = iter_yunos;
 
     /*
      *  Inform

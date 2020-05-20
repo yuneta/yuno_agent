@@ -378,7 +378,7 @@ PRIVATE json_t *cmd_command_agent(hgobj gobj, const char *cmd, json_t *kw, hgobj
 PRIVATE json_t *cmd_stats_agent(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_set_okill(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_set_qkill(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
-
+PRIVATE json_t *cmd_check_json(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 
 
 PRIVATE sdata_desc_t pm_help[] = {
@@ -769,6 +769,7 @@ SDATACM2 (ASN_SCHEMA,   "read-file",        0,                  a_read_file,    
 SDATACM2 (ASN_SCHEMA,   "read-binary-file", 0,                  a_read_binary_file, pm_read_binary_file, 0,         "Read a binary file (encoded in base64)"),
 SDATACM2 (ASN_SCHEMA,   "running-keys",     0,                  a_read_running_keys,pm_running_keys,0,              "Read yuno running parameters"),
 SDATACM2 (ASN_SCHEMA,   "running-bin",      0,                  a_read_running_bin, pm_running_keys,0,              "Read yuno running bin path"),
+SDATACM2 (ASN_SCHEMA,   "check-json",       0,                  0,                  0,              cmd_check_json, "Check json refcounts"),
 SDATACM2 (ASN_SCHEMA,   "",                 0,                  0,                  0,              0,              "\nDeploy\n------"),
 SDATACM2 (ASN_SCHEMA,   "replicate-node",   0,                  0,                  pm_replicate_node, cmd_replicate_node, "Replicate realms' yunos in other node or in file"),
 SDATACM2 (ASN_SCHEMA,   "upgrade-node",     0,                  0,                  pm_replicate_node, cmd_replicate_node, "Upgrade realms' yunos in other node or in file"),
@@ -903,8 +904,8 @@ PRIVATE void mt_create(hgobj gobj)
         "treedb_schema", jn_treedb_schema_yuneta_agent
     );
 
-    priv->resource = gobj_create_unique(
-        "agent_resources",
+    priv->resource = gobj_create_service(
+        "treedb",
         GCLASS_NODE,
         kw_resource,
         gobj
@@ -3884,33 +3885,6 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
     /*---------------------------------------------*
      *      Create the yuno
      *---------------------------------------------*/
-/*
-    const char *keys[] = {
-        "realm_name",
-        "yuno_role",
-        "yuno_name",
-        "yuno_release",
-        "yuno_alias",
-
-        "realm_id",
-        "binary_id",
-        "config_ids",
-
-        "disabled",
-        "must_play",
-        "multiple",
-        "global",
-        0
-    };
-    json_t *kw_yuno = kw_duplicate_with_only_keys(kw, keys);
-
-    const char *yuno_id = kw_get_str(kw, "id", 0, 0);
-    if(!empty_string(yuno_id)) {
-        // Cannot be done in kw_duplicate_with_only_keys().
-        // The 'id' key must not exist if is 0.
-        json_object_set_new(kw_yuno, "id", json_string(yuno_id));
-    }
-*/
     json_t *yuno = gobj_create_node(
         priv->resource,
         resource,
@@ -3958,110 +3932,84 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
  ***************************************************************************/
 json_t* cmd_delete_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
 {
-//     PRIVATE_DATA *priv = gobj_priv_data(gobj);
+    PRIVATE_DATA *priv = gobj_priv_data(gobj);
     char *resource = "yunos";
 
     /*
-     *  Get resources to delete.
-     *  Search is restricted to ids only
+     *  Get a iter of matched resources.
      */
-    json_t *kw_ids = kwids_extract_and_expand_ids(kw);
-    if(!kw_ids) {
-        return msg_iev_build_webix(gobj,
-            -153,
-            json_local_sprintf("'id' or 'ids' are required"),
+    json_t *iter = gobj_list_nodes(
+        priv->resource,
+        resource,
+        kw_incref(kw),  // filter
+        0
+    );
+
+    if(json_array_size(iter)==0) {
+        JSON_DECREF(iter);
+        return msg_iev_build_webix(
+            gobj,
+            -130,
+            json_local_sprintf("Select one yuno please"),
             0,
             0,
             kw  // owned
         );
     }
 
-    /*---------------------------------------------*
-     *      Check Realm
-     *---------------------------------------------*/
-    const char *realm_name = kw_get_str(kw, "realm_name", "", 0);
-    const char *realm_id = kw_get_str(kw, "realm_id", 0, 0);
-    if(empty_string(realm_id)) {
-        json_t *hs_realm = find_last_id_by_name(gobj, "realms", "name", realm_name);
-        if(!hs_realm) {
-            json_decref(kw_ids);
-            return msg_iev_build_webix(gobj,
-                -146,
-                json_local_sprintf(
-                    "Realm '%s' not found", realm_name
+    /*
+     *  Check conditions to delete
+     */
+    int idx; json_t *node;
+    json_array_foreach(iter, idx, node) {
+        BOOL yuno_running = kw_get_bool(node, "yuno_running", 0, KW_REQUIRED);
+        if(yuno_running > 0) {
+            JSON_DECREF(iter);
+            return msg_iev_build_webix(
+                gobj,
+                -141,
+                json_local_sprintf("Cannot delete yuno '%s', it's running",
+                    kw_get_str(node, "id", "", KW_REQUIRED)
                 ),
                 0,
                 0,
                 kw  // owned
             );
         }
-        realm_id = SDATA_GET_ID(hs_realm);
-        json_object_set_new(kw, "realm_id", json_string(realm_id));
     }
-
-    int deleted = 0;
-    int failed = 0;
-// TODO    json_int_t *ids_list = jsonlist2c(kw_get_dict_value(kw_ids, "ids", 0, 0));
-//     json_int_t *p_id = ids_list;
-//     while(*p_id) {
-//         json_int_t id = *p_id;
-//         if(id != (json_int_t)-1) {
-//             hsdata hs = gobj_get_node(
-//                 priv->resource,
-//                 resource,
-//                 id
-//             );
-//             if(hs) {
-//                 BOOL running = xsdata_read_bool(hs, "yuno_running");
-//                 if(running) {
-//                     failed++;
-//                     p_id++;
-//                     continue;
-//                 }
-//                 char yuno_bin_path[NAME_MAX];
-//                 build_yuno_bin_path(gobj, hs, yuno_bin_path, sizeof(yuno_bin_path), FALSE);
-//                 if(gobj_delete_node(priv->resource, hs)==0) {
-//                     /*
-//                      *  remove run script
-//                      */
-//                     rmrdir(yuno_bin_path);
-//                     deleted++;
-//                 } else {
-//                     failed++;
-//                 }
-//             }
-//         }
-//         p_id++;
-//     }
-    if(!deleted) {
-        failed = 1;
-    }
-//     gbmem_free(ids_list);
-    json_decref(kw_ids);
 
     /*
-     *  Inform
+     *  Delete
      */
-    json_t *webix;
-    if(failed) {
-        webix = msg_iev_build_webix(gobj,
-            -155,
-            json_local_sprintf("%d %s deleted. Some yuno not found or it's running", deleted, resource),
-            0,
-            0,
-            kw  // owned
-        );
-
-    } else {
-        webix = msg_iev_build_webix(gobj,
-            0,
-            json_local_sprintf("%d %s deleted", deleted, resource),
-            0,
-            0,
-            kw  // owned
-        );
+    int result = 0;
+    json_t *jn_data = json_array();
+    json_array_foreach(iter, idx, node) {
+        if(gobj_delete_node(priv->resource, resource, node, "force")<0) {
+            result += -1;
+            log_error(0,
+                "gobj",         "%s", __FILE__,
+                "function",     "%s", __FUNCTION__,
+                "msgset",       "%s", MSGSET_INTERNAL_ERROR,
+                "msg",          "%s", "gobj_delete_node() FAILED",
+                "node",         "%j", node,
+                NULL
+            );
+        } else {
+            json_array_append(jn_data, node);
+        }
     }
-    return webix;
+
+    JSON_DECREF(iter);
+
+    return msg_iev_build_webix(
+        gobj,
+        result,
+        json_local_sprintf("%d configurations deleted", idx),
+        tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
+        jn_data,
+        kw  // owned
+    );
+
 }
 
 /***************************************************************************
@@ -4162,8 +4110,7 @@ PRIVATE json_t *cmd_run_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
      *  que nos indique cuando han arrancado
      *  all yunos arrancados.
      *--------------------------------------*/
-    KW_INCREF(kw);
-    json_t *kw_answer = kw;
+    json_t *kw_answer = kw_incref(kw);
 
     char info[80];
     snprintf(info, sizeof(info), "%d yunos found to run", total_run);
@@ -5219,6 +5166,25 @@ PRIVATE json_t *cmd_set_qkill(hgobj gobj, const char *cmd, json_t *kw, hgobj src
     );
 }
 
+/***************************************************************************
+ *
+ ***************************************************************************/
+PRIVATE json_t *cmd_check_json(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
+{
+    PRIVATE_DATA *priv = gobj_priv_data(gobj);
+
+    json_t *tranger = gobj_read_json_attr(priv->resource, "tranger");
+    int result = kw_check_refcounts(tranger, 0)?0:-1;
+    return msg_iev_build_webix(gobj,
+        result,
+        json_local_sprintf("check refcounts of tranger: %s", result==0?"Ok":"Bad"),
+        0,
+        0,
+        kw  // owned
+    );
+}
+
+
 
 
             /***************************
@@ -6014,7 +5980,6 @@ PRIVATE int run_yuno(hgobj gobj, json_t *yuno, hgobj src)
     );
 
     char *bfarg = gbuf_cur_rd_pointer(gbuf_sh);
-    //     int ret = system(exec_cmd);
     char *const argv[]={(char *)yuno_role, "-f", bfarg, "--start", 0};
 
     int ret = run_process2(bfbinary, argv);
@@ -8210,7 +8175,7 @@ PRIVATE int ac_on_close(hgobj gobj, const char *event, json_t *kw, hgobj src)
     json_object_set_new(yuno, "yuno_pid", json_integer(0));
     json_object_set_new(yuno, "_channel_gobj", json_integer(0));
 
-    gobj_update_node(priv->resource, "yunos", kw_incref(yuno), ""); // TODO salvo volatiles?
+    gobj_update_node(priv->resource, "yunos", kw_incref(yuno), "");
 
     KW_DECREF(kw);
     return 0;

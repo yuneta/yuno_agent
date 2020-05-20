@@ -123,7 +123,7 @@ PRIVATE char variable_config[]= "\
                         }                                               \n\
                     ],                                                  \n\
                     '[^^zchilds^^]': {                                  \n\
-                        '__range__': [[12001,12199]], #^^ max 200 users \n\
+                        '__range__': [[12000,12099]], #^^ max 100 users \n\
                         '__vars__': {                                   \n\
                         },                                              \n\
                         '__content__': {                                \n\

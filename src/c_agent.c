@@ -729,6 +729,12 @@ SDATAPM (ASN_BOOLEAN,   "force",        0,              0,          "Force delet
 SDATA_END()
 };
 
+PRIVATE sdata_desc_t pm_check_json[] = {
+/*-PM----type-----------name------------flag------------default-----description---------- */
+SDATAPM (ASN_INTEGER, "max_refcount",   0,              0,          "Maximum refcount"),
+SDATA_END()
+};
+
 PRIVATE const char *a_help[] = {"h", "?", 0};
 PRIVATE const char *a_edit_config[] = {"EV_EDIT_CONFIG", 0};
 PRIVATE const char *a_view_config[] = {"EV_VIEW_CONFIG", 0};
@@ -769,7 +775,7 @@ SDATACM2 (ASN_SCHEMA,   "read-file",        0,                  a_read_file,    
 SDATACM2 (ASN_SCHEMA,   "read-binary-file", 0,                  a_read_binary_file, pm_read_binary_file, 0,         "Read a binary file (encoded in base64)"),
 SDATACM2 (ASN_SCHEMA,   "running-keys",     0,                  a_read_running_keys,pm_running_keys,0,              "Read yuno running parameters"),
 SDATACM2 (ASN_SCHEMA,   "running-bin",      0,                  a_read_running_bin, pm_running_keys,0,              "Read yuno running bin path"),
-SDATACM2 (ASN_SCHEMA,   "check-json",       0,                  0,                  0,              cmd_check_json, "Check json refcounts"),
+SDATACM2 (ASN_SCHEMA,   "check-json",       0,                  0,                  pm_check_json,  cmd_check_json, "Check json refcounts"),
 SDATACM2 (ASN_SCHEMA,   "",                 0,                  0,                  0,              0,              "\nDeploy\n------"),
 SDATACM2 (ASN_SCHEMA,   "replicate-node",   0,                  0,                  pm_replicate_node, cmd_replicate_node, "Replicate realms' yunos in other node or in file"),
 SDATACM2 (ASN_SCHEMA,   "upgrade-node",     0,                  0,                  pm_replicate_node, cmd_replicate_node, "Upgrade realms' yunos in other node or in file"),
@@ -5173,8 +5179,11 @@ PRIVATE json_t *cmd_check_json(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
 {
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
 
+    int max_refcount = kw_get_int(kw, "max_refcount", 1, KW_WILD_NUMBER);
+
     json_t *tranger = gobj_read_json_attr(priv->resource, "tranger");
-    int result = kw_check_refcounts(tranger, 0)?0:-1;
+    int result = 0;
+    kw_check_refcounts(tranger, max_refcount, &result)?0:-1;
     return msg_iev_build_webix(gobj,
         result,
         json_local_sprintf("check refcounts of tranger: %s", result==0?"Ok":"Bad"),

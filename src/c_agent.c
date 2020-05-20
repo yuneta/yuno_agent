@@ -163,7 +163,6 @@ PRIVATE int register_public_services(hgobj gobj, json_t *yuno);
 
 PRIVATE sdata_desc_t tb_binaries[] = {
 /*-FIELD-type-----------name----------------flag------------------------resource--------header----------fillsp--description---------*/
-SDATADF (ASN_JSON,      "__ids__",          SDF_NOTACCESS,              0,              0,              0,      "List of id's to match"),
 SDATADF (ASN_JSON,      "__filter__",       SDF_NOTACCESS,              0,              0,              0,      "Filter to match records"),
 SDATADF (ASN_OCTET_STR, "id",               SDF_PERSIST|SDF_PKEY,       0,              "Id",           8,      "Id"),
 SDATADF (ASN_OCTET_STR, "role",             SDF_PERSIST|SDF_REQUIRED,   0,              "Binary Role",  18,     "Role extracted from binary"),
@@ -182,7 +181,6 @@ SDATA_END()
 
 PRIVATE sdata_desc_t tb_configs[] = {
 /*-FIELD-type-----------name----------------flag------------------------resource--------header----------fillsp--description---------*/
-SDATADF (ASN_JSON,      "__ids__",          SDF_NOTACCESS,              0,              0,              0,      "List of id's to match"),
 SDATADF (ASN_JSON,      "__filter__",       SDF_NOTACCESS,              0,              0,              0,      "Filter to match records"),
 SDATADF (ASN_OCTET_STR, "id",               SDF_PERSIST|SDF_PKEY,       0,              "Id",           8,      "Id"),
 SDATADF (ASN_OCTET_STR, "name",             SDF_PERSIST|SDF_REQUIRED,   0,              "Configuration Name", 30, "Configuration name"),
@@ -198,7 +196,6 @@ SDATA_END()
 
 PRIVATE sdata_desc_t tb_yunos[] = {
 /*-FIELD-type-----------name----------------flag------------------------resource--------header----------fillsp--description---------*/
-SDATADF (ASN_JSON,      "__ids__",          SDF_NOTACCESS,              0,              0,              0,      "List of id's to match"),
 SDATADF (ASN_JSON,      "__filter__",       SDF_NOTACCESS,              0,              0,              0,      "Filter to match records"),
 SDATADF (ASN_OCTET_STR, "id",               SDF_PERSIST|SDF_PKEY,       0,              "Id",           8,      "Id"),
 SDATADF (ASN_OCTET_STR, "realm_name",       SDF_PERSIST,                0,              "Realm Name",   16,     "Realm of yuno"),
@@ -236,7 +233,6 @@ SDATA_END()
 
 PRIVATE sdata_desc_t tb_realms[] = {
 /*-FIELD-type-----------name----------------flag------------------------resource--------header----------fillsp--description---------*/
-SDATADF (ASN_JSON,      "__ids__",          SDF_NOTACCESS,              0,              0,              0,      "List of id's to match"),
 SDATADF (ASN_JSON,      "__filter__",       SDF_NOTACCESS,              0,              0,              0,      "Filter to match records"),
 SDATADF (ASN_OCTET_STR, "id",               SDF_PERSIST|SDF_PKEY,       0,              "Id",           8,      "Id"),
 SDATADF (ASN_OCTET_STR, "domain",           SDF_PERSIST|SDF_REQUIRED,   0,              "Realm Domain", 22,     "Realm *domain*. It's up to you"),
@@ -255,7 +251,6 @@ SDATA_END()
 
 PRIVATE sdata_desc_t tb_public_services[] = {
 /*-FIELD-type-----------name----------------flag------------------------resource--------header----------fillsp--description---------*/
-SDATADF (ASN_JSON,      "__ids__",          SDF_NOTACCESS,              0,              0,              0,      "List of id's to match"),
 SDATADF (ASN_JSON,      "__filter__",       SDF_NOTACCESS,              0,              0,              0,      "Filter to match records"),
 SDATADF (ASN_OCTET_STR, "id",               SDF_PERSIST|SDF_PKEY,       0,              "Id",           8,      "Id"),
 SDATADF (ASN_OCTET_STR, "service",          SDF_PERSIST|SDF_REQUIRED,   0,              "Service",      18,     "Service name"),
@@ -407,8 +402,6 @@ SDATA_END()
 };
 PRIVATE sdata_desc_t pm_running_keys[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
-SDATAPM (ASN_JSON,      "__ids__",      0,              0,          "List of yuno's id to match"),
-SDATAPM (ASN_JSON,      "__filter__",   0,              0,          "Filter to match nodes"),
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id of yuno"),
 SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "realm_name",   0,              0,          "Realm Name"),
@@ -420,8 +413,6 @@ SDATA_END()
 };
 PRIVATE sdata_desc_t pm_run_yuno[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
-SDATAPM (ASN_JSON,      "__ids__",      0,              0,          "List of yuno's id to match"),
-SDATAPM (ASN_JSON,      "__filter__",   0,              0,          "Filter to match nodes"),
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id of yuno"),
 SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "realm_name",   0,              0,          "Realm Name"),
@@ -433,8 +424,6 @@ SDATA_END()
 };
 PRIVATE sdata_desc_t pm_kill_yuno[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
-SDATAPM (ASN_JSON,      "__ids__",      0,              0,          "List of yuno's id to match"),
-SDATAPM (ASN_JSON,      "__filter__",   0,              0,          "Filter to match nodes"),
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id of yuno"),
 SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "realm_name",   0,              0,          "Realm Name"),
@@ -448,8 +437,6 @@ SDATA_END()
 };
 PRIVATE sdata_desc_t pm_play_yuno[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
-SDATAPM (ASN_JSON,      "__ids__",      0,              0,          "List of yuno's id to match"),
-SDATAPM (ASN_JSON,      "__filter__",   0,              0,          "Filter to match nodes"),
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id of yuno"),
 SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "realm_name",   0,              0,          "Realm Name"),
@@ -461,8 +448,6 @@ SDATA_END()
 };
 PRIVATE sdata_desc_t pm_pause_yuno[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
-SDATAPM (ASN_JSON,      "__ids__",      0,              0,          "List of yuno's id to match"),
-SDATAPM (ASN_JSON,      "__filter__",   0,              0,          "Filter to match nodes"),
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id of yuno"),
 SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "realm_name",   0,              0,          "Realm Name"),
@@ -474,8 +459,6 @@ SDATA_END()
 };
 PRIVATE sdata_desc_t pm_enable_yuno[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
-SDATAPM (ASN_JSON,      "__ids__",      0,              0,          "List of yuno's id to match"),
-SDATAPM (ASN_JSON,      "__filter__",   0,              0,          "Filter to match nodes"),
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id of yuno"),
 SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "realm_name",   0,              0,          "Realm Name"),
@@ -487,8 +470,6 @@ SDATA_END()
 };
 PRIVATE sdata_desc_t pm_disable_yuno[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
-SDATAPM (ASN_JSON,      "__ids__",      0,              0,          "List of yuno's id to match"),
-SDATAPM (ASN_JSON,      "__filter__",   0,              0,          "Filter to match nodes"),
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id of yuno"),
 SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "realm_name",   0,              0,          "Realm Name"),
@@ -500,8 +481,6 @@ SDATA_END()
 };
 PRIVATE sdata_desc_t pm_trace_on_yuno[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
-SDATAPM (ASN_JSON,      "__ids__",      0,              0,          "List of yuno's id to match"),
-SDATAPM (ASN_JSON,      "__filter__",   0,              0,          "Filter to match nodes"),
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id of yuno"),
 SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "realm_name",   0,              0,          "Realm Name"),
@@ -513,8 +492,6 @@ SDATA_END()
 };
 PRIVATE sdata_desc_t pm_trace_off_yuno[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
-SDATAPM (ASN_JSON,      "__ids__",      0,              0,          "List of yuno's id to match"),
-SDATAPM (ASN_JSON,      "__filter__",   0,              0,          "Filter to match nodes"),
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id of yuno"),
 SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "realm_name",   0,              0,          "Realm Name"),
@@ -526,8 +503,6 @@ SDATA_END()
 };
 PRIVATE sdata_desc_t pm_command_yuno[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
-SDATAPM (ASN_JSON,      "__ids__",      0,              0,          "List of yuno's id to match"),
-SDATAPM (ASN_JSON,      "__filter__",   0,              0,          "Filter to match nodes"),
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id of yuno"),
 SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "realm_name",   0,              0,          "Realm Name"),
@@ -541,8 +516,6 @@ SDATA_END()
 };
 PRIVATE sdata_desc_t pm_stats_yuno[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
-SDATAPM (ASN_JSON,      "__ids__",      0,              0,          "List of yuno's id to match"),
-SDATAPM (ASN_JSON,      "__filter__",   0,              0,          "Filter to match nodes"),
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id of yuno"),
 SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "realm_name",   0,              0,          "Realm Name"),
@@ -556,8 +529,6 @@ SDATA_END()
 };
 PRIVATE sdata_desc_t pm_set_alias[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
-SDATAPM (ASN_JSON,      "__ids__",      0,              0,          "List of yuno's id to match"),
-SDATAPM (ASN_JSON,      "__filter__",   0,              0,          "Filter to match nodes"),
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id of yuno"),
 SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "alias",        0,              0,          "New Yuno alias"),
@@ -615,8 +586,6 @@ SDATA_END()
 
 PRIVATE sdata_desc_t pm_replicate_node[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
-SDATAPM (ASN_JSON,      "__ids__",      0,              0,          "Set of id's to match nodes"),
-SDATAPM (ASN_JSON,      "__filter__",   0,              0,          "Filter to match nodes"),
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id"),
 SDATAPM (ASN_OCTET_STR, "realm_name",   0,              0,          "Realm name you want replicate/upgrade"),
 SDATAPM (ASN_OCTET_STR, "url",          0,              0,          "Url of node where replicate/upgrade"),
@@ -626,8 +595,6 @@ SDATA_END()
 
 PRIVATE sdata_desc_t pm_replicate_binaries[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
-SDATAPM (ASN_JSON,      "__ids__",      0,              0,          "Set of id's to match nodes"),
-SDATAPM (ASN_JSON,      "__filter__",   0,              0,          "Filter to match nodes"),
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id"),
 SDATAPM (ASN_OCTET_STR, "role",         0,              0,          "Binary role you want replicate"),
 SDATAPM (ASN_OCTET_STR, "url",          0,              0,          "Url of node where replicate binaries"),
@@ -637,8 +604,7 @@ SDATA_END()
 
 PRIVATE sdata_desc_t pm_update_realm[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
-SDATAPM (ASN_JSON,      "__ids__",      0,              0,          "Set of id's to match nodes"),
-SDATAPM (ASN_JSON,      "__filter__",   0,              0,          "Filter to match nodes"),
+SDATAPM (ASN_JSON,      "__filter__",   0,              0,          "Filter to match records"),
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id"),
 SDATAPM (ASN_OCTET_STR, "bind_ip",      0,              0,          "Ip to be bind by the Realm"),
 SDATAPM (ASN_UNSIGNED,  "last_port",    0,              0,          "Last port assigned"),
@@ -647,8 +613,6 @@ SDATA_END()
 };
 PRIVATE sdata_desc_t pm_del_realm[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
-SDATAPM (ASN_JSON,      "__ids__",      0,              0,          "Set of id's to match nodes"),
-SDATAPM (ASN_JSON,      "__filter__",   0,              0,          "Filter to match nodes"),
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id"),
 SDATAPM (ASN_BOOLEAN,   "force",        0,              0,          "Force delete"),
 SDATA_END()
@@ -656,8 +620,7 @@ SDATA_END()
 
 PRIVATE sdata_desc_t pm_update_service[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
-SDATAPM (ASN_JSON,      "__ids__",      0,              0,          "Set of id's to match nodes"),
-SDATAPM (ASN_JSON,      "__filter__",   0,              0,          "Filter to match nodes"),
+SDATAPM (ASN_JSON,      "__filter__",   0,              0,          "Filter to match records"),
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id"),
 SDATAPM (ASN_OCTET_STR, "ip",           0,              0,          "Ip assigned"),
 SDATAPM (ASN_UNSIGNED,  "port",         0,              0,          "Port assigned"),
@@ -666,8 +629,6 @@ SDATA_END()
 };
 PRIVATE sdata_desc_t pm_del_service[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
-SDATAPM (ASN_JSON,      "__ids__",      0,              0,          "Set of id's to match nodes"),
-SDATAPM (ASN_JSON,      "__filter__",   0,              0,          "Filter to match nodes"),
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id"),
 SDATAPM (ASN_BOOLEAN,   "force",        0,              0,          "Force delete"),
 SDATA_END()
@@ -688,8 +649,6 @@ SDATA_END()
 };
 PRIVATE sdata_desc_t pm_delete_binary[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
-SDATAPM (ASN_JSON,      "__ids__",      0,              0,          "Set of id's to match nodes"),
-SDATAPM (ASN_JSON,      "__filter__",   0,              0,          "Filter to match nodes"),
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id"),
 SDATAPM (ASN_BOOLEAN,   "force",        0,              0,          "Force delete"),
 SDATA_END()
@@ -726,6 +685,7 @@ SDATA_END()
 
 PRIVATE sdata_desc_t pm_update_config[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
+SDATAPM (ASN_JSON,      "__filter__",   0,              0,          "Filter to match records"),
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id"),
 SDATAPM (ASN_OCTET_STR, "version",      0,              0,          "configuration version"),
 SDATAPM (ASN_OCTET_STR, "description",  0,              0,          "description"),
@@ -734,8 +694,6 @@ SDATA_END()
 };
 PRIVATE sdata_desc_t pm_delete_config[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
-SDATAPM (ASN_JSON,      "__ids__",      0,              0,          "Set of id's to match nodes"),
-SDATAPM (ASN_JSON,      "__filter__",   0,              0,          "Filter to match nodes"),
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id"),
 SDATAPM (ASN_BOOLEAN,   "force",        0,              0,          "Force delete"),
 SDATA_END()
@@ -766,8 +724,6 @@ SDATA_END()
 
 PRIVATE sdata_desc_t pm_delete_yuno[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
-SDATAPM (ASN_JSON,      "__ids__",      0,              0,          "Set of id's to match nodes"),
-SDATAPM (ASN_JSON,      "__filter__",   0,              0,          "Filter to match nodes"),
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id"),
 SDATAPM (ASN_BOOLEAN,   "force",        0,              0,          "Force delete"),
 SDATA_END()
@@ -2106,31 +2062,10 @@ PRIVATE json_t *cmd_list_public_services(hgobj gobj, const char *cmd, json_t *kw
     /*
      *  Get a iter of matched resources
      */
-    json_t *kw_ids = json_array();
-    if(kw_has_key(kw, "id")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "id", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "id");
-    }
-    if(kw_has_key(kw, "__ids__")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "__ids__", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "__ids__");
-    }
-
-    if(kw_has_key(kw, "__filter__")) {
-        json_t *kw_filter = kw_get_dict_value(kw, "__filter__", 0, KW_EXTRACT);
-        json_object_update(kw, kw_filter);
-        JSON_DECREF(kw_filter);
-    }
-
     json_t *jn_data = gobj_list_nodes(
         priv->resource,
         resource,
-        kw_ids, // ids
-        kw_filter_metadata(kw_incref(kw)), // filter
+        kw_incref(kw), // filter
         0
     );
 
@@ -2158,37 +2093,15 @@ PRIVATE json_t *cmd_update_public_service(hgobj gobj, const char *cmd, json_t *k
     /*
      *  Get a iter of matched resources.
      */
-    json_t *kw_ids = json_array();
-    if(kw_has_key(kw, "id")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "id", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "id");
-    }
-    if(kw_has_key(kw, "__ids__")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "__ids__", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "__ids__");
-    }
-
-    json_t *kw_filter = 0;
-    if(kw_has_key(kw, "__filter__")) {
-        kw_filter = kw_get_dict_value(kw, "__filter__", 0, KW_EXTRACT);
-    }
-
     json_t *iter = gobj_list_nodes(
         priv->resource,
         resource,
-        kw_incref(kw_ids), // ids
-        kw_incref(kw_filter),  // filter
+        kw_incref(kw),
         0
     );
 
     if(json_array_size(iter)==0) {
         JSON_DECREF(iter);
-        JSON_DECREF(kw_ids);
-        JSON_DECREF(kw_filter);
         return msg_iev_build_webix(
             gobj,
             -107,
@@ -2202,24 +2115,28 @@ PRIVATE json_t *cmd_update_public_service(hgobj gobj, const char *cmd, json_t *k
     /*
      *  Update database
      */
+    int result = 0;
     int idx; json_t *node;
     json_array_foreach(iter, idx, node) {
         json_t *update = kw_duplicate(kw);
         json_object_set(update, "id", kw_get_dict_value(node, "id", 0, KW_REQUIRED));
-        gobj_update_node(priv->resource, resource, update, "");
+        if(gobj_update_node(priv->resource, resource, update, "")<0) {
+            result += -1;
+            log_error(0,
+                "gobj",         "%s", __FILE__,
+                "function",     "%s", __FUNCTION__,
+                "msgset",       "%s", MSGSET_INTERNAL_ERROR,
+                "msg",          "%s", "gobj_update_node() FAILED",
+                "node",         "%j", node,
+                NULL
+            );
+        }
     }
-    JSON_DECREF(iter);
 
     /*
      *  Inform
      */
-    json_t *jn_data = gobj_list_nodes(
-        priv->resource,
-        resource,
-        kw_ids, // ids
-        kw_filter,  // filter
-        0
-    );
+    json_t *jn_data = iter;
 
     return msg_iev_build_webix(
         gobj,
@@ -2244,37 +2161,15 @@ PRIVATE json_t *cmd_delete_public_service(hgobj gobj, const char *cmd, json_t *k
     /*
      *  Get a iter of matched resources.
      */
-    json_t *kw_ids = json_array();
-    if(kw_has_key(kw, "id")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "id", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "id");
-    }
-    if(kw_has_key(kw, "__ids__")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "__ids__", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "__ids__");
-    }
-
-    json_t *kw_filter = 0;
-    if(kw_has_key(kw, "__filter__")) {
-        kw_filter = kw_get_dict_value(kw, "__filter__", 0, KW_EXTRACT);
-    }
-
     json_t *iter = gobj_list_nodes(
         priv->resource,
         resource,
-        kw_incref(kw_ids), // ids
-        kw_incref(kw_filter),  // filter
+        kw_incref(kw), // filter
         0
     );
 
     if(json_array_size(iter)==0) {
         JSON_DECREF(iter);
-        JSON_DECREF(kw_ids);
-        JSON_DECREF(kw_filter);
         return msg_iev_build_webix(
             gobj,
             -104,
@@ -2288,33 +2183,31 @@ PRIVATE json_t *cmd_delete_public_service(hgobj gobj, const char *cmd, json_t *k
     /*
      *  Delete
      */
+    int result = 0;
     json_t *jn_data = json_array();
     int idx; json_t *node;
     json_array_foreach(iter, idx, node) {
         json_array_append_new(jn_data, json_string(kw_get_str(node, "name", "", 0)));
         if(gobj_delete_node(priv->resource, resource, node, force?"force":"")<0) {
-            JSON_DECREF(iter);
-            JSON_DECREF(kw_ids);
-            JSON_DECREF(kw_filter);
-            return msg_iev_build_webix(
-                gobj,
-                -116,
-                json_local_sprintf("Cannot delete the public service"),
-                0,
-                0,
-                kw  // owned
+            result += -1;
+            log_error(0,
+                "gobj",         "%s", __FILE__,
+                "function",     "%s", __FUNCTION__,
+                "msgset",       "%s", MSGSET_INTERNAL_ERROR,
+                "msg",          "%s", "gobj_delete_node() FAILED",
+                "node",         "%j", node,
+                NULL
             );
+            break;
         }
     }
 
     JSON_DECREF(iter);
-    JSON_DECREF(kw_ids);
-    JSON_DECREF(kw_filter);
 
     return msg_iev_build_webix(
         gobj,
-        0,
-        json_local_sprintf("%d public service deleted", idx),
+        result,
+        json_local_sprintf("%d nodes deleted", idx),
         0,
         jn_data,
         kw  // owned
@@ -2332,31 +2225,10 @@ PRIVATE json_t *cmd_list_realms(hgobj gobj, const char *cmd, json_t *kw, hgobj s
     /*
      *  Get a iter of matched resources
      */
-    json_t *kw_ids = json_array();
-    if(kw_has_key(kw, "id")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "id", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "id");
-    }
-    if(kw_has_key(kw, "__ids__")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "__ids__", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "__ids__");
-    }
-
-    if(kw_has_key(kw, "__filter__")) {
-        json_t *kw_filter = kw_get_dict_value(kw, "__filter__", 0, KW_EXTRACT);
-        json_object_update(kw, kw_filter);
-        JSON_DECREF(kw_filter);
-    }
-
     json_t *jn_data = gobj_list_nodes(
         priv->resource,
         resource,
-        kw_ids, // ids
-        kw_filter_metadata(kw_incref(kw)), // filter
+        kw_incref(kw), // filter
         0
     );
 
@@ -2428,7 +2300,6 @@ PRIVATE json_t *cmd_create_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
     json_t *iter = gobj_list_nodes(
         priv->resource,
         resource,
-        0, // ids
         kw_find, // filter
         0
     );
@@ -2495,37 +2366,15 @@ PRIVATE json_t *cmd_update_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
     /*
      *  Get a iter of matched resources.
      */
-    json_t *kw_ids = json_array();
-    if(kw_has_key(kw, "id")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "id", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "id");
-    }
-    if(kw_has_key(kw, "__ids__")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "__ids__", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "__ids__");
-    }
-
-    json_t *kw_filter = 0;
-    if(kw_has_key(kw, "__filter__")) {
-        kw_filter = kw_get_dict_value(kw, "__filter__", 0, KW_EXTRACT);
-    }
-
     json_t *iter = gobj_list_nodes(
         priv->resource,
         resource,
-        kw_incref(kw_ids), // ids
-        kw_incref(kw_filter),  // filter
+        kw_incref(kw), // filter
         0
     );
 
     if(json_array_size(iter)==0) {
         JSON_DECREF(iter);
-        JSON_DECREF(kw_ids);
-        JSON_DECREF(kw_filter);
         return msg_iev_build_webix(
             gobj,
             -112,
@@ -2539,28 +2388,32 @@ PRIVATE json_t *cmd_update_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
     /*
      *  Update database
      */
+    int result = 0;
     int idx; json_t *node;
     json_array_foreach(iter, idx, node) {
         json_t *update = kw_duplicate(kw);
         json_object_set(update, "id", kw_get_dict_value(node, "id", 0, KW_REQUIRED));
-        gobj_update_node(priv->resource, resource, update, "");
+        if(gobj_update_node(priv->resource, resource, update, "")<0) {
+            result += -1;
+            log_error(0,
+                "gobj",         "%s", __FILE__,
+                "function",     "%s", __FUNCTION__,
+                "msgset",       "%s", MSGSET_INTERNAL_ERROR,
+                "msg",          "%s", "gobj_update_node() FAILED",
+                "node",         "%j", node,
+                NULL
+            );
+        }
     }
-    JSON_DECREF(iter);
 
     /*
      *  Inform
      */
-    json_t *jn_data = gobj_list_nodes(
-        priv->resource,
-        resource,
-        kw_ids, // ids
-        kw_filter,  // filter
-        0
-    );
+    json_t *jn_data = iter;
 
     return msg_iev_build_webix(
         gobj,
-        0,
+        result,
         0,
         tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
@@ -2581,37 +2434,15 @@ PRIVATE json_t *cmd_delete_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
     /*
      *  Get a iter of matched resources.
      */
-    json_t *kw_ids = json_array();
-    if(kw_has_key(kw, "id")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "id", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "id");
-    }
-    if(kw_has_key(kw, "__ids__")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "__ids__", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "__ids__");
-    }
-
-    json_t *kw_filter = 0;
-    if(kw_has_key(kw, "__filter__")) {
-        kw_filter = kw_get_dict_value(kw, "__filter__", 0, KW_EXTRACT);
-    }
-
     json_t *iter = gobj_list_nodes(
         priv->resource,
         resource,
-        kw_incref(kw_ids), // ids
-        kw_incref(kw_filter),  // filter
+        kw_incref(kw), // filter
         0
     );
 
     if(json_array_size(iter)==0) {
         JSON_DECREF(iter);
-        JSON_DECREF(kw_ids);
-        JSON_DECREF(kw_filter);
         return msg_iev_build_webix(
             gobj,
             -113,
@@ -2630,8 +2461,6 @@ PRIVATE json_t *cmd_delete_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         int use = total_yunos_in_realm(gobj, kw_get_str(node, "id", "", KW_REQUIRED));
         if(use > 0) {
             JSON_DECREF(iter);
-            JSON_DECREF(kw_ids);
-            JSON_DECREF(kw_filter);
             return msg_iev_build_webix(
                 gobj,
                 -115,
@@ -2649,27 +2478,25 @@ PRIVATE json_t *cmd_delete_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
     /*
      *  Delete
      */
+    int result = 0;
     json_t *jn_data = json_array();
     json_array_foreach(iter, idx, node) {
         json_array_append_new(jn_data, json_string(kw_get_str(node, "name", "", 0)));
         if(gobj_delete_node(priv->resource, resource, node, force?"force":"")<0) {
-            JSON_DECREF(iter);
-            JSON_DECREF(kw_ids);
-            JSON_DECREF(kw_filter);
-            return msg_iev_build_webix(
-                gobj,
-                -116,
-                json_local_sprintf("Cannot delete the realm"),
-                0,
-                0,
-                kw  // owned
+            result += -1;
+            log_error(0,
+                "gobj",         "%s", __FILE__,
+                "function",     "%s", __FUNCTION__,
+                "msgset",       "%s", MSGSET_INTERNAL_ERROR,
+                "msg",          "%s", "gobj_delete_node() FAILED",
+                "node",         "%j", node,
+                NULL
             );
+            break;
         }
     }
 
     JSON_DECREF(iter);
-    JSON_DECREF(kw_ids);
-    JSON_DECREF(kw_filter);
 
     return msg_iev_build_webix(
         gobj,
@@ -2692,31 +2519,10 @@ PRIVATE json_t *cmd_list_binaries(hgobj gobj, const char *cmd, json_t *kw, hgobj
     /*
      *  Get a iter of matched resources
      */
-    json_t *kw_ids = json_array();
-    if(kw_has_key(kw, "id")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "id", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "id");
-    }
-    if(kw_has_key(kw, "__ids__")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "__ids__", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "__ids__");
-    }
-
-    if(kw_has_key(kw, "__filter__")) {
-        json_t *kw_filter = kw_get_dict_value(kw, "__filter__", 0, KW_EXTRACT);
-        json_object_update(kw, kw_filter);
-        JSON_DECREF(kw_filter);
-    }
-
     json_t *jn_data = gobj_list_nodes(
         priv->resource,
         resource,
-        kw_ids, // ids
-        kw_filter_metadata(kw_incref(kw)), // filter
+        kw_incref(kw), // filter
         0
     );
 
@@ -2849,7 +2655,6 @@ PRIVATE json_t *cmd_install_binary(hgobj gobj, const char *cmd, json_t *kw, hgob
     json_t *iter = gobj_list_nodes(
         priv->resource,
         resource,
-        0, // ids
         kw_find, // filter
         0
     );
@@ -3193,37 +2998,15 @@ PRIVATE json_t *cmd_delete_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
     /*
      *  Get a iter of matched resources.
      */
-    json_t *kw_ids = json_array();
-    if(kw_has_key(kw, "id")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "id", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "id");
-    }
-    if(kw_has_key(kw, "__ids__")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "__ids__", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "__ids__");
-    }
-
-    json_t *kw_filter = 0;
-    if(kw_has_key(kw, "__filter__")) {
-        kw_filter = kw_get_dict_value(kw, "__filter__", 0, KW_EXTRACT);
-    }
-
     json_t *iter = gobj_list_nodes(
         priv->resource,
         resource,
-        kw_incref(kw_ids), // ids
-        kw_incref(kw_filter),  // filter
+        kw_incref(kw),  // filter
         0
     );
 
     if(json_array_size(iter)==0) {
         JSON_DECREF(iter);
-        JSON_DECREF(kw_ids);
-        JSON_DECREF(kw_filter);
         return msg_iev_build_webix(
             gobj,
             -130,
@@ -3242,8 +3025,6 @@ PRIVATE json_t *cmd_delete_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
         int use = total_binary_in_yunos(gobj, kw_get_str(node, "id", "", KW_REQUIRED));
         if(use > 0) {
             JSON_DECREF(iter);
-            JSON_DECREF(kw_ids);
-            JSON_DECREF(kw_filter);
             return msg_iev_build_webix(
                 gobj,
                 -131,
@@ -3261,6 +3042,7 @@ PRIVATE json_t *cmd_delete_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
     /*
      *  Delete
      */
+    int result = 0;
     json_t *jn_data = json_array();
     json_array_foreach(iter, idx, node) {
         json_t *jn_classifiers = kw_get_dict_value(node, "classifiers", 0, KW_REQUIRED);
@@ -3277,17 +3059,16 @@ PRIVATE json_t *cmd_delete_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
         );
 
         if(gobj_delete_node(priv->resource, resource, node, force?"force":"")<0) {
-            JSON_DECREF(iter);
-            JSON_DECREF(kw_ids);
-            JSON_DECREF(kw_filter);
-            return msg_iev_build_webix(
-                gobj,
-                -116,
-                json_local_sprintf("Cannot delete the binary: %s", destination),
-                0,
-                0,
-                kw  // owned
+            result += -1;
+            log_error(0,
+                "gobj",         "%s", __FILE__,
+                "function",     "%s", __FUNCTION__,
+                "msgset",       "%s", MSGSET_INTERNAL_ERROR,
+                "msg",          "%s", "gobj_delete_node() FAILED",
+                "node",         "%j", node,
+                NULL
             );
+            break;
         }
         json_array_append_new(jn_data, json_string(destination));
 
@@ -3300,12 +3081,10 @@ PRIVATE json_t *cmd_delete_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
     }
 
     JSON_DECREF(iter);
-    JSON_DECREF(kw_ids);
-    JSON_DECREF(kw_filter);
 
     return msg_iev_build_webix(
         gobj,
-        0,
+        result,
         json_local_sprintf("%d binaries deleted", idx),
         0,
         jn_data,
@@ -3324,31 +3103,10 @@ PRIVATE json_t *cmd_list_configs(hgobj gobj, const char *cmd, json_t *kw, hgobj 
     /*
      *  Get a iter of matched resources
      */
-    json_t *kw_ids = json_array();
-    if(kw_has_key(kw, "id")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "id", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "id");
-    }
-    if(kw_has_key(kw, "__ids__")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "__ids__", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "__ids__");
-    }
-
-    if(kw_has_key(kw, "__filter__")) {
-        json_t *kw_filter = kw_get_dict_value(kw, "__filter__", 0, KW_EXTRACT);
-        json_object_update(kw, kw_filter);
-        JSON_DECREF(kw_filter);
-    }
-
     json_t *jn_data = gobj_list_nodes(
         priv->resource,
         resource,
-        kw_ids, // ids
-        kw_filter_metadata(kw_incref(kw)), // filter
+        kw_incref(kw), // filter
         0
     );
 
@@ -3390,7 +3148,6 @@ PRIVATE json_t *cmd_create_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
     json_t *iter = gobj_list_nodes(
         priv->resource,
         resource,
-        0, // ids
         kw_find, // filter
         0
     );
@@ -3596,37 +3353,15 @@ PRIVATE json_t *cmd_delete_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
     /*
      *  Get a iter of matched resources.
      */
-    json_t *kw_ids = json_array();
-    if(kw_has_key(kw, "id")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "id", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "id");
-    }
-    if(kw_has_key(kw, "__ids__")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "__ids__", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "__ids__");
-    }
-
-    json_t *kw_filter = 0;
-    if(kw_has_key(kw, "__filter__")) {
-        kw_filter = kw_get_dict_value(kw, "__filter__", 0, KW_EXTRACT);
-    }
-
     json_t *iter = gobj_list_nodes(
         priv->resource,
         resource,
-        kw_incref(kw_ids), // ids
-        kw_incref(kw_filter),  // filter
+        kw_incref(kw),  // filter
         0
     );
 
     if(json_array_size(iter)==0) {
         JSON_DECREF(iter);
-        JSON_DECREF(kw_ids);
-        JSON_DECREF(kw_filter);
         return msg_iev_build_webix(
             gobj,
             -130,
@@ -3645,8 +3380,6 @@ PRIVATE json_t *cmd_delete_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
         int use = total_config_in_yunos(gobj, kw_get_str(node, "id", "", KW_REQUIRED));
         if(use > 0) {
             JSON_DECREF(iter);
-            JSON_DECREF(kw_ids);
-            JSON_DECREF(kw_filter);
             return msg_iev_build_webix(
                 gobj,
                 -141,
@@ -3671,8 +3404,6 @@ PRIVATE json_t *cmd_delete_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
 
         if(gobj_delete_node(priv->resource, resource, node, force?"force":"")<0) {
             JSON_DECREF(iter);
-            JSON_DECREF(kw_ids);
-            JSON_DECREF(kw_filter);
             return msg_iev_build_webix(
                 gobj,
                 -142,
@@ -3686,8 +3417,6 @@ PRIVATE json_t *cmd_delete_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
     }
 
     JSON_DECREF(iter);
-    JSON_DECREF(kw_ids);
-    JSON_DECREF(kw_filter);
 
     return msg_iev_build_webix(
         gobj,
@@ -3721,37 +3450,15 @@ PRIVATE json_t *cmd_set_alias(hgobj gobj, const char *cmd, json_t *kw, hgobj src
     /*
      *  Get a iter of matched resources.
      */
-    json_t *kw_ids = json_array();
-    if(kw_has_key(kw, "id")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "id", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "id");
-    }
-    if(kw_has_key(kw, "__ids__")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "__ids__", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "__ids__");
-    }
-
-    json_t *kw_filter = 0;
-    if(kw_has_key(kw, "__filter__")) {
-        kw_filter = kw_get_dict_value(kw, "__filter__", 0, KW_EXTRACT);
-    }
-
     json_t *iter = gobj_list_nodes(
         priv->resource,
         resource,
-        kw_incref(kw_ids), // ids
-        kw_incref(kw_filter),  // filter
+        kw_incref(kw),  // filter
         0
     );
 
     if(json_array_size(iter)==0) {
         JSON_DECREF(iter);
-        JSON_DECREF(kw_ids);
-        JSON_DECREF(kw_filter);
         return msg_iev_build_webix(
             gobj,
             -158,
@@ -3772,18 +3479,11 @@ PRIVATE json_t *cmd_set_alias(hgobj gobj, const char *cmd, json_t *kw, hgobj src
         json_object_set_new(update, "yuno_alias", json_string(yuno_alias));
         gobj_update_node(priv->resource, resource, update, "");
     }
-    JSON_DECREF(iter);
 
     /*
      *  Inform
      */
-    json_t *jn_data = gobj_list_nodes(
-        priv->resource,
-        resource,
-        kw_ids, // ids
-        kw_filter,  // filter
-        0
-    );
+    json_t *jn_data = iter;
 
     return msg_iev_build_webix(
         gobj,
@@ -3806,31 +3506,10 @@ PRIVATE json_t *cmd_top_yunos(hgobj gobj, const char *cmd, json_t *kw, hgobj src
     /*
      *  Get a iter of matched resources
      */
-    json_t *kw_ids = json_array();
-    if(kw_has_key(kw, "id")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "id", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "id");
-    }
-    if(kw_has_key(kw, "__ids__")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "__ids__", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "__ids__");
-    }
-
-    if(kw_has_key(kw, "__filter__")) {
-        json_t *kw_filter = kw_get_dict_value(kw, "__filter__", 0, KW_EXTRACT);
-        json_object_update(kw, kw_filter);
-        JSON_DECREF(kw_filter);
-    }
-
     json_t *iter = gobj_list_nodes(
         priv->resource,
         resource,
-        kw_ids, // ids
-        kw_filter_metadata(kw_incref(kw)), // filter
+        kw_incref(kw), // filter
         0
     );
 
@@ -3869,31 +3548,10 @@ PRIVATE json_t *cmd_list_yunos(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
     /*
      *  Get a iter of matched resources.
      */
-    json_t *kw_ids = json_array();
-    if(kw_has_key(kw, "id")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "id", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "id");
-    }
-    if(kw_has_key(kw, "__ids__")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "__ids__", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "__ids__");
-    }
-
-    if(kw_has_key(kw, "__filter__")) {
-        json_t *kw_filter = kw_get_dict_value(kw, "__filter__", 0, KW_EXTRACT);
-        json_object_update(kw, kw_filter);
-        JSON_DECREF(kw_filter);
-    }
-
     json_t *iter = gobj_list_nodes(
         priv->resource,
         resource,
-        kw_ids, // ids
-        kw_filter_metadata(kw_incref(kw)), // filter
+        kw_incref(kw), // filter
         0
     );
 
@@ -4061,8 +3719,7 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
         iter_configs = gobj_list_nodes(
             priv->resource,
             "configurations",
-            kw_config_ids, // ids
-            0, // filter
+            kw_config_ids, // filter
             0
         );
 
@@ -4168,8 +3825,7 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
         iter_configs = gobj_list_nodes(
             priv->resource,
             "configurations",
-            kw_config_ids, // ids
-            0, // filter
+            kw_config_ids, // filter
             0
         );
     }
@@ -4196,7 +3852,6 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
         json_t *iter_find = gobj_list_nodes(
             priv->resource,
             resource,
-            0, // ids
             kw_find, // filter
             0
         );
@@ -4413,34 +4068,11 @@ PRIVATE json_t *cmd_run_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
     /*
      *  Get a iter of matched resources.
      */
-    json_t *kw_ids = json_array();
-
     json_object_set_new(kw, "disabled", json_false());
-
-    if(kw_has_key(kw, "id")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "id", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "id");
-    }
-    if(kw_has_key(kw, "__ids__")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "__ids__", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "__ids__");
-    }
-
-    if(kw_has_key(kw, "__filter__")) {
-        json_t *kw_filter = kw_get_dict_value(kw, "__filter__", 0, KW_EXTRACT);
-        json_object_update(kw, kw_filter);
-        JSON_DECREF(kw_filter);
-    }
-
     json_t *iter = gobj_list_nodes(
         priv->resource,
         resource,
-        kw_ids, // ids
-        kw_filter_metadata(kw_incref(kw)), // filter
+        kw_incref(kw), // filter
         0
     );
     if(json_array_size(iter)==0) {
@@ -4605,34 +4237,11 @@ PRIVATE json_t *cmd_kill_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
     /*
      *  Get a iter of matched resources.
      */
-    json_t *kw_ids = json_array();
-
     json_object_set_new(kw, "disabled", json_false());
-
-    if(kw_has_key(kw, "id")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "id", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "id");
-    }
-    if(kw_has_key(kw, "__ids__")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "__ids__", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "__ids__");
-    }
-
-    if(kw_has_key(kw, "__filter__")) {
-        json_t *kw_filter = kw_get_dict_value(kw, "__filter__", 0, KW_EXTRACT);
-        json_object_update(kw, kw_filter);
-        JSON_DECREF(kw_filter);
-    }
-
     json_t *iter = gobj_list_nodes(
         priv->resource,
         resource,
-        kw_ids, // ids
-        kw_filter_metadata(kw_incref(kw)), // filter
+        kw_incref(kw), // filter
         0
     );
     if(json_array_size(iter)==0) {
@@ -4791,34 +4400,12 @@ PRIVATE json_t *cmd_play_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
     /*------------------------------------------------*
      *      Get the yunos
      *------------------------------------------------*/
-    json_t *kw_ids = json_array();
-
     json_object_set_new(kw, "disabled", json_false());
-
-    if(kw_has_key(kw, "id")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "id", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "id");
-    }
-    if(kw_has_key(kw, "__ids__")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "__ids__", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "__ids__");
-    }
-
-    if(kw_has_key(kw, "__filter__")) {
-        json_t *kw_filter = kw_get_dict_value(kw, "__filter__", 0, KW_EXTRACT);
-        json_object_update(kw, kw_filter);
-        JSON_DECREF(kw_filter);
-    }
 
     json_t *iter = gobj_list_nodes(
         priv->resource,
         resource,
-        kw_ids, // ids
-        kw_filter_metadata(kw_incref(kw)), // filter
+        kw_incref(kw), // filter
         0
     );
     if(json_array_size(iter)==0) {
@@ -4995,34 +4582,12 @@ PRIVATE json_t *cmd_pause_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
     /*------------------------------------------------*
      *      Get the yunos
      *------------------------------------------------*/
-    json_t *kw_ids = json_array();
-
     json_object_set_new(kw, "disabled", json_false());
-
-    if(kw_has_key(kw, "id")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "id", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "id");
-    }
-    if(kw_has_key(kw, "__ids__")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "__ids__", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "__ids__");
-    }
-
-    if(kw_has_key(kw, "__filter__")) {
-        json_t *kw_filter = kw_get_dict_value(kw, "__filter__", 0, KW_EXTRACT);
-        json_object_update(kw, kw_filter);
-        JSON_DECREF(kw_filter);
-    }
 
     json_t *iter = gobj_list_nodes(
         priv->resource,
         resource,
-        kw_ids, // ids
-        kw_filter_metadata(kw_incref(kw)), // filter
+        kw_incref(kw), // filter
         0
     );
     if(json_array_size(iter)==0) {
@@ -5185,34 +4750,12 @@ PRIVATE json_t* cmd_enable_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj s
     /*------------------------------------------------*
      *      Get the yunos
      *------------------------------------------------*/
-    json_t *kw_ids = json_array();
-
     json_object_set_new(kw, "disabled", json_true());
-
-    if(kw_has_key(kw, "id")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "id", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "id");
-    }
-    if(kw_has_key(kw, "__ids__")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "__ids__", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "__ids__");
-    }
-
-    if(kw_has_key(kw, "__filter__")) {
-        json_t *kw_filter = kw_get_dict_value(kw, "__filter__", 0, KW_EXTRACT);
-        json_object_update(kw, kw_filter);
-        JSON_DECREF(kw_filter);
-    }
 
     json_t *iter = gobj_list_nodes(
         priv->resource,
         resource,
-        kw_ids, // ids
-        kw_filter_metadata(kw_incref(kw)), // filter
+        kw_incref(kw), // filter
         0
     );
     if(json_array_size(iter)==0) {
@@ -5263,34 +4806,12 @@ PRIVATE json_t* cmd_disable_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj 
     /*------------------------------------------------*
      *      Get the yunos
      *------------------------------------------------*/
-    json_t *kw_ids = json_array();
-
     json_object_set_new(kw, "disabled", json_false());
-
-    if(kw_has_key(kw, "id")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "id", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "id");
-    }
-    if(kw_has_key(kw, "__ids__")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "__ids__", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "__ids__");
-    }
-
-    if(kw_has_key(kw, "__filter__")) {
-        json_t *kw_filter = kw_get_dict_value(kw, "__filter__", 0, KW_EXTRACT);
-        json_object_update(kw, kw_filter);
-        JSON_DECREF(kw_filter);
-    }
 
     json_t *iter = gobj_list_nodes(
         priv->resource,
         resource,
-        kw_ids, // ids
-        kw_filter_metadata(kw_incref(kw)), // filter
+        kw_incref(kw), // filter
         0
     );
     if(json_array_size(iter)==0) {
@@ -5360,34 +4881,12 @@ PRIVATE json_t* cmd_trace_on_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj
     /*------------------------------------------------*
      *      Get the yunos
      *------------------------------------------------*/
-    json_t *kw_ids = json_array();
-
     json_object_set_new(kw, "disabled", json_false());
-
-    if(kw_has_key(kw, "id")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "id", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "id");
-    }
-    if(kw_has_key(kw, "__ids__")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "__ids__", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "__ids__");
-    }
-
-    if(kw_has_key(kw, "__filter__")) {
-        json_t *kw_filter = kw_get_dict_value(kw, "__filter__", 0, KW_EXTRACT);
-        json_object_update(kw, kw_filter);
-        JSON_DECREF(kw_filter);
-    }
 
     json_t *iter = gobj_list_nodes(
         priv->resource,
         resource,
-        kw_ids, // ids
-        kw_filter_metadata(kw_incref(kw)), // filter
+        kw_incref(kw), // filter
         0
     );
     if(json_array_size(iter)==0) {
@@ -5440,34 +4939,12 @@ PRIVATE json_t* cmd_trace_off_yuno(hgobj gobj, const char* cmd, json_t* kw, hgob
     /*------------------------------------------------*
      *      Get the yunos
      *------------------------------------------------*/
-    json_t *kw_ids = json_array();
-
     json_object_set_new(kw, "disabled", json_false());
-
-    if(kw_has_key(kw, "id")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "id", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "id");
-    }
-    if(kw_has_key(kw, "__ids__")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "__ids__", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "__ids__");
-    }
-
-    if(kw_has_key(kw, "__filter__")) {
-        json_t *kw_filter = kw_get_dict_value(kw, "__filter__", 0, KW_EXTRACT);
-        json_object_update(kw, kw_filter);
-        JSON_DECREF(kw_filter);
-    }
 
     json_t *iter = gobj_list_nodes(
         priv->resource,
         resource,
-        kw_ids, // ids
-        kw_filter_metadata(kw_incref(kw)), // filter
+        kw_incref(kw), // filter
         0
     );
     if(json_array_size(iter)==0) {
@@ -5534,35 +5011,13 @@ PRIVATE json_t *cmd_command_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj 
     /*------------------------------------------------*
      *      Get the yunos
      *------------------------------------------------*/
-    json_t *kw_ids = json_array();
-
     json_object_set_new(kw, "disabled", json_false());
     json_object_set_new(kw, "yuno_running", json_true());
-
-    if(kw_has_key(kw, "id")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "id", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "id");
-    }
-    if(kw_has_key(kw, "__ids__")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "__ids__", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "__ids__");
-    }
-
-    if(kw_has_key(kw, "__filter__")) {
-        json_t *kw_filter = kw_get_dict_value(kw, "__filter__", 0, KW_EXTRACT);
-        json_object_update(kw, kw_filter);
-        JSON_DECREF(kw_filter);
-    }
 
     json_t *iter = gobj_list_nodes(
         priv->resource,
         resource,
-        kw_ids, // ids
-        kw_filter_metadata(kw_incref(kw)), // filter
+        kw_incref(kw), // filter
         0
     );
     if(json_array_size(iter)==0) {
@@ -5610,35 +5065,13 @@ PRIVATE json_t *cmd_stats_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
     /*------------------------------------------------*
      *      Get the yunos
      *------------------------------------------------*/
-    json_t *kw_ids = json_array();
-
     json_object_set_new(kw, "disabled", json_false());
     json_object_set_new(kw, "yuno_running", json_true());
-
-    if(kw_has_key(kw, "id")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "id", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "id");
-    }
-    if(kw_has_key(kw, "__ids__")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "__ids__", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "__ids__");
-    }
-
-    if(kw_has_key(kw, "__filter__")) {
-        json_t *kw_filter = kw_get_dict_value(kw, "__filter__", 0, KW_EXTRACT);
-        json_object_update(kw, kw_filter);
-        JSON_DECREF(kw_filter);
-    }
 
     json_t *iter = gobj_list_nodes(
         priv->resource,
         resource,
-        kw_ids, // ids
-        kw_filter_metadata(kw_incref(kw)), // filter
+        kw_incref(kw), // filter
         0
     );
     if(json_array_size(iter)==0) {
@@ -6090,7 +5523,6 @@ PRIVATE json_t *find_service_for_client(hgobj gobj, const char *service_, json_t
     json_t *iter_find = gobj_list_nodes(
         priv->resource,
         resource,
-        0, // ids
         kw_find, // filter
         0
     );
@@ -6115,7 +5547,6 @@ PRIVATE json_t *find_service_for_client(hgobj gobj, const char *service_, json_t
     iter_find = gobj_list_nodes(
         priv->resource,
         resource,
-        0, // ids
         kw_find, // filter
         0
     );
@@ -6266,7 +5697,6 @@ PRIVATE json_t *assigned_yuno_global_service_variables(
     json_t *iter = gobj_list_nodes(
         priv->resource,
         "public_services",
-        0, // ids_
         kw_find, // filter
         0
     );
@@ -6844,7 +6274,6 @@ PRIVATE int total_yunos_in_realm(hgobj gobj, const char *realm_id)
     json_t *iter = gobj_list_nodes(
         priv->resource,
         "yunos",
-        0, // ids
         kw_find, // filter
         0
     );
@@ -6869,7 +6298,6 @@ PRIVATE int total_binary_in_yunos(hgobj gobj, const char *binary_id)
     json_t *iter = gobj_list_nodes(
         priv->resource,
         "yunos",
-        0, // ids
         kw_find, // filter
         0
     );
@@ -6894,7 +6322,6 @@ PRIVATE int total_config_in_yunos(hgobj gobj, const char *config_id)
     json_t *iter = gobj_list_nodes(
         priv->resource,
         "yunos",
-        0, // ids
         kw_find, // filter
         0
     );
@@ -6925,7 +6352,6 @@ PRIVATE int run_enabled_yunos(hgobj gobj)
     json_t *iter_yunos = gobj_list_nodes(
         priv->resource,
         resource,
-        0, // ids
         0, // filter
         0
     );
@@ -7007,7 +6433,6 @@ PRIVATE json_t *find_last_id_by_name(hgobj gobj, const char *resource, const cha
     json_t *iter_find = gobj_list_nodes(
         priv->resource,
         resource,
-        0, // ids
         kw_find, // filter,
         0
     );
@@ -7042,7 +6467,6 @@ PRIVATE json_t *find_binary_version(
     json_t *iter_find = gobj_list_nodes(
         priv->resource,
         "binaries",
-        0, // ids
         kw_find, // filter
         0
     );
@@ -7090,7 +6514,6 @@ PRIVATE json_t *find_configuration_version(
     json_t *iter_find = gobj_list_nodes(
         priv->resource,
         "configurations",
-        0, // ids
         kw_find, // filter
         0
     );
@@ -7160,7 +6583,6 @@ PRIVATE json_t *find_public_service(
     json_t *iter_find = gobj_list_nodes(
         priv->resource,
         resource,
-        0, // ids
         kw_find, // filter
         0
     );
@@ -7377,7 +6799,6 @@ PRIVATE int ac_edit_config(hgobj gobj, const char *event, json_t *kw, hgobj src)
     json_t *iter = gobj_list_nodes(
         priv->resource,
         resource,
-        0, // ids
         kw, // filter
         0
     );
@@ -7450,7 +6871,6 @@ PRIVATE int ac_view_config(hgobj gobj, const char *event, json_t *kw, hgobj src)
     json_t *iter = gobj_list_nodes(
         priv->resource,
         resource,
-        0, // ids
         kw, // filter
         0
     );
@@ -7506,32 +6926,10 @@ PRIVATE int ac_edit_yuno_config(hgobj gobj, const char *event, json_t *kw, hgobj
     /*------------------------------------------------*
      *      Get the yunos
      *------------------------------------------------*/
-    json_t *kw_ids = json_array();
-
-    if(kw_has_key(kw, "id")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "id", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "id");
-    }
-    if(kw_has_key(kw, "__ids__")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "__ids__", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "__ids__");
-    }
-
-    if(kw_has_key(kw, "__filter__")) {
-        json_t *kw_filter = kw_get_dict_value(kw, "__filter__", 0, KW_EXTRACT);
-        json_object_update(kw, kw_filter);
-        JSON_DECREF(kw_filter);
-    }
-
     json_t *iter = gobj_list_nodes(
         priv->resource,
         resource,
-        kw_ids, // ids
-        kw_filter_metadata(kw_incref(kw)), // filter
+        kw_incref(kw), // filter
         0
     );
     if(json_array_size(iter)==0) {
@@ -7642,32 +7040,10 @@ PRIVATE int ac_view_yuno_config(hgobj gobj, const char *event, json_t *kw, hgobj
     /*------------------------------------------------*
      *      Get the yunos
      *------------------------------------------------*/
-    json_t *kw_ids = json_array();
-
-    if(kw_has_key(kw, "id")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "id", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "id");
-    }
-    if(kw_has_key(kw, "__ids__")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "__ids__", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "__ids__");
-    }
-
-    if(kw_has_key(kw, "__filter__")) {
-        json_t *kw_filter = kw_get_dict_value(kw, "__filter__", 0, KW_EXTRACT);
-        json_object_update(kw, kw_filter);
-        JSON_DECREF(kw_filter);
-    }
-
     json_t *iter = gobj_list_nodes(
         priv->resource,
         resource,
-        kw_ids, // ids
-        kw_filter_metadata(kw_incref(kw)), // filter
+        kw_incref(kw), // filter
         0
     );
     if(json_array_size(iter)==0) {
@@ -8153,32 +7529,10 @@ PRIVATE int ac_read_running_keys(hgobj gobj, const char *event, json_t *kw, hgob
     /*------------------------------------------------*
      *      Get the yunos
      *------------------------------------------------*/
-    json_t *kw_ids = json_array();
-
-    if(kw_has_key(kw, "id")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "id", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "id");
-    }
-    if(kw_has_key(kw, "__ids__")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "__ids__", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "__ids__");
-    }
-
-    if(kw_has_key(kw, "__filter__")) {
-        json_t *kw_filter = kw_get_dict_value(kw, "__filter__", 0, KW_EXTRACT);
-        json_object_update(kw, kw_filter);
-        JSON_DECREF(kw_filter);
-    }
-
     json_t *iter = gobj_list_nodes(
         priv->resource,
         resource,
-        kw_ids, // ids
-        kw_filter_metadata(kw_incref(kw)), // filter
+        kw_incref(kw), // filter
         0
     );
     if(json_array_size(iter)==0) {
@@ -8262,32 +7616,10 @@ PRIVATE int ac_read_running_bin(hgobj gobj, const char *event, json_t *kw, hgobj
     /*------------------------------------------------*
      *      Get the yunos
      *------------------------------------------------*/
-    json_t *kw_ids = json_array();
-
-    if(kw_has_key(kw, "id")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "id", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "id");
-    }
-    if(kw_has_key(kw, "__ids__")) {
-        json_t *ids_ = kwid_get_ids(kw_get_dict_value(kw, "__ids__", 0, 0));
-        json_array_extend(kw_ids, ids_);
-        JSON_DECREF(ids_);
-        json_object_del(kw, "__ids__");
-    }
-
-    if(kw_has_key(kw, "__filter__")) {
-        json_t *kw_filter = kw_get_dict_value(kw, "__filter__", 0, KW_EXTRACT);
-        json_object_update(kw, kw_filter);
-        JSON_DECREF(kw_filter);
-    }
-
     json_t *iter = gobj_list_nodes(
         priv->resource,
         resource,
-        kw_ids, // ids
-        kw_filter_metadata(kw_incref(kw)), // filter
+        kw_incref(kw), // filter
         0
     );
     if(json_array_size(iter)==0) {
@@ -8605,7 +7937,6 @@ PRIVATE int ac_on_open(hgobj gobj, const char *event, json_t *kw, hgobj src)
     json_t *iter_yunos = gobj_list_nodes(
         priv->resource,
         "yunos",
-        0, // ids
         kw_find, // filter
         0
     );

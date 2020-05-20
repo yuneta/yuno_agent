@@ -293,6 +293,27 @@ static char treedb_schema_yuneta_agent[]= "\
                     'flag': [                                       \n\
                         'persistent'                                \n\
                     ]                                               \n\
+                },                                                  \n\
+                '_channel_gobj': {                                  \n\
+                    'header': '_channel_gobj',                      \n\
+                    'fillspace': 6,                                 \n\
+                    'type': 'integer',                              \n\
+                    'flag': [                                       \n\
+                    ]                                               \n\
+                },                                                  \n\
+                'solicitante': {                                    \n\
+                    'header': 'solicitante',                        \n\
+                    'fillspace': 6,                                 \n\
+                    'type': 'string',                               \n\
+                    'flag': [                                       \n\
+                    ]                                               \n\
+                },                                                  \n\
+                'global': {                                         \n\
+                    'header': 'global',                             \n\
+                    'fillspace': 6,                                 \n\
+                    'type': 'boolean',                              \n\
+                    'flag': [                                       \n\
+                    ]                                               \n\
                 }                                                   \n\
             }                                                       \n\
         },                                                          \n\

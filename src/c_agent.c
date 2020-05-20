@@ -223,7 +223,7 @@ SDATADC (ASN_ITER,      "config_ids",       SDF_RESOURCE,               "configu
 
 /*-FIELD-type-----------name----------------flag------------------------resource--------header----------fillsp--description---------*/
 SDATADF (ASN_OCTET_STR, "yuno_startdate",   SDF_PERSIST,                0,              "Start Date",   10,     "Last start date of the yuno"),
-SDATADF (ASN_POINTER,   "channel_gobj",     SDF_NOTACCESS,              0,              "Channel gobj", 0,      "Channel gobj"),
+SDATADF (ASN_POINTER,   "_channel_gobj",     SDF_NOTACCESS,              0,              "Channel gobj", 0,      "Channel gobj"),
 SDATADF (ASN_OCTET_STR, "solicitante",      SDF_NOTACCESS,              0,              "Solicitante",  0,      "Solicitante"),
 SDATADF (ASN_COUNTER64, "launch_id",        SDF_NOTACCESS,              0,              "Launch Id",    0,      "time_t + counter"),
 
@@ -283,8 +283,8 @@ PRIVATE char agent_filter_chain_config[]= "\
                 'remote_yuno_service': 'agent',         \n\
                 'extra_info': {                             \n\
                     'realm_name': '%s',                     \n\
-                    'realm_id': %s,                         \n\
-                    'yuno_id': %s                           \n\
+                    'realm_id': '%s',                       \n\
+                    'yuno_id': '%s'                         \n\
                 }                                           \n\
             },                                          \n\
             'zchilds': [                                 \n\
@@ -2093,6 +2093,9 @@ PRIVATE json_t *cmd_update_public_service(hgobj gobj, const char *cmd, json_t *k
     /*
      *  Get a iter of matched resources.
      */
+    if(!kw_has_key(kw, "__filter__")) {
+        json_object_set_new(kw, "__filter__", json_object());
+    }
     json_t *iter = gobj_list_nodes(
         priv->resource,
         resource,
@@ -2366,6 +2369,9 @@ PRIVATE json_t *cmd_update_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
     /*
      *  Get a iter of matched resources.
      */
+    if(!kw_has_key(kw, "__filter__")) {
+        json_object_set_new(kw, "__filter__", json_object());
+    }
     json_t *iter = gobj_list_nodes(
         priv->resource,
         resource,
@@ -3878,6 +3884,7 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
     /*---------------------------------------------*
      *      Create the yuno
      *---------------------------------------------*/
+/*
     const char *keys[] = {
         "realm_name",
         "yuno_role",
@@ -3903,11 +3910,11 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
         // The 'id' key must not exist if is 0.
         json_object_set_new(kw_yuno, "id", json_string(yuno_id));
     }
-
+*/
     json_t *yuno = gobj_create_node(
         priv->resource,
         resource,
-        kw_yuno,
+        kw_incref(kw),
         0
     );
     if(!yuno) {
@@ -4107,12 +4114,12 @@ PRIVATE json_t *cmd_run_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
             int r = run_yuno(gobj, yuno, src);
             if(r==0) {
                 const char *id = SDATA_GET_ID(yuno);
-                json_t *jn_EvChkItem = json_pack("{s:s, s:{s:s, s:s, s:s}}",
+                json_t *jn_EvChkItem = json_pack("{s:s, s:{s:s, s:s, s:I}}",
                     "event", "EV_ON_OPEN",
                     "filters",
                         "identity_card`realm_id", kw_get_str(yuno, "realm_id", "", KW_REQUIRED),
                         "identity_card`yuno_id", id,
-                        "identity_card`launch_id", kw_get_str(yuno, "launch_id", "", KW_REQUIRED)
+                        "identity_card`launch_id", kw_get_int(yuno, "launch_id", 0, KW_REQUIRED)
                 );
                 json_array_append_new(filterlist, jn_EvChkItem);
                 if(src != gobj) {
@@ -4282,7 +4289,7 @@ PRIVATE json_t *cmd_kill_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
         }
         if(yuno_running) {
             if(kill_yuno(gobj, yuno)==0) {
-                json_int_t channel_gobj = (json_int_t)(size_t)kw_get_int(yuno, "channel_gobj", 0, KW_REQUIRED);
+                json_int_t channel_gobj = (json_int_t)(size_t)kw_get_int(yuno, "_channel_gobj", 0, KW_REQUIRED);
                 json_t *jn_EvChkItem = json_pack("{s:s, s:{s:I}}",
                     "event", "EV_ON_CLOSE",
                     "filters",
@@ -5766,7 +5773,7 @@ GBUFFER *build_yuno_running_script(
     const char *yuno_name = kw_get_str(yuno, "yuno_name", 0, KW_REQUIRED);
     const char *yuno_alias = kw_get_str(yuno, "yuno_alias", 0, KW_REQUIRED);
     const char *yuno_release = kw_get_str(yuno, "yuno_release", 0, KW_REQUIRED);
-    const char *launch_id = kw_get_str(yuno, "launch_id", 0, KW_REQUIRED);
+    json_int_t launch_id = kw_get_int(yuno, "launch_id", 0, KW_REQUIRED);
 
     json_t *binary = gobj_get_node(priv->resource, "binaries", binary_id);
     if(!binary) {
@@ -5964,7 +5971,7 @@ PRIVATE int run_yuno(hgobj gobj, json_t *yuno, hgobj src)
     time((time_t*)&t);
     t = t<<(sizeof(uint16_t)*8);
     t += ++counter;
-    json_object_set_new(yuno, "launch_id", json_sprintf("%"PRIu64, t));
+    json_object_set_new(yuno, "launch_id", json_integer(t));
 
     char bfbinary[NAME_MAX];
     GBUFFER *gbuf_sh = gbuf_create(4*1024, 32*1024, 0, 0);
@@ -6132,7 +6139,7 @@ PRIVATE int kill_yuno(hgobj gobj, json_t *yuno)
  ***************************************************************************/
 PRIVATE int play_yuno(hgobj gobj, json_t *yuno, json_t *kw, hgobj src)
 {
-    hgobj channel_gobj = (hgobj)(size_t)kw_get_int(yuno, "channel_gobj", 0, KW_REQUIRED);
+    hgobj channel_gobj = (hgobj)(size_t)kw_get_int(yuno, "_channel_gobj", 0, KW_REQUIRED);
     if(!channel_gobj) {
         KW_DECREF(kw);
         return -1;
@@ -6150,7 +6157,7 @@ PRIVATE int play_yuno(hgobj gobj, json_t *yuno, json_t *kw, hgobj src)
  ***************************************************************************/
 PRIVATE int pause_yuno(hgobj gobj, json_t *yuno, json_t *kw, hgobj src)
 {
-    hgobj channel_gobj = (hgobj)(size_t)kw_get_int(yuno, "channel_gobj", 0, KW_REQUIRED);
+    hgobj channel_gobj = (hgobj)(size_t)kw_get_int(yuno, "_channel_gobj", 0, KW_REQUIRED);
     if(!channel_gobj) {
         KW_DECREF(kw);
         return -1;
@@ -6168,7 +6175,7 @@ PRIVATE int pause_yuno(hgobj gobj, json_t *yuno, json_t *kw, hgobj src)
  ***************************************************************************/
 PRIVATE int trace_on_yuno(hgobj gobj, json_t *yuno, json_t *kw,  hgobj src)
 {
-    hgobj channel_gobj = (hgobj)(size_t)kw_get_int(yuno, "channel_gobj", 0, KW_REQUIRED);
+    hgobj channel_gobj = (hgobj)(size_t)kw_get_int(yuno, "_channel_gobj", 0, KW_REQUIRED);
     if(!channel_gobj) {
         return -1;
     }
@@ -6197,7 +6204,7 @@ PRIVATE int trace_on_yuno(hgobj gobj, json_t *yuno, json_t *kw,  hgobj src)
  ***************************************************************************/
 PRIVATE int trace_off_yuno(hgobj gobj, json_t *yuno, json_t *kw,  hgobj src)
 {
-    hgobj channel_gobj = (hgobj)(size_t)kw_get_int(yuno, "channel_gobj", 0, KW_REQUIRED);
+    hgobj channel_gobj = (hgobj)(size_t)kw_get_int(yuno, "_channel_gobj", 0, KW_REQUIRED);
     if(!channel_gobj) {
         return -1;
     }
@@ -6226,7 +6233,7 @@ PRIVATE int trace_off_yuno(hgobj gobj, json_t *yuno, json_t *kw,  hgobj src)
  ***************************************************************************/
 PRIVATE int command_to_yuno(hgobj gobj, json_t *yuno, const char *command, json_t *kw, hgobj src)
 {
-    hgobj channel_gobj = (hgobj)(size_t)kw_get_int(yuno, "channel_gobj", 0, KW_REQUIRED);
+    hgobj channel_gobj = (hgobj)(size_t)kw_get_int(yuno, "_channel_gobj", 0, KW_REQUIRED);
     if(!channel_gobj) {
         KW_DECREF(kw);
         return -1;
@@ -6246,7 +6253,7 @@ PRIVATE int command_to_yuno(hgobj gobj, json_t *yuno, const char *command, json_
  ***************************************************************************/
 PRIVATE int stats_to_yuno(hgobj gobj, json_t *yuno, const char* stats, json_t* kw, hgobj src)
 {
-    hgobj channel_gobj = (hgobj)(size_t)kw_get_int(yuno, "channel_gobj", 0, KW_REQUIRED);
+    hgobj channel_gobj = (hgobj)(size_t)kw_get_int(yuno, "_channel_gobj", 0, KW_REQUIRED);
     if(!channel_gobj) {
         KW_DECREF(kw);
         return -1;
@@ -7702,7 +7709,7 @@ PRIVATE int ac_play_yuno_ack(hgobj gobj, const char *event, json_t *kw, hgobj sr
         /*
          *  Saco al originante por el user_data del canal.
          *  HACK aquí nos viene directamente el evento del canal,
-         *  sin pasar por IOGate (spiderden), y por lo tanto sin "channel_gobj"
+         *  sin pasar por IOGate (spiderden), y por lo tanto sin "_channel_gobj"
          *  porque el iev_srv no eleva ON_MESSAGE como los gossamer a spiderden,
          *  se lo queda, y procesa el inter-evento.
          *  Los mensajes ON_OPEN y ON_CLOSE del iogate:route nos llegan porque estamos
@@ -8084,7 +8091,7 @@ PRIVATE int ac_on_open(hgobj gobj, const char *event, json_t *kw, hgobj src)
     json_object_set_new(yuno, "yuno_running", json_true());
     json_object_set_new(yuno, "yuno_playing", playing?json_true():json_false());
     json_object_set_new(yuno, "yuno_pid", json_integer(pid));
-    json_object_set_new(yuno, "channel_gobj", json_integer((json_int_t)(size_t)channel_gobj));
+    json_object_set_new(yuno, "_channel_gobj", json_integer((json_int_t)(size_t)channel_gobj));
     if(channel_gobj) {
         gobj_write_pointer_attr(channel_gobj, "user_data", yuno);
     } else {
@@ -8115,7 +8122,7 @@ PRIVATE int ac_on_open(hgobj gobj, const char *event, json_t *kw, hgobj src)
      *  Check play
      *---------------*/
     if(!playing) {
-        const char *solicitante = SDATA_GET_STR(yuno, "solicitante");
+        const char *solicitante = kw_get_str(yuno, "solicitante", "", 0);
         BOOL must_play = SDATA_GET_BOOL(yuno, "must_play");
         if(must_play) {
             hgobj gobj_requester = 0;
@@ -8201,7 +8208,7 @@ PRIVATE int ac_on_close(hgobj gobj, const char *event, json_t *kw, hgobj src)
     json_object_set_new(yuno, "yuno_running", json_false());
     json_object_set_new(yuno, "yuno_playing", json_false());
     json_object_set_new(yuno, "yuno_pid", json_integer(0));
-    json_object_set_new(yuno, "channel_gobj", json_integer(0));
+    json_object_set_new(yuno, "_channel_gobj", json_integer(0));
 
     gobj_update_node(priv->resource, "yunos", kw_incref(yuno), ""); // TODO salvo volatiles?
 
@@ -8272,7 +8279,7 @@ PRIVATE int ac_final_count(hgobj gobj, const char *event, json_t *kw, hgobj src)
     json_t *webix = msg_iev_build_webix(gobj,
         ok?0:-197,
         jn_comment, // owned
-        RESOURCE_WEBIX_SCHEMA(priv->resource, "yunos"),
+        tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), "yunos"),
         jn_data,
         kw_answer  // owned
     );

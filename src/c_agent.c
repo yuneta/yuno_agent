@@ -3833,18 +3833,9 @@ print_json(kw_config_ids); // TODO TEST
                 }
             }
         }
-        const char *configuration_id = SDATA_GET_STR(hs_configuration, "id");
-        json_t *jn_array = json_array();
-        json_array_append_new(jn_array, json_string(configuration_id));
-        json_object_set_new(kw, "config_ids", jn_array);
 
-        kw_config_ids = kwid_get_ids(jn_array);
-        iter_configs = gobj_list_nodes(
-            priv->resource,
-            "configurations",
-            kw_config_ids, // filter
-            0
-        );
+        iter_configs = json_array();
+        json_array_append(iter_configs, hs_configuration);
     }
 print_json(iter_configs); // TODO TEST
 
@@ -3918,7 +3909,7 @@ print_json(iter_configs); // TODO TEST
      *  Link
      *-----------------------------*/
     gobj_link_nodes(priv->resource, "yunos", hs_realm, yuno);
-    gobj_link_nodes(priv->resource, "yunos", hs_binary, yuno);
+    gobj_link_nodes(priv->resource, "binary_id", yuno, hs_binary);
     int idx; json_t *hs_config;
     json_array_foreach(iter_configs, idx, hs_config) {
         gobj_link_nodes(priv->resource, "config_ids", yuno, hs_config);

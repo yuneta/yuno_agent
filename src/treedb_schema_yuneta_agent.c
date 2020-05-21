@@ -273,9 +273,10 @@ static char treedb_schema_yuneta_agent[]= "\
                     'header': 'binary_id',                          \n\
                     'fillspace': 8,                                 \n\
                     'type': 'string',                               \n\
-                    'flag': [                                       \n\
-                        'fkey'                                      \n\
-                    ]                                               \n\
+                    'flag': ['hook'],                               \n\
+                    'hook': {                                       \n\
+                        'binaries': 'yunos'                         \n\
+                    }                                               \n\
                 },                                                  \n\
                 'config_ids': {                                     \n\
                     'header': 'config_ids',                         \n\

@@ -4440,6 +4440,7 @@ PRIVATE json_t *cmd_play_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
     }
 
     if(!total_to_played && !total_to_preplayed) {
+        JSON_DECREF(iter);
         JSON_DECREF(filterlist);
         return msg_iev_build_webix(gobj,
             0,
@@ -4447,7 +4448,7 @@ PRIVATE json_t *cmd_play_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
                 "No yuno found to play"
             ),
             0,
-            iter, // owned
+            0,
             kw  // owned
         );
     }
@@ -4609,13 +4610,14 @@ PRIVATE json_t *cmd_pause_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
 
     if(!total_to_paused && !total_to_prepaused) {
         JSON_DECREF(filterlist);
+        JSON_DECREF(iter);
         return msg_iev_build_webix(gobj,
             0,
             json_local_sprintf(
                 "No yuno found to pause"
             ),
             0,
-            iter,
+            0,
             kw  // owned
         );
     }
@@ -5494,7 +5496,7 @@ PRIVATE json_t *find_service_for_client(hgobj gobj, const char *service_, json_t
     /*
      *  llamando igual al yuno servicio y al yuno cliente
      */
-    json_t *kw_find = json_pack("{s:I, s:s}",
+    json_t *kw_find = json_pack("{s:s, s:s}",
         "realm_id", realm_id,
         "service", service
     );
@@ -5509,7 +5511,7 @@ PRIVATE json_t *find_service_for_client(hgobj gobj, const char *service_, json_t
         0
     );
 
-    json_t *hs = kw_incref(json_array_get(iter_find, 0));
+    json_t *hs = json_array_get(iter_find, 0);
     JSON_DECREF(iter_find);
     if(hs) {
         gbmem_free(service);
@@ -5891,7 +5893,7 @@ GBUFFER *build_yuno_running_script(
             "work_dir", work_dir,
             "domain_dir", domain_dir
         );
-        json_t *jn_content = json_pack("{s:o, s:o, s:{s:s, s:s, s:s, s:s, s:I, s:s, s:b, s:I}}",
+        json_t *jn_content = json_pack("{s:o, s:o, s:{s:s, s:s, s:s, s:s, s:s, s:s, s:b, s:I}}",
             "global", jn_global,
             "environment", jn_environment,
             "yuno",
@@ -7675,8 +7677,8 @@ PRIVATE int ac_read_running_bin(hgobj gobj, const char *event, json_t *kw, hgobj
  ***************************************************************************/
 PRIVATE int ac_play_yuno_ack(hgobj gobj, const char *event, json_t *kw, hgobj src)
 {
-    PRIVATE_DATA *priv = gobj_priv_data(gobj);
-    char *resource = "yunos";
+//     PRIVATE_DATA *priv = gobj_priv_data(gobj);
+//     char *resource = "yunos";
 
     int action_return = kw_get_int(kw, "result", -1, 0);
     if(action_return == 0) {
@@ -7703,7 +7705,7 @@ PRIVATE int ac_play_yuno_ack(hgobj gobj, const char *event, json_t *kw, hgobj sr
             return 0;
         }
         json_object_set_new(yuno, "yuno_playing", json_true());
-        gobj_update_node(priv->resource, resource, kw_incref(yuno), ""); // TODO comprueba que no salve volatiles
+        // Volatil, no salves //gobj_update_node(priv->resource, resource, kw_incref(yuno), "");
         gobj_publish_event(
             gobj,
             event,
@@ -7720,8 +7722,8 @@ PRIVATE int ac_play_yuno_ack(hgobj gobj, const char *event, json_t *kw, hgobj sr
  ***************************************************************************/
 PRIVATE int ac_pause_yuno_ack(hgobj gobj, const char *event, json_t *kw, hgobj src)
 {
-    PRIVATE_DATA *priv = gobj_priv_data(gobj);
-    char *resource = "yunos";
+//     PRIVATE_DATA *priv = gobj_priv_data(gobj);
+//     char *resource = "yunos";
 
     int action_return = kw_get_int(kw, "result", -1, 0);
     if(action_return == 0) {
@@ -7742,7 +7744,7 @@ PRIVATE int ac_pause_yuno_ack(hgobj gobj, const char *event, json_t *kw, hgobj s
             return 0;
         }
         json_object_set_new(yuno, "yuno_playing", json_false());
-        gobj_update_node(priv->resource, resource, kw_incref(yuno), ""); // TODO comprueba que no salve volatiles
+        // Volatil, no salves //gobj_update_node(priv->resource, resource, kw_incref(yuno), "");
         gobj_publish_event(
             gobj,
             event,
@@ -8110,9 +8112,9 @@ PRIVATE int ac_on_open(hgobj gobj, const char *event, json_t *kw, hgobj src)
             if(!gobj_requester) {
                 play_yuno(gobj, yuno, 0, src);
             } else {
-                json_t *kw_play = json_pack("{s:I, s:I}",
-                    "realm_id", (json_int_t)realm_id,
-                    "id", (json_int_t)yuno_id
+                json_t *kw_play = json_pack("{s:s, s:s}",
+                    "realm_id", realm_id,
+                    "id", yuno_id
                 );
                 cmd_play_yuno(gobj, "play-yuno", kw_play, gobj_requester);
             }
@@ -8120,7 +8122,7 @@ PRIVATE int ac_on_open(hgobj gobj, const char *event, json_t *kw, hgobj src)
         json_object_set_new(yuno, "solicitante", json_string(""));
     }
 
-    gobj_update_node(priv->resource, "yunos", kw_incref(yuno), ""); // TODO salvo volatiles?
+    // Volatil, no salves //gobj_update_node(priv->resource, "yunos", kw_incref(yuno), "");
 
     JSON_DECREF(iter_yunos);
     KW_DECREF(kw);
@@ -8132,7 +8134,7 @@ PRIVATE int ac_on_open(hgobj gobj, const char *event, json_t *kw, hgobj src)
  ***************************************************************************/
 PRIVATE int ac_on_close(hgobj gobj, const char *event, json_t *kw, hgobj src)
 {
-    PRIVATE_DATA *priv = gobj_priv_data(gobj);
+//     PRIVATE_DATA *priv = gobj_priv_data(gobj);
 
     if(gobj_is_shutdowning()) {
         KW_DECREF(kw);
@@ -8184,7 +8186,7 @@ PRIVATE int ac_on_close(hgobj gobj, const char *event, json_t *kw, hgobj src)
     json_object_set_new(yuno, "yuno_pid", json_integer(0));
     json_object_set_new(yuno, "_channel_gobj", json_integer(0));
 
-    gobj_update_node(priv->resource, "yunos", kw_incref(yuno), "");
+    // Volatil, no salves //gobj_update_node(priv->resource, "yunos", kw_incref(yuno), "");
 
     KW_DECREF(kw);
     return 0;

@@ -5533,7 +5533,7 @@ PRIVATE json_t *find_service_for_client(hgobj gobj, const char *service_, json_t
         0
     );
 
-    hs = kw_incref(json_array_get(iter_find, 0));
+    hs = json_array_get(iter_find, 0);
     JSON_DECREF(iter_find);
 
     gbmem_free(service);

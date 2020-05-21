@@ -3628,6 +3628,7 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
     const char *realm_id = kw_get_str(kw, "realm_id", "", 0);
     const char *binary_id = kw_get_str(kw, "binary_id", "", 0);
 
+    // HACK the role of a yuno it's the name of his binary.
     if(empty_string(yuno_role) && empty_string(binary_id)) {
         return msg_iev_build_webix(gobj,
             -144,
@@ -3725,10 +3726,13 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
      *      config_ids prioritary.
      *---------------------------------------------*/
     json_t *kw_config_ids = kwid_get_ids(kw_get_dict_value(kw, "config_ids", 0, 0));
+print_json(kw_config_ids); // TODO TEST
+
     json_t *iter_configs = 0;
     json_t *hs_configuration = 0;
 
     if(kw_config_ids) {
+        // TODO no lo he probado en tranger
         iter_configs = gobj_list_nodes(
             priv->resource,
             "configurations",
@@ -3842,11 +3846,11 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
             0
         );
     }
+print_json(iter_configs); // TODO TEST
 
     char yuno_release[120];
     build_release_name(yuno_release, sizeof(yuno_release), hs_binary, iter_configs);
     json_object_set_new(kw, "yuno_release", json_string(yuno_release));
-    JSON_DECREF(iter_configs);
 
     /*---------------------------------------------*
      *      Check multiple yuno
@@ -3872,6 +3876,7 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
             /*
              *  1 o more records, yuno already stored and without overwrite.
              */
+            JSON_DECREF(iter_configs);
             json_t *jn_data = iter_find;
             json_t *webix = msg_iev_build_webix(
                 gobj,
@@ -3898,6 +3903,7 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
         0
     );
     if(!yuno) {
+        JSON_DECREF(iter_configs);
         return msg_iev_build_webix(
             gobj,
             -152,
@@ -3907,6 +3913,17 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
             kw  // owned
         );
     }
+
+    /*-----------------------------*
+     *  Link
+     *-----------------------------*/
+    gobj_link_nodes(priv->resource, "yunos", hs_realm, yuno);
+    gobj_link_nodes(priv->resource, "yunos", hs_binary, yuno);
+    int idx; json_t *hs_config;
+    json_array_foreach(iter_configs, idx, hs_config) {
+        gobj_link_nodes(priv->resource, "config_ids", yuno, hs_config);
+    }
+    JSON_DECREF(iter_configs);
 
     /*-----------------------------*
      *  Register public services

@@ -2,53 +2,23 @@
 
 /*
 
-tb_resources    NOT recursive (no tree), all tables must be defined in this table
-------------
-    realms:         ASN_ITER,       SDF_RESOURCE
-    binaries,       ASN_ITER,       SDF_RESOURCE
-    configurations: ASN_ITER,       SDF_RESOURCE
-    yunos:          ASN_ITER,       SDF_RESOURCE|SDF_PURECHILD
-                                                            ▲
-                                                            |
-                        HACK PureChild: mark SDF_PURECHILD in own table and in parent's field!
-                                                            | and mark SDF_PARENTID the own field pointing to parent
-                        ┌───────────────┐                   |     |
-                        │     realms    │                   |     |
-                        └───────────────┘                   |     |
-                                ▲ n (dl 'yunos')            |     |
-                                ┃                           |     |
-                                ┃                           |     |
-                                ▼ 1 ('realm_id')            |     |
-                ┌───────────────────────────────────────┐   |     |
-                │               yunos                   │   |     |
-                └───────────────────────────────────────┘   |     |
-                        ▲ 1 ('binary')         ▲ n (dl 'configurations')
-                        ┃                       ┃           |     |
-                        ┃                       ┃           |     |
-                        ▼ n (dl 'yunos')        ▼ n (dl 'yunos')  |
-                ┌────────────────┐      ┌────────────────┐  |     |
-                │   binaries     │      │ configurations │  |     |
-                └────────────────┘      └────────────────┘  |     |
-                                                            |     |
-Realms                                                      |     |
-------                                                      |     |
-    id:             ASN_COUNTER64,  SDF_PERSIST|SDF_PKEY    ▼     |
-    yunos:          ASN_ITER,       SDF_RESOURCE|SDF_PURECHILD,   |     "yunos"
-                                                                  |
-Yunos                                                             |
------                                                             |
-    id:             ASN_COUNTER64,  SDF_PERSIST|SDF_PKEY          ▼
-    realm_id:       ASN_COUNTER64,  SDF_PERSIST|SDF_PARENTID,           "realms"
-    binary:         ASN_COUNTER64,  SDF_PERSIST,                        "binaries"
-    configurations: ASN_ITER,       SDF_RESOURCE,                       "configurations"
-
-Binaries
---------
-    id:             ASN_COUNTER64,  SDF_PERSIST|SDF_PKEY
-
-configurations
---------------
-    id:             ASN_COUNTER64,  SDF_PERSIST|SDF_PKEY
+                        ┌───────────────┐
+                        │     realms    │
+                        └───────────────┘
+                                ▲ n (dl 'yunos')
+                                ┃
+                                ┃
+                                ▼ 1 ('realm_ref')
+                ┌───────────────────────────────────────┐
+                │               yunos                   │
+                └───────────────────────────────────────┘
+                        ▲ 1 ('binary')          ▲ n (dl 'configurations')
+                        ┃                       ┃
+                        ┃                       ┃
+                        ▼ n (dl 'yunos')        ▼ n (dl 'yunos')
+                ┌────────────────┐      ┌────────────────┐
+                │   binaries     │      │ configurations │
+                └────────────────┘      └────────────────┘
 
 */
 
@@ -132,7 +102,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     'type': 'array',                                \n\
                     'flag': ['hook'],                               \n\
                     'hook': {                                       \n\
-                        'yunos': 'realm_id'                         \n\
+                        'yunos': 'realm_ref'                        \n\
                     }                                               \n\
                 }                                                   \n\
             }                                                       \n\
@@ -261,8 +231,8 @@ static char treedb_schema_yuneta_agent[]= "\
                         'persistent'                                \n\
                     ]                                               \n\
                 },                                                  \n\
-                'realm_id': {                                       \n\
-                    'header': 'realm_id',                           \n\
+                'realm_ref': {                                      \n\
+                    'header': 'realm_ref',                          \n\
                     'fillspace': 8,                                 \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
@@ -581,14 +551,6 @@ static char treedb_schema_yuneta_agent[]= "\
                     'flag': [                                       \n\
                         'persistent',                               \n\
                         'required'                                  \n\
-                    ]                                               \n\
-                },                                                  \n\
-                'realm_id': {                                       \n\
-                    'header': 'realm_id',                           \n\
-                    'fillspace': 8,                                 \n\
-                    'type': 'string',                               \n\
-                    'flag': [                                       \n\
-                        'persistent'                                \n\
                     ]                                               \n\
                 },                                                  \n\
                 'yuno_id': {                                        \n\

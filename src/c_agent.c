@@ -3599,7 +3599,6 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
     const char *yuno_name = kw_get_str(kw, "yuno_name", 0, 0);
     const char *role_version = kw_get_str(kw, "role_version", 0, 0);
     const char *name_version = kw_get_str(kw, "name_version", 0, 0);
-    BOOL create_config = kw_get_bool(kw, "create-config", 0, 0);
 
     /*
      *  Fuerza que no sean nulos
@@ -3726,7 +3725,6 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
      *      config_ids prioritary.
      *---------------------------------------------*/
     json_t *kw_config_ids = kwid_get_ids(kw_get_dict_value(kw, "config_ids", 0, 0));
-print_json(kw_config_ids); // TODO TEST
 
     json_t *iter_configs = 0;
     json_t *hs_configuration = 0;
@@ -3771,73 +3769,24 @@ print_json(kw_config_ids); // TODO TEST
             name_version
         );
         if(!hs_configuration) {
-            if(!create_config) {
-                return msg_iev_build_webix(gobj,
-                    -150,
-                    json_local_sprintf(
-                        "Yuno '%s.%s': configuration '%s%s%s' not found",
-                        yuno_role, yuno_name,
-                        yuno_name,
-                        empty_string(name_version)?"":"-",
-                        empty_string(name_version)?"":name_version
-                    ),
-                    0,
-                    0,
-                    kw  // owned
-                );
-            } else {
-                /*------------------------------------------------*
-                 *      Create record
-                 *------------------------------------------------*/
-                char some_doc[256];
-                snprintf(some_doc, sizeof(some_doc), "Yuno %s", yuno_role);
-                json_t *kw_configuration = json_pack("{s:s, s:s, s:s, s:s, s:s}",
-                    "name", yuno_name,
-                    "version", name_version,
-                    "description", some_doc,
-                    "source", "",
-                    "autoupdate", ""
-                );
-
-                char current_date[22];
-                current_timestamp(current_date, sizeof(current_date));  // "CCYY/MM/DD hh:mm:ss"
-                json_object_set_new(
-                    kw_configuration,
-                    "date",
-                    json_string(current_date)
-                );
-                json_object_set_new(
-                    kw_configuration,
-                    "zcontent",
-                    json_object() // owned
-                );
-
-                /*------------------------------------------------*
-                 *      Store in db
-                 *------------------------------------------------*/
-                hs_configuration = gobj_create_node(
-                    priv->resource,
-                    "configurations",
-                    kw_configuration,
-                    0
-                );
-                if(!hs_configuration) {
-                    return msg_iev_build_webix(
-                        gobj,
-                        -135,
-                        json_local_sprintf("Cannot create configuration"),
-                        0,
-                        0,
-                        kw  // owned
-                    );
-                }
-            }
+            return msg_iev_build_webix(gobj,
+                -150,
+                json_local_sprintf(
+                    "Yuno '%s.%s': configuration '%s%s%s' not found",
+                    yuno_role, yuno_name,
+                    yuno_name,
+                    empty_string(name_version)?"":"-",
+                    empty_string(name_version)?"":name_version
+                ),
+                0,
+                0,
+                kw  // owned
+            );
         }
 
         iter_configs = json_array();
         json_array_append(iter_configs, hs_configuration);
     }
-print_json(iter_configs); // TODO TEST
 
     char yuno_release[120];
     build_release_name(yuno_release, sizeof(yuno_release), hs_binary, iter_configs);
@@ -3914,6 +3863,7 @@ print_json(iter_configs); // TODO TEST
     json_array_foreach(iter_configs, idx, hs_config) {
         gobj_link_nodes(priv->resource, "config_ids", yuno, hs_config);
     }
+print_json(yuno); // TODO TEST
     JSON_DECREF(iter_configs);
 
     /*-----------------------------*
@@ -6642,6 +6592,8 @@ PRIVATE int register_public_services(hgobj gobj, json_t *yuno)
     int ret = 0;
 
     char *resource = "public_services";
+
+print_json(yuno); // TODO TEST
 
     const char *yuno_id = SDATA_GET_ID(yuno);
     const char *yuno_role = SDATA_GET_STR(yuno, "yuno_role");

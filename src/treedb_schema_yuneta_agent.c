@@ -54,13 +54,13 @@ configurations
 
 static char treedb_schema_yuneta_agent[]= "\
 {                                                                   \n\
-    'schema_version': '1',                                          \n\
+    'schema_version': '2',                                          \n\
     'topics': [                                                     \n\
         {                                                           \n\
             'topic_name': 'realms',                                 \n\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
-            'topic_version': '1',                                   \n\
+            'topic_version': '2',                                   \n\
             'topic_options': '',                                    \n\
             'cols': {                                               \n\
                 'id': {                                             \n\
@@ -142,7 +142,7 @@ static char treedb_schema_yuneta_agent[]= "\
             'topic_name': 'yunos',                                  \n\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
-            'topic_version': '1',                                   \n\
+            'topic_version': '2',                                   \n\
             'topic_options': '',                                    \n\
             'cols': {                                               \n\
                 'id': {                                             \n\
@@ -272,7 +272,7 @@ static char treedb_schema_yuneta_agent[]= "\
                 'binary_id': {                                      \n\
                     'header': 'binary_id',                          \n\
                     'fillspace': 8,                                 \n\
-                    'type': 'string',                               \n\
+                    'type': 'object',                               \n\
                     'flag': ['hook'],                               \n\
                     'hook': {                                       \n\
                         'binaries': 'yunos'                         \n\
@@ -323,7 +323,7 @@ static char treedb_schema_yuneta_agent[]= "\
             'topic_name': 'configurations',                         \n\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
-            'topic_version': '1',                                   \n\
+            'topic_version': '2',                                   \n\
             'topic_options': '',                                    \n\
             'cols': {                                               \n\
                 'id': {                                             \n\
@@ -417,7 +417,7 @@ static char treedb_schema_yuneta_agent[]= "\
             'topic_name': 'binaries',                               \n\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
-            'topic_version': '1',                                   \n\
+            'topic_version': '2',                                   \n\
             'topic_options': '',                                    \n\
             'cols': {                                               \n\
                 'id': {                                             \n\
@@ -535,7 +535,7 @@ static char treedb_schema_yuneta_agent[]= "\
             'topic_name': 'public_services',                        \n\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
-            'topic_version': '1',                                   \n\
+            'topic_version': '2',                                   \n\
             'topic_options': '',                                    \n\
             'cols': {                                               \n\
                 'id': {                                             \n\

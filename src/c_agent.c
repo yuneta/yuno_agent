@@ -5254,7 +5254,8 @@ PRIVATE json_t *get_yuno_realm(hgobj gobj, json_t *yuno)
     json_t *realms = treedb_list_parents(
         gobj_read_json_attr(priv->resource, "tranger"),
         "realm_ref",
-        yuno // not owned
+        yuno, // not owned
+        0
     );
     if(json_array_size(realms)!=1) {
         log_error(0,
@@ -5283,7 +5284,8 @@ PRIVATE json_t *get_yuno_binary(hgobj gobj, json_t *yuno)
     json_t *binaries = treedb_list_childs(
         gobj_read_json_attr(priv->resource, "tranger"),
         "binary",
-        yuno // not owned
+        yuno, // not owned
+        0
     );
     if(json_array_size(binaries)!=1) {
         log_error(0,
@@ -5614,7 +5616,8 @@ GBUFFER *build_yuno_running_script(
         json_t *configurations = treedb_list_childs(
             gobj_read_json_attr(priv->resource, "tranger"),
             "configurations",
-            yuno
+            yuno,
+            0
         );
 
         int idx; json_t *hs_config;

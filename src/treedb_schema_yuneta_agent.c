@@ -22,7 +22,7 @@ tb_resources    NOT recursive (no tree), all tables must be defined in this tabl
                 ┌───────────────────────────────────────┐   |     |
                 │               yunos                   │   |     |
                 └───────────────────────────────────────┘   |     |
-                        ▲ 1 ('binary_id')       ▲ n (dl 'configurations')
+                        ▲ 1 ('binary')         ▲ n (dl 'configurations')
                         ┃                       ┃           |     |
                         ┃                       ┃           |     |
                         ▼ n (dl 'yunos')        ▼ n (dl 'yunos')  |
@@ -39,8 +39,8 @@ Yunos                                                             |
 -----                                                             |
     id:             ASN_COUNTER64,  SDF_PERSIST|SDF_PKEY          ▼
     realm_id:       ASN_COUNTER64,  SDF_PERSIST|SDF_PARENTID,           "realms"
-    binary_id:      ASN_COUNTER64,  SDF_PERSIST,                        "binaries"
-    config_ids:     ASN_ITER,       SDF_RESOURCE,                       "configurations"
+    binary:         ASN_COUNTER64,  SDF_PERSIST,                        "binaries"
+    configurations: ASN_ITER,       SDF_RESOURCE,                       "configurations"
 
 Binaries
 --------
@@ -269,8 +269,8 @@ static char treedb_schema_yuneta_agent[]= "\
                         'fkey'                                      \n\
                     ]                                               \n\
                 },                                                  \n\
-                'binary_id': {                                      \n\
-                    'header': 'binary_id',                          \n\
+                'binary': {                                         \n\
+                    'header': 'binary',                             \n\
                     'fillspace': 8,                                 \n\
                     'type': 'object',                               \n\
                     'flag': ['hook'],                               \n\
@@ -278,8 +278,8 @@ static char treedb_schema_yuneta_agent[]= "\
                         'binaries': 'yunos'                         \n\
                     }                                               \n\
                 },                                                  \n\
-                'config_ids': {                                     \n\
-                    'header': 'config_ids',                         \n\
+                'configurations': {                                 \n\
+                    'header': 'configurations',                     \n\
                     'fillspace': 15,                                \n\
                     'type': 'array',                                \n\
                     'flag': ['hook'],                               \n\

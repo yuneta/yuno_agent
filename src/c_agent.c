@@ -3824,6 +3824,8 @@ PRIVATE json_t *cmd_run_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
      *  Get a iter of matched resources.
      */
     json_object_set_new(kw, "disabled", json_false());
+    json_object_set_new(kw, "yuno_running", json_false());
+
     json_t *iter = gobj_list_nodes(
         priv->resource,
         resource,
@@ -3991,7 +3993,8 @@ PRIVATE json_t *cmd_kill_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
     /*
      *  Get a iter of matched resources.
      */
-    json_object_set_new(kw, "disabled", json_false());
+    json_object_set_new(kw, "yuno_running", json_true());
+
     json_t *iter = gobj_list_nodes(
         priv->resource,
         resource,
@@ -4155,6 +4158,7 @@ PRIVATE json_t *cmd_play_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
      *      Get the yunos
      *------------------------------------------------*/
     json_object_set_new(kw, "disabled", json_false());
+    json_object_set_new(kw, "yuno_playing", json_false());
 
     json_t *iter = gobj_list_nodes(
         priv->resource,
@@ -4338,6 +4342,7 @@ PRIVATE json_t *cmd_pause_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
      *      Get the yunos
      *------------------------------------------------*/
     json_object_set_new(kw, "disabled", json_false());
+    json_object_set_new(kw, "yuno_playing", json_true());
 
     json_t *iter = gobj_list_nodes(
         priv->resource,

@@ -2287,7 +2287,7 @@ PRIVATE json_t *cmd_delete_public_service(hgobj gobj, const char *cmd, json_t *k
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
     char *resource = "public_services";
 
-     BOOL force = kw_get_bool(kw, "force", 0, 0);
+    BOOL force = kw_get_bool(kw, "force", 0, KW_WILD_NUMBER);
 
     /*
      *  Get a iter of matched resources.
@@ -2563,7 +2563,7 @@ PRIVATE json_t *cmd_delete_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
     char *resource = "realms";
 
-    BOOL force = kw_get_bool(kw, "force", 0, 0);
+    BOOL force = kw_get_bool(kw, "force", 0, KW_WILD_NUMBER);
 
     /*
      *  Get a iter of matched resources.
@@ -3132,7 +3132,7 @@ PRIVATE json_t *cmd_delete_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
     char *resource = "binaries";
 
-    BOOL force = kw_get_bool(kw, "force", 0, 0);
+    BOOL force = kw_get_bool(kw, "force", 0, KW_WILD_NUMBER);
 
     /*
      *  Get a iter of matched resources.
@@ -3491,7 +3491,7 @@ PRIVATE json_t *cmd_delete_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
     char *resource = "configurations";
 
-    BOOL force = kw_get_bool(kw, "force", 0, 0);
+    BOOL force = kw_get_bool(kw, "force", 0, KW_WILD_NUMBER);
 
     /*
      *  Get a iter of matched resources.
@@ -3908,7 +3908,7 @@ json_t* cmd_delete_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
     char *resource = "yunos";
 
-    BOOL force = kw_get_bool(kw, "force", 0, 0);
+    BOOL force = kw_get_bool(kw, "force", 0, KW_WILD_NUMBER);
 
     /*
      *  Get a iter of matched resources.
@@ -4169,7 +4169,7 @@ PRIVATE json_t *cmd_kill_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
     char *resource = "yunos";
 
     BOOL app = kw_get_bool(kw, "app", 0, 0);
-    BOOL force = kw_get_bool(kw, "force", 0, 0);
+    BOOL force = kw_get_bool(kw, "force", 0, KW_WILD_NUMBER);
 
     /*------------------------------------------------*
      *      Get the yunos

@@ -13,8 +13,11 @@
 #include <errno.h>
 #include <regex.h>
 #include <unistd.h>
+#include <cjose/cjose.h>
+#include <oauth2/oauth2.h>
+#include <oauth2/mem.h>
+#include <uuid/uuid.h>
 #include "c_agent.h"
-#include "treedb_schema_yuneta_agent.c"
 
 // TODO comando para enviar el json del agente a los nodos
 // Y tendrá que rearrancar, no?
@@ -63,6 +66,15 @@
 /***************************************************************************
  *              Prototypes
  ***************************************************************************/
+PRIVATE void oauth2_log_callback(
+    oauth2_log_sink_t *sink,
+    const char *filename,
+    unsigned long line,
+    const char *function,
+    oauth2_log_level_t level,
+    const char *msg
+);
+PRIVATE int create_new_user(hgobj gobj, json_t *jwt_payload);
 PRIVATE json_t *get_yuno_realm(hgobj gobj, json_t *yuno);
 PRIVATE char * build_yuno_private_domain(hgobj gobj, json_t *yuno, char *bf, int bfsize, BOOL create_dir);
 PRIVATE char * build_yuno_public_domain(hgobj gobj, json_t *yuno, char *subdomain, char *bf, int bfsize, BOOL create_dir);
@@ -114,7 +126,12 @@ PRIVATE int register_public_services(hgobj gobj, json_t *yuno);
 /***************************************************************************
  *              Resources
  ***************************************************************************/
-
+PRIVATE topic_desc_t db_fichador_desc[] = {
+    // Topic Name,          Pkey            System Flag     Tkey        Topic Json Desc
+    {"users_accesses",      "username",     sf_string_key,  "tm",       0},
+    {0}
+};
+#include "treedb_schema_yuneta_agent.c"
 
 PRIVATE sdata_desc_t tb_binaries[] = {
 /*-FIELD-type-----------name----------------flag------------------------resource--------header----------fillsp--description---------*/
@@ -768,6 +785,7 @@ SDATA_END()
  *---------------------------------------------*/
 PRIVATE sdata_desc_t tattr_desc[] = {
 /*-ATTR-type------------name----------------flag----------------default---------description---------- */
+SDATA (ASN_OCTET_STR,   "jwt_public_key",   SDF_RD,             0,          "JWT public key"),
 SDATA (ASN_OCTET_STR,   "database",         SDF_RD|SDF_REQUIRED,"agent_treedb", "Database name"),
 SDATA (ASN_OCTET_STR,   "startup_command",  SDF_RD,             0,              "Command to execute at startup"),
 SDATA (ASN_JSON,        "agent_environment",SDF_RD,             0,              "Agent environment. Override the yuno environment"),
@@ -798,6 +816,12 @@ PRIVATE const trace_level_t s_user_trace_level[16] = {
 typedef struct _PRIVATE_DATA {
     int32_t timerStBoot;
     BOOL enabled_yunos_running;
+
+    json_t *tranger_users;
+    oauth2_log_t *oath2_log;
+    oauth2_log_sink_t *oath2_sink;
+    oauth2_cfg_token_verify_t *verify;
+    json_t *users_accesses;      // dict with users opened
 
     hgobj resource;
     hgobj timer;
@@ -833,7 +857,6 @@ PRIVATE void mt_create(hgobj gobj)
     }
 
     priv->timer = gobj_create("agent", GCLASS_TIMER, 0, gobj);
-    const char *database = gobj_read_str_attr(gobj, "database");
 
     FILE *file = fopen("/yuneta/realms/agent/yuneta_agent.pid", "w");
     if(file) {
@@ -841,32 +864,139 @@ PRIVATE void mt_create(hgobj gobj)
         fclose(file);
     }
 
-    json_t *kw_resource = json_pack("{s:s, s:s, s:o}",
-        "service", "yuneta_agent",
-        "database", database,
-        "treedb_schema", jn_treedb_schema_yuneta_agent
-    );
+    if(1) {
+        /*---------------------------*
+         *      Oauth
+         *---------------------------*/
+        #define MY_CACHE_OPTIONS "options=max_entries%3D10"
+        int level = OAUTH2_LOG_WARN;
+        priv->oath2_sink = oauth2_log_sink_create(
+            level,                  // oauth2_log_level_t level,
+            oauth2_log_callback,    // oauth2_log_function_t callback,
+            gobj                    // void *ctx
+        );
+        priv->oath2_log = oauth2_log_init(level, priv->oath2_sink);
 
-    priv->resource = gobj_create_service(
-        "treedb",
-        GCLASS_NODE,
-        kw_resource,
-        gobj
-    );
+        const char *pubkey = gobj_read_str_attr(gobj, "jwt_public_key");
+        if(pubkey) {
+            const char *rv = oauth2_cfg_token_verify_add_options(
+                priv->oath2_log, &priv->verify, "pubkey", pubkey,
+                "verify.exp=skip&verify.cache." MY_CACHE_OPTIONS);
+            if(rv != NULL) {
+                log_error(0,
+                    "gobj",         "%s", gobj_full_name(gobj),
+                    "function",     "%s", __FUNCTION__,
+                    "msgset",       "%s", MSGSET_OAUTH_ERROR,
+                    "msg",          "%s", "oauth2_cfg_token_verify_add_options() FAILED",
+                    NULL
+                );
+            }
+        }
+    }
 
-    char audit_path[NAME_MAX];
-    yuneta_realm_file(audit_path, sizeof(audit_path), "audit", "ZZZ-DD_MM_CCYY.log", TRUE);
-    priv->audit_file = rotatory_open(
-        audit_path,
-        0,                      // 0 = default 64K
-        0,                      // 0 = default 8
-        0,                      // 0 = default 10
-        yuneta_xpermission(),   // permission for directories and executable files. 0 = default 02775
-        0660,                   // permission for regular files. 0 = default 0664
-        TRUE
-    );
-    if(priv->audit_file) {
-        gobj_audit_commands(audit_command_cb, gobj);
+    if(1) {
+        /*---------------------------*
+         *  Timeranger for auth
+         *---------------------------*/
+        char path[PATH_MAX];
+        snprintf(path, sizeof(path),
+            "/yuneta/store/resources/yuneta_agent/users"
+        );
+
+        json_t *jn_tranger = json_pack("{s:s, s:s, s:b}",
+            "path", path,
+            "filename_mask", "%Y",
+            "master", 1
+        );
+
+        /*
+         *  Abre trmsg fichajes (messages, instances)
+         */
+        priv->tranger_users = tranger_startup(
+            jn_tranger // owned
+        );
+
+        if(!priv->tranger_users) {
+            log_critical(LOG_OPT_EXIT_ZERO,
+                "gobj",         "%s", gobj_full_name(gobj),
+                "function",     "%s", __FUNCTION__,
+                "msgset",       "%s", MSGSET_INTERNAL_ERROR,
+                "msg",          "%s", "Cannot open tranger",
+                "path",         "%s", path,
+                NULL
+            );
+        }
+
+        /*---------------------------*
+         *  Open topics as messages
+         *---------------------------*/
+        trmsg_open_topics(
+            priv->tranger_users,
+            db_fichador_desc
+        );
+
+        /*
+         *  To open users accesses
+         */
+        priv->users_accesses = trmsg_open_list(
+            priv->tranger_users,
+            "users_accesses",     // topic
+            json_pack("{s:i}",  // filter
+                "max_key_instances", 1
+            )
+        );
+        {
+            // FIX ERROR
+            // WARNING ignora _sessions al cargar user_access,
+            // se pueden haber salvado sesiones que son datos volatiles
+            json_t *messages = trmsg_get_messages(priv->users_accesses);
+            const char *k; json_t *msg;
+            json_object_foreach(messages, k, msg) {
+                json_t *active = kw_get_dict(msg, "active", 0, KW_REQUIRED);
+                if(active) {
+                    json_object_del(active, "_sessions");
+                }
+            }
+        }
+    }
+
+    if(1) {
+        /*-----------------------------*
+         *      Open Agent Treedb
+         *-----------------------------*/
+        const char *database = gobj_read_str_attr(gobj, "database");
+        json_t *kw_resource = json_pack("{s:s, s:s, s:o}",
+            "service", "yuneta_agent",
+            "database", database,
+            "treedb_schema", jn_treedb_schema_yuneta_agent
+        );
+
+        priv->resource = gobj_create_service(
+            "treedb",
+            GCLASS_NODE,
+            kw_resource,
+            gobj
+        );
+    }
+
+    if(1) {
+        /*-----------------------------*
+         *      Audit
+         *-----------------------------*/
+        char audit_path[NAME_MAX];
+        yuneta_realm_file(audit_path, sizeof(audit_path), "audit", "ZZZ-DD_MM_CCYY.log", TRUE);
+        priv->audit_file = rotatory_open(
+            audit_path,
+            0,                      // 0 = default 64K
+            0,                      // 0 = default 8
+            0,                      // 0 = default 10
+            yuneta_xpermission(),   // permission for directories and executable files. 0 = default 02775
+            0660,                   // permission for regular files. 0 = default 0664
+            TRUE
+        );
+        if(priv->audit_file) {
+            gobj_audit_commands(audit_command_cb, gobj);
+        }
     }
 
     /*
@@ -906,6 +1036,12 @@ PRIVATE void mt_destroy(hgobj gobj)
         rotatory_close(priv->audit_file);
         priv->audit_file = 0;
     }
+    if(priv->verify) {
+        oauth2_cfg_token_verify_free(priv->oath2_log, priv->verify);
+        priv->verify = 0;
+    }
+    EXEC_AND_RESET(oauth2_log_free, priv->oath2_log);
+    EXEC_AND_RESET(tranger_shutdown, priv->tranger_users);
 }
 
 /***************************************************************************
@@ -944,16 +1080,66 @@ PRIVATE int mt_stop(hgobj gobj)
  ***************************************************************************/
 PRIVATE json_t *mt_authenticate(hgobj gobj, const char *service, json_t *kw, hgobj src)
 {
-    const char *user = kw_get_str(kw, "user", 0, 0);
-    const char *password = kw_get_str(kw, "password", 0, 0);
-    if(!user || !password) {
-        // TODO implement authentication
+    PRIVATE_DATA *priv = gobj_priv_data(gobj);
+
+    const char *peername = gobj_read_str_attr(src, "peername");
+    const char *localhost = "127.0.0.";
+    if(strncmp(peername, localhost, strlen(localhost))==0) {
+        /*
+         *  Autorizado, informa
+         */
+        return msg_iev_build_webix(
+            gobj,
+            0,
+            0,
+            0,
+            0,
+            kw  // owned
+        );
+    }
+
+    const char *jwt= kw_get_str(kw, "jwt", "", KW_REQUIRED);
+    json_t *jwt_payload = NULL;
+    if(!oauth2_token_verify(priv->oath2_log, priv->verify, jwt, &jwt_payload)) {
+        JSON_DECREF(jwt_payload);
+        return msg_iev_build_webix(
+            gobj,
+            -1,
+            json_local_sprintf("Authentication rejected"),
+            0,
+            0,
+            kw  // owned
+        );
+    }
+
+    // HACK guarda jwt_payload (user y session) en channel_gobj
+    gobj_write_user_data(src, "jwt_payload", jwt_payload);
+
+    //json_t *access_roles = get_access_roles(
+    //    gobj,
+    //    kw_get_list(jwt_payload, "resource_access`fichador`roles", 0, KW_REQUIRED)
+    //);
+    //json_object_set_new(jwt_payload, "access_roles", access_roles);
+    //log_debug_json(0, jwt_payload, "jwt_payload");
+
+    /*
+     *  User autentificado, crea su registro si es nuevo
+     *  e informa de su estado en el ack.
+     */
+    if(priv->users_accesses) {
+        const char *username = kw_get_str(jwt_payload, "preferred_username", 0, KW_REQUIRED);
+        json_t *user = trmsg_get_active_message(priv->users_accesses, username);
+        if(!user) {
+            create_new_user(gobj, jwt_payload);
+            user = trmsg_get_active_message(priv->users_accesses, username);
+        }
+        kw_get_dict(user, "_sessions", json_object(), KW_CREATE);
     }
 
     /*
-     *  Autoriza
+     *  Autorizado, informa
      */
-    json_t *webix = msg_iev_build_webix(
+    return msg_iev_build_webix(
         gobj,
         0,
         0,
@@ -961,8 +1147,6 @@ PRIVATE json_t *mt_authenticate(hgobj gobj, const char *service, json_t *kw, hgo
         0,
         kw  // owned
     );
-
-    return webix;
 }
 
 /***************************************************************************
@@ -2070,7 +2254,7 @@ PRIVATE json_t *cmd_update_public_service(hgobj gobj, const char *cmd, json_t *k
         if(gobj_update_node(priv->resource, resource, update, "")<0) {
             result += -1;
             log_error(0,
-                "gobj",         "%s", __FILE__,
+                "gobj",         "%s", gobj_full_name(gobj),
                 "function",     "%s", __FUNCTION__,
                 "msgset",       "%s", MSGSET_INTERNAL_ERROR,
                 "msg",          "%s", "gobj_update_node() FAILED",
@@ -2138,7 +2322,7 @@ PRIVATE json_t *cmd_delete_public_service(hgobj gobj, const char *cmd, json_t *k
         if(gobj_delete_node(priv->resource, resource, node, force?"force":"")<0) {
             result += -1;
             log_error(0,
-                "gobj",         "%s", __FILE__,
+                "gobj",         "%s", gobj_full_name(gobj),
                 "function",     "%s", __FUNCTION__,
                 "msgset",       "%s", MSGSET_INTERNAL_ERROR,
                 "msg",          "%s", "gobj_delete_node() FAILED",
@@ -2346,7 +2530,7 @@ PRIVATE json_t *cmd_update_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         if(gobj_update_node(priv->resource, resource, update, "")<0) {
             result += -1;
             log_error(0,
-                "gobj",         "%s", __FILE__,
+                "gobj",         "%s", gobj_full_name(gobj),
                 "function",     "%s", __FUNCTION__,
                 "msgset",       "%s", MSGSET_INTERNAL_ERROR,
                 "msg",          "%s", "gobj_update_node() FAILED",
@@ -2440,7 +2624,7 @@ PRIVATE json_t *cmd_delete_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         if(gobj_delete_node(priv->resource, resource, node, force?"force":"")<0) {
             result += -1;
             log_error(0,
-                "gobj",         "%s", __FILE__,
+                "gobj",         "%s", gobj_full_name(gobj),
                 "function",     "%s", __FUNCTION__,
                 "msgset",       "%s", MSGSET_INTERNAL_ERROR,
                 "msg",          "%s", "gobj_delete_node() FAILED",
@@ -5003,6 +5187,76 @@ PRIVATE json_t *cmd_check_json(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
 
 
 
+
+/***************************************************************************
+ *
+ ***************************************************************************/
+PRIVATE void oauth2_log_callback(
+    oauth2_log_sink_t *sink,
+    const char *filename,
+    unsigned long line,
+    const char *function,
+    oauth2_log_level_t level,
+    const char *msg
+)
+{
+    hgobj gobj = oauth2_log_sink_ctx_get(sink);
+
+    void (*log_fn)(log_opt_t opt, ...) = 0;
+    const char *msgset = MSGSET_OAUTH_ERROR;
+
+    if(level == OAUTH2_LOG_ERROR) {
+        log_fn = log_error;
+    } else if(level == OAUTH2_LOG_WARN) {
+        log_fn = log_warning;
+    } else if(level == OAUTH2_LOG_NOTICE || level == OAUTH2_LOG_INFO) {
+        log_fn = log_warning;
+        msgset = MSGSET_INFO;
+    } else if(level >= OAUTH2_LOG_DEBUG) {
+        log_fn = log_debug;
+        msgset = MSGSET_INFO;
+    }
+
+    log_fn(0,
+        "gobj",             "%s", gobj_full_name(gobj),
+        "function",         "%s", function,
+        "msgset",           "%s", msgset,
+        "msg",              "%s", msg,
+        NULL
+    );
+}
+
+/***************************************************************************
+ *
+ ***************************************************************************/
+PRIVATE int create_new_user(hgobj gobj, json_t *jwt_payload)
+{
+    PRIVATE_DATA *priv = gobj_priv_data(gobj);
+
+    const char *username = kw_get_str(jwt_payload, "preferred_username", 0, KW_REQUIRED); // User id
+
+    /*
+     *  Crea user en users_accesses
+     */
+    json_t *user = json_pack("{s:s, s:s, s:I, s:O}",
+        "ev", "new_user",
+        "username", username,
+        "tm", (json_int_t)time_in_seconds(),
+        "jwt_payload", jwt_payload
+    );
+
+    trmsg_add_instance(
+        priv->tranger_users,
+        "users_accesses",
+        user, // owned
+        0,
+        0
+    );
+
+    user = trmsg_get_active_message(priv->users_accesses, username);
+
+    return 0;
+}
 
 /***************************************************************************
  *      Execute command

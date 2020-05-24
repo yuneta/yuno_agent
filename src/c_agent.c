@@ -126,7 +126,7 @@ PRIVATE int register_public_services(hgobj gobj, json_t *yuno);
 /***************************************************************************
  *              Resources
  ***************************************************************************/
-PRIVATE topic_desc_t db_fichador_desc[] = {
+PRIVATE topic_desc_t db_messages_desc[] = {
     // Topic Name,          Pkey            System Flag     Tkey        Topic Json Desc
     {"users_accesses",      "username",     sf_string_key,  "tm",       0},
     {0}
@@ -187,7 +187,7 @@ SDATADF (ASN_BOOLEAN,   "multiple",         SDF_PERSIST,                0,      
 SDATADF (ASN_BOOLEAN,   "global",           SDF_PERSIST,                0,              "Global",       6,      "Yuno with global service (False: bind to 127.0.0.1, True: bind to realm ip)"),
 
 // Importante marcar el campo con SDF_PARENTID, para que el sistema conozca al grand_parent or parent.
-SDATADF (ASN_OCTET_STR, "realm_ref",        SDF_PERSIST|SDF_PARENTID,   "realms", "Realm Id",     8,      "The Realm (parent) of the yuno. Cannot be changed once created"),
+SDATADF (ASN_OCTET_STR, "realm_id",        SDF_PERSIST|SDF_PARENTID,   "realms", "Realm Id",     8,      "The Realm (parent) of the yuno. Cannot be changed once created"),
 SDATADF (ASN_OCTET_STR, "binary_id",        SDF_PERSIST|SDF_FKEY,       "binaries",     "Binary Id",    8,      "Binary (child) of the yuno"),
 
 /*-CHILD-type-----------name----------------flag------------------------resource------------free_fn---------header----------fillsp---description--*/
@@ -254,7 +254,7 @@ PRIVATE char agent_filter_chain_config[]= "\
                 'remote_yuno_service': 'agent',         \n\
                 'extra_info': {                             \n\
                     'realm_name': '%s',                     \n\
-                    'realm_ref': '%s',                      \n\
+                    'realm_id': '%s',                       \n\
                     'yuno_id': '%s'                         \n\
                 }                                           \n\
             },                                          \n\
@@ -786,7 +786,6 @@ SDATA_END()
 PRIVATE sdata_desc_t tattr_desc[] = {
 /*-ATTR-type------------name----------------flag----------------default---------description---------- */
 SDATA (ASN_OCTET_STR,   "jwt_public_key",   SDF_RD,             0,              "JWT public key"),
-SDATA (ASN_OCTET_STR,   "database",         SDF_RD|SDF_REQUIRED,"agent.trdb",   "Database name"),
 SDATA (ASN_OCTET_STR,   "startup_command",  SDF_RD,             0,              "Command to execute at startup"),
 SDATA (ASN_JSON,        "agent_environment",SDF_RD,             0,              "Agent environment. Override the yuno environment"),
 SDATA (ASN_JSON,        "node_variables",   SDF_RD,             0,              "Global to Node json config variables"),
@@ -817,7 +816,7 @@ typedef struct _PRIVATE_DATA {
     int32_t timerStBoot;
     BOOL enabled_yunos_running;
 
-    json_t *tranger_users;
+    json_t *tranger;
     oauth2_log_t *oath2_log;
     oauth2_log_sink_t *oath2_sink;
     oauth2_cfg_token_verify_t *verify;
@@ -896,13 +895,12 @@ PRIVATE void mt_create(hgobj gobj)
 
     if(1) {
         /*---------------------------*
-         *  Timeranger for auth
+         *      Timeranger
          *---------------------------*/
         char path[PATH_MAX];
         snprintf(path, sizeof(path),
-            "/yuneta/store/resources/yuneta_agent/users"
+            "/yuneta/store/resources/yuneta_agent.trdb"
         );
-
         json_t *jn_tranger = json_pack("{s:s, s:s, s:b}",
             "path", path,
             "filename_mask", "%Y",
@@ -912,11 +910,11 @@ PRIVATE void mt_create(hgobj gobj)
         /*
          *  Abre trmsg fichajes (messages, instances)
          */
-        priv->tranger_users = tranger_startup(
+        priv->tranger = tranger_startup(
             jn_tranger // owned
         );
 
-        if(!priv->tranger_users) {
+        if(!priv->tranger) {
             log_critical(LOG_OPT_EXIT_ZERO,
                 "gobj",         "%s", gobj_full_name(gobj),
                 "function",     "%s", __FUNCTION__,
@@ -926,56 +924,44 @@ PRIVATE void mt_create(hgobj gobj)
                 NULL
             );
         }
+    }
 
+    if(1) {
         /*---------------------------*
          *  Open topics as messages
          *---------------------------*/
         trmsg_open_topics(
-            priv->tranger_users,
-            db_fichador_desc
+            priv->tranger,
+            db_messages_desc
         );
 
         /*
          *  To open users accesses
          */
         priv->users_accesses = trmsg_open_list(
-            priv->tranger_users,
+            priv->tranger,
             "users_accesses",     // topic
             json_pack("{s:i}",  // filter
                 "max_key_instances", 1
             )
         );
-        {
-            // FIX ERROR
-            // WARNING ignora _sessions al cargar user_access,
-            // se pueden haber salvado sesiones que son datos volatiles
-            json_t *messages = trmsg_get_messages(priv->users_accesses);
-            const char *k; json_t *msg;
-            json_object_foreach(messages, k, msg) {
-                json_t *active = kw_get_dict(msg, "active", 0, KW_REQUIRED);
-                if(active) {
-                    json_object_del(active, "_sessions");
-                }
-            }
-        }
     }
 
     if(1) {
         /*-----------------------------*
          *      Open Agent Treedb
          *-----------------------------*/
-        const char *database = gobj_read_str_attr(gobj, "database");
         const char *treedb_name = kw_get_str(
             jn_treedb_schema_yuneta_agent,
             "id",
             "yuneta_agent",
             KW_REQUIRED
         );
-        json_t *kw_resource = json_pack("{s:s, s:s, s:s, s:o}",
-            "service", "yuneta_agent",
-            "database", database,
+        json_t *kw_resource = json_pack("{s:O, s:s, s:o, s:i}",
+            "tranger", priv->tranger,
             "treedb_name", treedb_name,
-            "treedb_schema", jn_treedb_schema_yuneta_agent
+            "treedb_schema", jn_treedb_schema_yuneta_agent,
+            "exit_on_error", LOG_OPT_EXIT_ZERO
         );
 
         priv->resource = gobj_create_service(
@@ -1048,7 +1034,7 @@ PRIVATE void mt_destroy(hgobj gobj)
         priv->verify = 0;
     }
     EXEC_AND_RESET(oauth2_log_free, priv->oath2_log);
-    EXEC_AND_RESET(tranger_shutdown, priv->tranger_users);
+    EXEC_AND_RESET(tranger_shutdown, priv->tranger);
 }
 
 /***************************************************************************
@@ -4058,7 +4044,7 @@ PRIVATE json_t *cmd_run_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
                 json_t *jn_EvChkItem = json_pack("{s:s, s:{s:s, s:s, s:I}}",
                     "event", "EV_ON_OPEN",
                     "filters",
-                        "identity_card`realm_ref", kw_get_str(yuno, "realm_ref", "", KW_REQUIRED),
+                        "identity_card`realm_id", kw_get_str(yuno, "realm_id", "", KW_REQUIRED),
                         "identity_card`yuno_id", id,
                         "identity_card`launch_id", kw_get_int(yuno, "launch_id", 0, KW_REQUIRED)
                 );
@@ -5253,7 +5239,7 @@ PRIVATE int create_new_user(hgobj gobj, json_t *jwt_payload)
     );
 
     trmsg_add_instance(
-        priv->tranger_users,
+        priv->tranger,
         "users_accesses",
         user, // owned
         0,
@@ -5519,7 +5505,7 @@ PRIVATE json_t *get_yuno_realm(hgobj gobj, json_t *yuno)
 
     json_t *realms = treedb_list_parents(
         gobj_read_json_attr(priv->resource, "tranger"),
-        "realm_ref",
+        "realm_id",
         yuno, // not owned
         0
     );
@@ -5835,7 +5821,7 @@ GBUFFER *build_yuno_running_script(
             gbuf_config,
             client_agent_config,
             realm_name,
-            SDATA_GET_STR(yuno, "realm_ref"),
+            SDATA_GET_STR(yuno, "realm_id"),
             yuno_id
         );
 
@@ -5951,7 +5937,7 @@ GBUFFER *build_yuno_running_script(
                 "yuno_name", yuno_name?yuno_name:"",
                 "yuno_alias", yuno_alias?yuno_alias:"",
                 "yuno_release", yuno_release?yuno_release:"",
-                "realm_ref", SDATA_GET_STR(yuno, "realm_ref"),
+                "realm_id", SDATA_GET_STR(yuno, "realm_id"),
                 "bind_ip", bind_ip?bind_ip:"",
                 "multiple", multiple,
                 "launch_id", (json_int_t)launch_id
@@ -6004,7 +5990,7 @@ PRIVATE int run_yuno(hgobj gobj, json_t *yuno, hgobj src)
     GBUFFER *gbuf_sh = gbuf_create(4*1024, 32*1024, 0, 0);
     build_yuno_running_script(gobj, gbuf_sh, yuno, bfbinary, sizeof(bfbinary));
 
-    const char *realm_ref = kw_get_str(yuno, "realm_ref", "", KW_REQUIRED);
+    const char *realm_id = kw_get_str(yuno, "realm_id", "", KW_REQUIRED);
     const char *yuno_id = kw_get_str(yuno, "id", "", KW_REQUIRED);
     const char *realm_name = kw_get_str(yuno, "realm_name", "", KW_REQUIRED);
     const char *yuno_role = kw_get_str(yuno, "yuno_role", "", KW_REQUIRED);
@@ -6029,7 +6015,7 @@ PRIVATE int run_yuno(hgobj gobj, json_t *yuno, hgobj src)
         "function",     "%s", __FUNCTION__,
         "msgset",       "%s", MSGSET_STARTUP,
         "msg",          "%s", "running yuno",
-        "realm_ref",    "%s", realm_ref,
+        "realm_id",    "%s", realm_id,
         "yuno_id",      "%s", yuno_id,
         "realm_name",   "%s", realm_name?realm_name:"",
         "yuno_role",    "%s", yuno_role,
@@ -6050,7 +6036,7 @@ PRIVATE int run_yuno(hgobj gobj, json_t *yuno, hgobj src)
             "function",     "%s", __FUNCTION__,
             "msgset",       "%s", MSGSET_SYSTEM_ERROR,
             "msg",          "%s", "Cannot run the yuno",
-            "realm_ref",    "%s", realm_ref,
+            "realm_id",     "%s", realm_id,
             "yuno_id",      "%s", yuno_id,
             "yuno_role",    "%s", yuno_role,
             "yuno_name",    "%s", yuno_name?yuno_name:"",
@@ -7838,7 +7824,7 @@ PRIVATE int ac_on_open(hgobj gobj, const char *event, json_t *kw, hgobj src)
     const char *yuno_id = kw_get_str(kw, "identity_card`yuno_id", 0, KW_REQUIRED);
     json_int_t pid = kw_get_int(kw, "identity_card`pid", 0, KW_REQUIRED);
     BOOL playing = kw_get_bool(kw, "identity_card`playing", 0, KW_REQUIRED);
-    const char *realm_ref = kw_get_str(kw, "identity_card`realm_ref", "", KW_REQUIRED);
+    const char *realm_id = kw_get_str(kw, "identity_card`realm_id", "", KW_REQUIRED);
     const char *yuno_role = kw_get_str(kw, "identity_card`yuno_role", "", KW_REQUIRED);
     const char *yuno_name = kw_get_str(kw, "identity_card`yuno_name", "", KW_REQUIRED);
     const char *yuno_release = kw_get_str(kw, "identity_card`yuno_release", "", KW_REQUIRED);
@@ -7969,14 +7955,14 @@ PRIVATE int ac_on_open(hgobj gobj, const char *event, json_t *kw, hgobj src)
         JSON_DECREF(iter_yunos);
         return -1;
     }
-    if(strcmp(realm_ref, SDATA_GET_STR(yuno, "realm_ref"))!=0) {
+    if(strcmp(realm_id, SDATA_GET_STR(yuno, "realm_id"))!=0) {
         log_error(0,
             "gobj",         "%s", gobj_full_name(gobj),
             "function",     "%s", __FUNCTION__,
             "msgset",       "%s", MSGSET_INTERNAL_ERROR,
-            "msg",          "%s", "realm_ref not match",
-            "realm_ref registered", "%s", SDATA_GET_STR(yuno, "realm_ref"),
-            "realm_ref incoming","%s", realm_ref,
+            "msg",          "%s", "realm_id not match",
+            "realm_id registered", "%s", SDATA_GET_STR(yuno, "realm_id"),
+            "realm_id incoming","%s", realm_id,
             "yuno_role",    "%s", yuno_role,
             "yuno_name",    "%s", yuno_name,
             "yuno_id",      "%s", yuno_id,

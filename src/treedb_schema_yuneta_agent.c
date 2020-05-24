@@ -8,7 +8,7 @@
                                 ▲ n (dl 'yunos')
                                 ┃
                                 ┃
-                                ▼ 1 ('realm_ref')
+                                ▼ 1 ('realm_id')
                 ┌───────────────────────────────────────┐
                 │               yunos                   │
                 └───────────────────────────────────────┘
@@ -25,13 +25,13 @@
 static char treedb_schema_yuneta_agent[]= "\
 {                                                                   \n\
     'id': 'yuneta_agent',                                           \n\
-    'schema_version': '2',                                          \n\
+    'schema_version': '3',                                          \n\
     'topics': [                                                     \n\
         {                                                           \n\
             'topic_name': 'realms',                                 \n\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
-            'topic_version': '2',                                   \n\
+            'topic_version': '3',                                   \n\
             'topic_options': '',                                    \n\
             'cols': {                                               \n\
                 'id': {                                             \n\
@@ -103,7 +103,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     'type': 'array',                                \n\
                     'flag': ['hook'],                               \n\
                     'hook': {                                       \n\
-                        'yunos': 'realm_ref'                        \n\
+                        'yunos': 'realm_id'                        \n\
                     }                                               \n\
                 }                                                   \n\
             }                                                       \n\
@@ -113,7 +113,7 @@ static char treedb_schema_yuneta_agent[]= "\
             'topic_name': 'yunos',                                  \n\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
-            'topic_version': '2',                                   \n\
+            'topic_version': '3',                                   \n\
             'topic_options': '',                                    \n\
             'cols': {                                               \n\
                 'id': {                                             \n\
@@ -232,8 +232,8 @@ static char treedb_schema_yuneta_agent[]= "\
                         'persistent'                                \n\
                     ]                                               \n\
                 },                                                  \n\
-                'realm_ref': {                                      \n\
-                    'header': 'realm_ref',                          \n\
+                'realm_id': {                                       \n\
+                    'header': 'realm_id',                           \n\
                     'fillspace': 8,                                 \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
@@ -294,7 +294,7 @@ static char treedb_schema_yuneta_agent[]= "\
             'topic_name': 'configurations',                         \n\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
-            'topic_version': '2',                                   \n\
+            'topic_version': '3',                                   \n\
             'topic_options': '',                                    \n\
             'cols': {                                               \n\
                 'id': {                                             \n\
@@ -388,7 +388,7 @@ static char treedb_schema_yuneta_agent[]= "\
             'topic_name': 'binaries',                               \n\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
-            'topic_version': '2',                                   \n\
+            'topic_version': '3',                                   \n\
             'topic_options': '',                                    \n\
             'cols': {                                               \n\
                 'id': {                                             \n\
@@ -506,7 +506,7 @@ static char treedb_schema_yuneta_agent[]= "\
             'topic_name': 'public_services',                        \n\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
-            'topic_version': '2',                                   \n\
+            'topic_version': '3',                                   \n\
             'topic_options': '',                                    \n\
             'cols': {                                               \n\
                 'id': {                                             \n\

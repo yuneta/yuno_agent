@@ -785,8 +785,8 @@ SDATA_END()
  *---------------------------------------------*/
 PRIVATE sdata_desc_t tattr_desc[] = {
 /*-ATTR-type------------name----------------flag----------------default---------description---------- */
-SDATA (ASN_OCTET_STR,   "jwt_public_key",   SDF_RD,             0,          "JWT public key"),
-SDATA (ASN_OCTET_STR,   "database",         SDF_RD|SDF_REQUIRED,"agent_treedb", "Database name"),
+SDATA (ASN_OCTET_STR,   "jwt_public_key",   SDF_RD,             0,              "JWT public key"),
+SDATA (ASN_OCTET_STR,   "database",         SDF_RD|SDF_REQUIRED,"agent.trdb",   "Database name"),
 SDATA (ASN_OCTET_STR,   "startup_command",  SDF_RD,             0,              "Command to execute at startup"),
 SDATA (ASN_JSON,        "agent_environment",SDF_RD,             0,              "Agent environment. Override the yuno environment"),
 SDATA (ASN_JSON,        "node_variables",   SDF_RD,             0,              "Global to Node json config variables"),
@@ -965,9 +965,16 @@ PRIVATE void mt_create(hgobj gobj)
          *      Open Agent Treedb
          *-----------------------------*/
         const char *database = gobj_read_str_attr(gobj, "database");
-        json_t *kw_resource = json_pack("{s:s, s:s, s:o}",
+        const char *treedb_name = kw_get_str(
+            jn_treedb_schema_yuneta_agent,
+            "id",
+            "yuneta_agent",
+            KW_REQUIRED
+        );
+        json_t *kw_resource = json_pack("{s:s, s:s, s:s, s:o}",
             "service", "yuneta_agent",
             "database", database,
+            "treedb_name", treedb_name,
             "treedb_schema", jn_treedb_schema_yuneta_agent
         );
 
@@ -1393,7 +1400,7 @@ PRIVATE json_t *cmd_dir_logs(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
         );
     }
 
-    json_t *node = gobj_get_node(priv->resource, "yunos", id);
+    json_t *node = gobj_get_node(priv->resource, "yunos", id, 0);
     if(!node) {
         return msg_iev_build_webix(gobj,
             -198,
@@ -2960,7 +2967,7 @@ PRIVATE json_t *cmd_update_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
         );
     }
 
-    json_t *node = gobj_get_node(priv->resource, resource, id);
+    json_t *node = gobj_get_node(priv->resource, resource, id, 0);
     if(!node) {
         return msg_iev_build_webix(
             gobj,
@@ -3422,7 +3429,7 @@ PRIVATE json_t *cmd_update_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
         );
     }
 
-    json_t *node = gobj_get_node(priv->resource, resource, id);
+    json_t *node = gobj_get_node(priv->resource, resource, id, 0);
     if(!node) {
         return msg_iev_build_webix(
             gobj,

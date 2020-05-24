@@ -24,6 +24,7 @@
 
 static char treedb_schema_yuneta_agent[]= "\
 {                                                                   \n\
+    'id': 'yuneta_agent',                                           \n\
     'schema_version': '2',                                          \n\
     'topics': [                                                     \n\
         {                                                           \n\

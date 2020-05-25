@@ -18,7 +18,7 @@
 "Si quieres vivir en mi reino tienes que cumplir unas reglas."\
 "De lo contrario, vive como un standalone." \
 
-#define APP_VERSION     "3.9.0"
+#define APP_VERSION     "4.0.0"
 #define APP_DATETIME    __DATE__ " " __TIME__
 #define APP_SUPPORT     "<niyamaka at yuneta.io>"
 
@@ -84,6 +84,7 @@ PRIVATE char variable_config[]= "\
         }                                                           \n\
     },                                                              \n\
     'global': {                                                     \n\
+        'Agent.jwt_public_key': '-----BEGIN PUBLIC KEY-----\\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAj0ZkOtmWlsDLJiJWXTEJ\\ntyXxlVY7iLseG982eaFgDaAdtE3Z5J+WDvzni7v4MPR55oMyi/oeAvTKIsVOv3aw\\nobRJ/Mr45Qh6I0j4Hn+rFfPW4wbmxRmFeyRrfMzYAZZoibZ3m7EFlj2RINvJFIgE\\npIoTf4UneXmlSDbUU9MTZe1mULfCfEZVa5V9W86BluAAib1mYJU7aJ20KPkbQAvW\\nXqC82AE9ga66HnQ2n56mv1kPyvNGKvvM6vD2IXQeLIYgudYT2KlGKd8isrOEkrno\\nXtPKMSaRhVccO73Wbo7krhjGV5MTpMvvOM+wDprslFkODm0MORsHORVxfcVGWSpU\\ngQIDAQAB\\n-----END PUBLIC KEY-----\\n'\n\
     },                                                              \n\
     'services': [                                                   \n\
         {                                               \n\
@@ -123,7 +124,7 @@ PRIVATE char variable_config[]= "\
                         }                                               \n\
                     ],                                                  \n\
                     '[^^zchilds^^]': {                                  \n\
-                        '__range__': [[12001,12199]], #^^ max 200 users \n\
+                        '__range__': [[12000,12099]], #^^ max 100 users \n\
                         '__vars__': {                                   \n\
                         },                                              \n\
                         '__content__': {                                \n\
@@ -188,7 +189,7 @@ int main(int argc, char *argv[])
      *  To trace memory
      *------------------------------------------------*/
 #ifdef DEBUG
-    static uint32_t mem_list[] = {126704,0};
+    static uint32_t mem_list[] = {0,0};
     gbmem_trace_alloc_free(0, mem_list);
 #endif
 

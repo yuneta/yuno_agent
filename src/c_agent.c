@@ -6116,7 +6116,7 @@ PRIVATE int kill_yuno(hgobj gobj, json_t *yuno)
         "yuno_release", "%s", yuno_release?yuno_release:"",
         NULL
     );
-    if(kill(pid, signal2kill)<0) { //  TODO remove pidfile on kill successful
+    if(kill(pid, signal2kill)<0) {
         int last_errno = errno;
         log_error(0,
             "gobj",         "%s", gobj_full_name(gobj),
@@ -7815,7 +7815,6 @@ PRIVATE int ac_on_open(hgobj gobj, const char *event, json_t *kw, hgobj src)
             strcasecmp(client_yuno_role, "GUI")==0 ||
             strcasecmp(client_yuno_role, "yuneta_gui")==0) {
         // let it.
-        // TODO si no es from localhost kill it
 
         KW_DECREF(kw);
         return 0;
@@ -8348,9 +8347,9 @@ PRIVATE GCLASS _gclass = {
         0, //mt_unlink_nodes2,
         0, //mt_get_node,
         0, //mt_list_nodes,
-        0, //mt_snap_nodes,
-        0, //mt_set_nodes_snap,
-        0, //mt_list_nodes_snaps,
+        0, //mt_shoot_snap,
+        0, //mt_activate_snap,
+        0, //mt_list_snaps,
         0, //mt_treedbs,
         0, //treedb_topics,
         0, //topic_desc,

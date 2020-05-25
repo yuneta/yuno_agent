@@ -351,6 +351,9 @@ PRIVATE json_t *cmd_set_okill(hgobj gobj, const char *cmd, json_t *kw, hgobj src
 PRIVATE json_t *cmd_set_qkill(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_check_json(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 
+PRIVATE json_t *cmd_list_snaps(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
+PRIVATE json_t *cmd_shoot_snap(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
+PRIVATE json_t *cmd_activate_snap(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 
 PRIVATE sdata_desc_t pm_help[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
@@ -689,6 +692,17 @@ SDATAPM (ASN_INTEGER, "max_refcount",   0,              0,          "Maximum ref
 SDATA_END()
 };
 
+PRIVATE sdata_desc_t pm_shoot_snap[] = {
+/*-PM----type-----------name------------flag------------default-----description---------- */
+SDATAPM (ASN_OCTET_STR, "tag",          0,              0,          "Tag"),
+SDATA_END()
+};
+PRIVATE sdata_desc_t pm_activate_snap[] = {
+/*-PM----type-----------name------------flag------------default-----description---------- */
+SDATAPM (ASN_OCTET_STR, "tag",          0,              0,          "Tag"),
+SDATA_END()
+};
+
 PRIVATE const char *a_help[] = {"h", "?", 0};
 PRIVATE const char *a_edit_config[] = {"EV_EDIT_CONFIG", 0};
 PRIVATE const char *a_view_config[] = {"EV_VIEW_CONFIG", 0};
@@ -766,6 +780,9 @@ SDATACM2 (ASN_SCHEMA,   "list-yunos",       0,                  a_list_yunos,   
 SDATACM2 (ASN_SCHEMA,   "list-binaries",    0,                  a_list_binaries,    tb_binaries,    cmd_list_binaries,"List binaries"),
 SDATACM2 (ASN_SCHEMA,   "list-configs",     0,                  a_list_configs,     tb_configs,     cmd_list_configs,"List configurations"),
 SDATACM2 (ASN_SCHEMA,   "list-realms",      0,                  a_list_realms,      tb_realms,      cmd_list_realms,"List realms"),
+SDATACM2 (ASN_SCHEMA,   "list-snaps",       0,                  0,                  0,              cmd_list_snaps, "List snaps"),
+SDATACM2 (ASN_SCHEMA,   "shoot-snap",       0,                  0,                  pm_shoot_snap,  cmd_shoot_snap, "Shoot snap"),
+SDATACM2 (ASN_SCHEMA,   "activate-snap",    0,                  0,                  pm_activate_snap,cmd_activate_snap,"Activate snap"),
 SDATACM2 (ASN_SCHEMA,   "run-yuno",         0,                  0,                  pm_run_yuno,    cmd_run_yuno,   "Run yuno"),
 SDATACM2 (ASN_SCHEMA,   "kill-yuno",        0,                  0,                  pm_kill_yuno,   cmd_kill_yuno,  "Kill yuno"),
 SDATACM2 (ASN_SCHEMA,   "play-yuno",        0,                  0,                  pm_play_yuno,   cmd_play_yuno,  "Play yuno"),
@@ -5165,6 +5182,92 @@ PRIVATE json_t *cmd_check_json(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
     return msg_iev_build_webix(gobj,
         result,
         json_local_sprintf("check refcounts of tranger: %s", result==0?"Ok":"Bad"),
+        0,
+        0,
+        kw  // owned
+    );
+}
+
+/***************************************************************************
+ *
+ ***************************************************************************/
+PRIVATE json_t *cmd_list_snaps(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
+{
+    PRIVATE_DATA *priv = gobj_priv_data(gobj);
+
+    json_t *jn_data = gobj_list_snaps(
+        priv->resource
+    );
+
+    return msg_iev_build_webix(gobj,
+        0,
+        0,
+        0,
+        jn_data,
+        kw  // owned
+    );
+}
+
+/***************************************************************************
+ *
+ ***************************************************************************/
+PRIVATE json_t *cmd_shoot_snap(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
+{
+    PRIVATE_DATA *priv = gobj_priv_data(gobj);
+
+    const char *tag = kw_get_str(kw, "tag", 0, 0);
+    if(empty_string(tag)) {
+        return msg_iev_build_webix(gobj,
+            -1,
+            json_local_sprintf(
+                "What tag?"
+            ),
+            0,
+            0,
+            kw  // owned
+        );
+    }
+    int ret = gobj_shoot_snap(
+        priv->resource,
+        tag
+    );
+
+    return msg_iev_build_webix(gobj,
+        ret,
+        ret==0?json_sprintf("Snap done!"):json_string(log_last_message()),
+        0,
+        0,
+        kw  // owned
+    );
+}
+
+/***************************************************************************
+ *
+ ***************************************************************************/
+PRIVATE json_t *cmd_activate_snap(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
+{
+    PRIVATE_DATA *priv = gobj_priv_data(gobj);
+
+    const char *tag = kw_get_str(kw, "tag", 0, 0);
+    if(empty_string(tag)) {
+        return msg_iev_build_webix(gobj,
+            -1,
+            json_local_sprintf(
+                "What tag?"
+            ),
+            0,
+            0,
+            kw  // owned
+        );
+    }
+    int ret = gobj_activate_snap(
+        priv->resource,
+        tag
+    );
+
+    return msg_iev_build_webix(gobj,
+        ret,
+        ret==0?json_sprintf("Snap activated"):json_string(log_last_message()),
         0,
         0,
         kw  // owned

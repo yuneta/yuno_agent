@@ -25,7 +25,7 @@
 static char treedb_schema_yuneta_agent[]= "\
 {                                                                   \n\
     'id': 'yuneta_agent',                                           \n\
-    'schema_version': '1',                                          \n\
+    'schema_version': '2',                                          \n\
     'topics': [                                                     \n\
         {                                                           \n\
             'topic_name': 'realms',                                 \n\
@@ -113,7 +113,7 @@ static char treedb_schema_yuneta_agent[]= "\
             'topic_name': 'yunos',                                  \n\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
-            'topic_version': '1',                                   \n\
+            'topic_version': '2',                                   \n\
             'topic_options': '',                                    \n\
             'cols': {                                               \n\
                 'id': {                                             \n\
@@ -187,6 +187,13 @@ static char treedb_schema_yuneta_agent[]= "\
                 },                                                  \n\
                 'yuno_pid': {                                       \n\
                     'header': 'yuno_pid',                           \n\
+                    'fillspace': 7,                                 \n\
+                    'type': 'integer',                              \n\
+                    'flag': [                                       \n\
+                    ]                                               \n\
+                },                                                  \n\
+                'watcher_pid': {                                    \n\
+                    'header': 'watcher_pid',                        \n\
                     'fillspace': 7,                                 \n\
                     'type': 'integer',                              \n\
                     'flag': [                                       \n\

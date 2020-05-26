@@ -122,6 +122,7 @@ PRIVATE json_t *find_configuration_version(
 PRIVATE int build_release_name(char *bf, int bfsize, json_t *hs_binary, json_t *iter_configs);
 
 PRIVATE int register_public_services(hgobj gobj, json_t *yuno);
+PRIVATE int restart_node(hgobj gobj);
 
 /***************************************************************************
  *              Resources
@@ -179,7 +180,7 @@ SDATADF (ASN_OCTET_STR, "yuno_alias",       SDF_PERSIST,                0,      
 SDATADF (ASN_BOOLEAN,   "yuno_running",     SDF_VOLATIL,                0,              "Running",      7,      "True if the yuno is running"),
 SDATADF (ASN_BOOLEAN,   "yuno_playing",     SDF_VOLATIL,                0,              "Playing",      7,      "True if the yuno is playing"),
 SDATADF (ASN_UNSIGNED,  "yuno_pid",         SDF_VOLATIL,                0,              "Pid",          7,      "Linux Process ID of the running yuno"),
-
+SDATADF (ASN_UNSIGNED,  "watcher_pid",      SDF_VOLATIL,                0,              "Pid",          7,      "Linux Process ID of the watcher yuno"),
 SDATADF (ASN_BOOLEAN,   "disabled",         SDF_PERSIST|SDF_WR,         0,              "Disabled",     8,      "True if the yuno is disabled and therefore cannot be running"),
 SDATADF (ASN_BOOLEAN,   "must_play",        SDF_PERSIST|SDF_WR,         0,              "MustPlay",     8,      "If true the agent will play the yuno automatically after be set running"),
 SDATADF (ASN_BOOLEAN,   "traced",           SDF_PERSIST|SDF_WR,         0,              "Traced",       6,      "True if the yuno is tracing"),
@@ -5274,10 +5275,12 @@ PRIVATE json_t *cmd_activate_snap(hgobj gobj, const char *cmd, json_t *kw, hgobj
         priv->resource,
         name
     );
-
+    if(ret==0) {
+        ret = restart_node(gobj);
+    }
     return msg_iev_build_webix(gobj,
         ret,
-        ret==0?json_sprintf("Snap '%s' activated", name):json_string(log_last_message()),
+        ret==0?json_sprintf("Snap '%s' activated. Wait to restart", name):json_string(log_last_message()),
         0,
         0,
         kw  // owned
@@ -6216,12 +6219,12 @@ PRIVATE int kill_yuno(hgobj gobj, json_t *yuno)
     if(!signal2kill) {
         signal2kill = SIGQUIT;
     }
-
     const char *yuno_id = kw_get_str(yuno, "id", "", KW_REQUIRED);
     const char *yuno_role = kw_get_str(yuno, "yuno_role", "", KW_REQUIRED);
     const char *yuno_name = kw_get_str(yuno, "yuno_name", "", KW_REQUIRED);
     const char *yuno_release = kw_get_str(yuno, "yuno_release", "", KW_REQUIRED);
     uint32_t pid = kw_get_int(yuno, "yuno_pid", 0, KW_REQUIRED);
+    uint32_t watcher_pid = kw_get_int(yuno, "watcher_pid", 0, KW_REQUIRED);
     if(!pid) {
         log_error(0,
             "gobj",         "%s", gobj_full_name(gobj),
@@ -6245,11 +6248,15 @@ PRIVATE int kill_yuno(hgobj gobj, json_t *yuno)
         "msg",          "%s", "killing yuno",
         "yuno_id",      "%s", yuno_id,
         "pid",          "%d", (int)pid,
+        "watcher_pid",  "%d", (int)watcher_pid,
         "yuno_role",    "%s", yuno_role,
         "yuno_name",    "%s", yuno_name?yuno_name:"",
         "yuno_release", "%s", yuno_release?yuno_release:"",
         NULL
     );
+
+    int ret = 0;
+
     if(kill(pid, signal2kill)<0) {
         int last_errno = errno;
         log_error(0,
@@ -6267,12 +6274,39 @@ PRIVATE int kill_yuno(hgobj gobj, json_t *yuno)
             NULL
         );
         gobj_set_message_error(gobj, strerror(last_errno));
-        if(last_errno == ESRCH) { // No such process
-            return 0; // Wait ev_on_close is nosense.
+        if(last_errno != ESRCH) { // No such process
+            ret = -1;
         }
-        return -1;
     }
-    return 0;
+
+    if(signal2kill == SIGKILL) {
+        // Kill the watcher
+        if(watcher_pid) {
+            if(kill(watcher_pid, signal2kill)<0) {
+                int last_errno = errno;
+                log_error(0,
+                    "gobj",         "%s", gobj_full_name(gobj),
+                    "function",     "%s", __FUNCTION__,
+                    "msgset",       "%s", MSGSET_PARAMETER_ERROR,
+                    "msg",          "%s", "Cannot kill yuno",
+                    "yuno_id",      "%s", yuno_id,
+                    "watcher_pid",  "%d", (int)watcher_pid,
+                    "yuno_role",    "%s", yuno_role,
+                    "yuno_name",    "%s", yuno_name?yuno_name:"",
+                    "yuno_release", "%s", yuno_release?yuno_release:"",
+                    "error",        "%d", last_errno,
+                    "strerror",     "%s", strerror(last_errno),
+                    NULL
+                );
+                gobj_set_message_error(gobj, strerror(last_errno));
+                if(last_errno != ESRCH) { // No such process
+                    ret = -1;
+                }
+            }
+        }
+    }
+
+    return ret;
 }
 
 /***************************************************************************
@@ -6831,6 +6865,45 @@ PRIVATE int register_public_services(hgobj gobj, json_t *yuno)
             gobj_update_node(priv->resource, "public_services", kw_incref(hs_service), 0);
         }
     }
+
+    return ret;
+}
+
+/***************************************************************************
+ *
+ ***************************************************************************/
+PRIVATE int restart_node(hgobj gobj)
+{
+    PRIVATE_DATA *priv = gobj_priv_data(gobj);
+    int ret = 0;
+
+    /*----------------------------*
+     *      Get all the yunos
+     *----------------------------*/
+    json_t *iter = gobj_list_nodes(
+        priv->resource,
+        "yunos",
+        0, // filter
+        0
+    );
+
+    // Force kill
+    int prev_signal2kill = gobj_read_int32_attr(gobj, "signal2kill");
+    gobj_write_int32_attr(gobj, "signal2kill", SIGKILL);
+
+    int idx; json_t *yuno;
+    json_array_foreach(iter, idx, yuno) {
+        /*
+         *  Kill yuno
+         */
+        BOOL running = kw_get_bool(yuno, "yuno_running", 0, KW_REQUIRED);
+        if(running) {
+            kill_yuno(gobj, yuno);
+        }
+    }
+
+    // Restore kill
+    gobj_write_int32_attr(gobj, "signal2kill", prev_signal2kill);
 
     return ret;
 }
@@ -7956,6 +8029,7 @@ PRIVATE int ac_on_open(hgobj gobj, const char *event, json_t *kw, hgobj src)
 
     const char *yuno_id = kw_get_str(kw, "identity_card`yuno_id", 0, KW_REQUIRED);
     json_int_t pid = kw_get_int(kw, "identity_card`pid", 0, KW_REQUIRED);
+    json_int_t watcher_pid = kw_get_int(kw, "identity_card`watcher_pid", 0, 0);
     BOOL playing = kw_get_bool(kw, "identity_card`playing", 0, KW_REQUIRED);
     const char *realm_id = kw_get_str(kw, "identity_card`realm_id", "", KW_REQUIRED);
     const char *yuno_role = kw_get_str(kw, "identity_card`yuno_role", "", KW_REQUIRED);
@@ -8116,6 +8190,8 @@ PRIVATE int ac_on_open(hgobj gobj, const char *event, json_t *kw, hgobj src)
     json_object_set_new(yuno, "yuno_running", json_true());
     json_object_set_new(yuno, "yuno_playing", playing?json_true():json_false());
     json_object_set_new(yuno, "yuno_pid", json_integer(pid));
+    json_object_set_new(yuno, "watcher_pid", json_integer(watcher_pid));
+
     json_object_set_new(yuno, "_channel_gobj", json_integer((json_int_t)(size_t)channel_gobj));
     if(channel_gobj) {
         gobj_write_pointer_attr(channel_gobj, "user_data", yuno);

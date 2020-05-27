@@ -722,6 +722,7 @@ PRIVATE const char *a_list_binaries[] = {"2", 0};
 PRIVATE const char *a_list_configs[] = {"3", 0};
 PRIVATE const char *a_list_realms[] = {"4", 0};
 PRIVATE const char *a_list_public_services[] = {"5", 0};
+PRIVATE const char *a_list_snaps[] = {"6", 0};
 
 PRIVATE sdata_desc_t command_table[] = {
 /*-CMD2--type-----------name----------------flag----------------alias---------------items-----------json_fn---------description---------- */
@@ -782,7 +783,7 @@ SDATACM2 (ASN_SCHEMA,   "list-yunos",       0,                  a_list_yunos,   
 SDATACM2 (ASN_SCHEMA,   "list-binaries",    0,                  a_list_binaries,    tb_binaries,    cmd_list_binaries,"List binaries"),
 SDATACM2 (ASN_SCHEMA,   "list-configs",     0,                  a_list_configs,     tb_configs,     cmd_list_configs,"List configurations"),
 SDATACM2 (ASN_SCHEMA,   "list-realms",      0,                  a_list_realms,      tb_realms,      cmd_list_realms,"List realms"),
-SDATACM2 (ASN_SCHEMA,   "list-snaps",       0,                  0,                  0,              cmd_list_snaps, "List snaps"),
+SDATACM2 (ASN_SCHEMA,   "list-snaps",       0,                  a_list_snaps,       0,              cmd_list_snaps, "List snaps"),
 SDATACM2 (ASN_SCHEMA,   "shoot-snap",       0,                  0,                  pm_shoot_snap,  cmd_shoot_snap, "Shoot snap"),
 SDATACM2 (ASN_SCHEMA,   "activate-snap",    0,                  0,                  pm_activate_snap,cmd_activate_snap,"Activate snap"),
 SDATACM2 (ASN_SCHEMA,   "deactivate-snap",  0,                  0,                  0,              cmd_deactivate_snap,"De-Activate snap"),
@@ -2820,7 +2821,7 @@ PRIVATE json_t *cmd_install_binary(hgobj gobj, const char *cmd, json_t *kw, hgob
             gobj,
             -119,
             json_local_sprintf(
-                "Yuno already exists"
+                "Binary already exists: role %s, version %s", binary_role, binary_version
             ),
             tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
             iter,
@@ -5275,12 +5276,12 @@ PRIVATE json_t *cmd_activate_snap(hgobj gobj, const char *cmd, json_t *kw, hgobj
         priv->resource,
         name
     );
-    if(ret==0) {
+    if(ret>=0) {
         ret = restart_node(gobj);
     }
     return msg_iev_build_webix(gobj,
         ret,
-        ret==0?json_sprintf("Snap '%s' activated. Wait to restart", name):json_string(log_last_message()),
+        ret>=0?json_sprintf("Snap activated: '%s', wait to restart", name):json_string(log_last_message()),
         0,
         0,
         kw  // owned
@@ -6259,22 +6260,22 @@ PRIVATE int kill_yuno(hgobj gobj, json_t *yuno)
 
     if(kill(pid, signal2kill)<0) {
         int last_errno = errno;
-        log_error(0,
-            "gobj",         "%s", gobj_full_name(gobj),
-            "function",     "%s", __FUNCTION__,
-            "msgset",       "%s", MSGSET_PARAMETER_ERROR,
-            "msg",          "%s", "Cannot kill yuno",
-            "yuno_id",      "%s", yuno_id,
-            "pid",          "%d", (int)pid,
-            "yuno_role",    "%s", yuno_role,
-            "yuno_name",    "%s", yuno_name?yuno_name:"",
-            "yuno_release", "%s", yuno_release?yuno_release:"",
-            "error",        "%d", last_errno,
-            "strerror",     "%s", strerror(last_errno),
-            NULL
-        );
-        gobj_set_message_error(gobj, strerror(last_errno));
         if(last_errno != ESRCH) { // No such process
+            log_error(0,
+                "gobj",         "%s", gobj_full_name(gobj),
+                "function",     "%s", __FUNCTION__,
+                "msgset",       "%s", MSGSET_PARAMETER_ERROR,
+                "msg",          "%s", "Cannot kill yuno",
+                "yuno_id",      "%s", yuno_id,
+                "pid",          "%d", (int)pid,
+                "yuno_role",    "%s", yuno_role,
+                "yuno_name",    "%s", yuno_name?yuno_name:"",
+                "yuno_release", "%s", yuno_release?yuno_release:"",
+                "error",        "%d", last_errno,
+                "strerror",     "%s", strerror(last_errno),
+                NULL
+            );
+            gobj_set_message_error(gobj, strerror(last_errno));
             ret = -1;
         }
     }
@@ -6284,22 +6285,22 @@ PRIVATE int kill_yuno(hgobj gobj, json_t *yuno)
         if(watcher_pid) {
             if(kill(watcher_pid, signal2kill)<0) {
                 int last_errno = errno;
-                log_error(0,
-                    "gobj",         "%s", gobj_full_name(gobj),
-                    "function",     "%s", __FUNCTION__,
-                    "msgset",       "%s", MSGSET_PARAMETER_ERROR,
-                    "msg",          "%s", "Cannot kill yuno",
-                    "yuno_id",      "%s", yuno_id,
-                    "watcher_pid",  "%d", (int)watcher_pid,
-                    "yuno_role",    "%s", yuno_role,
-                    "yuno_name",    "%s", yuno_name?yuno_name:"",
-                    "yuno_release", "%s", yuno_release?yuno_release:"",
-                    "error",        "%d", last_errno,
-                    "strerror",     "%s", strerror(last_errno),
-                    NULL
-                );
-                gobj_set_message_error(gobj, strerror(last_errno));
                 if(last_errno != ESRCH) { // No such process
+                    log_info(0,
+                        "gobj",         "%s", gobj_full_name(gobj),
+                        "function",     "%s", __FUNCTION__,
+                        "msgset",       "%s", MSGSET_PARAMETER_ERROR,
+                        "msg",          "%s", "Cannot kill watcher yuno",
+                        "yuno_id",      "%s", yuno_id,
+                        "watcher_pid",  "%d", (int)watcher_pid,
+                        "yuno_role",    "%s", yuno_role,
+                        "yuno_name",    "%s", yuno_name?yuno_name:"",
+                        "yuno_release", "%s", yuno_release?yuno_release:"",
+                        "error",        "%d", last_errno,
+                        "strerror",     "%s", strerror(last_errno),
+                        NULL
+                    );
+                    gobj_set_message_error(gobj, strerror(last_errno));
                     ret = -1;
                 }
             }
@@ -6878,7 +6879,7 @@ PRIVATE int restart_node(hgobj gobj)
     int ret = 0;
 
     /*----------------------------*
-     *      Get all the yunos
+     *  Kill force all the yunos
      *----------------------------*/
     json_t *iter = gobj_list_nodes(
         priv->resource,
@@ -6904,6 +6905,13 @@ PRIVATE int restart_node(hgobj gobj)
 
     // Restore kill
     gobj_write_int32_attr(gobj, "signal2kill", prev_signal2kill);
+
+    /*----------------------------*
+     *  Restart treedb
+     *----------------------------*/
+    gobj_stop(priv->resource);
+    gobj_start(priv->resource);
+    run_enabled_yunos(gobj);
 
     return ret;
 }

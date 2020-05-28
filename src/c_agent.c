@@ -3843,14 +3843,12 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
             "yuno_name", yuno_name,
             "yuno_release", yuno_release
         );
-print_json(kw_find); // TODO TEST
         json_t *iter_find = gobj_list_nodes(
             priv->resource,
             resource,
             kw_find, // filter
             json_pack("{s:b}", "collapsed", 1)  // jn_options, owned "collapsed"
         );
-print_json(iter_find); // TODO TEST
         if(json_array_size(iter_find)) {
             /*
              *  1 o more records, yuno already stored and without overwrite.
@@ -6818,7 +6816,6 @@ PRIVATE json_t *find_binary_version(
         kw_find, // filter
         0
     );
-print_json(iter_find); // TODO TEST
     int idx; json_t *hs;
     json_array_foreach(iter_find, idx, hs) {
         const char *version_ = SDATA_GET_STR(hs, "version");
@@ -6865,7 +6862,6 @@ PRIVATE json_t *find_configuration_version(
         kw_find, // filter
         0
     );
-print_json(iter_find); // TODO TEST
 
     int idx; json_t *hs=0;
     json_array_foreach(iter_find, idx, hs) {
@@ -7143,6 +7139,11 @@ PRIVATE int restart_node(hgobj gobj)
          */
         BOOL running = kw_get_bool(yuno, "yuno_running", 0, KW_REQUIRED);
         if(running) {
+            hgobj channel_gobj = (hgobj)(size_t)kw_get_int(yuno, "_channel_gobj", 0, KW_REQUIRED);
+            if(channel_gobj) {
+                // HACK release yuno info connection
+                gobj_write_pointer_attr(channel_gobj, "user_data", 0);
+            }
             kill_yuno(gobj, yuno);
         }
     }
@@ -8527,6 +8528,7 @@ PRIVATE int ac_on_close(hgobj gobj, const char *event, json_t *kw, hgobj src)
         KW_DECREF(kw);
         return 0;
     }
+
     json_t *yuno = gobj_read_pointer_attr(channel_gobj, "user_data");
     if(!yuno) {
         // Must be yuneta_cli or a yuno refused!.

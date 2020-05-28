@@ -357,7 +357,7 @@ PRIVATE json_t *cmd_list_snaps(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
 PRIVATE json_t *cmd_shoot_snap(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_activate_snap(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_deactivate_snap(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
-PRIVATE json_t *cmd_list_instances(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
+PRIVATE json_t *cmd_node_instances(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 
 PRIVATE sdata_desc_t pm_help[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
@@ -706,11 +706,10 @@ PRIVATE sdata_desc_t pm_activate_snap[] = {
 SDATAPM (ASN_OCTET_STR, "name",          0,              0,          "Snap name"),
 SDATA_END()
 };
-PRIVATE sdata_desc_t pm_list_instances[] = {
+PRIVATE sdata_desc_t pm_node_instances[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "topic_name",   0,              0,          "Topic name"),
 SDATAPM (ASN_OCTET_STR, "node_id",      0,              0,          "Node id"),
-SDATAPM (ASN_UNSIGNED,  "instances",    0,              0,          "Maximum of instances"),
 SDATA_END()
 };
 
@@ -797,7 +796,7 @@ SDATACM2 (ASN_SCHEMA,   "list-snaps",       0,                  a_list_snaps,   
 SDATACM2 (ASN_SCHEMA,   "shoot-snap",       0,                  0,                  pm_shoot_snap,  cmd_shoot_snap, "Shoot snap"),
 SDATACM2 (ASN_SCHEMA,   "activate-snap",    0,                  0,                  pm_activate_snap,cmd_activate_snap,"Activate snap"),
 SDATACM2 (ASN_SCHEMA,   "deactivate-snap",  0,                  0,                  0,              cmd_deactivate_snap,"De-Activate snap"),
-SDATACM2 (ASN_SCHEMA,   "list-instances",   0,                  0,                  pm_list_instances,cmd_list_instances,"List topic instances"),
+SDATACM2 (ASN_SCHEMA,   "list-instances",   0,                  0,                  pm_node_instances,cmd_node_instances,"List topic instances"),
 SDATACM2 (ASN_SCHEMA,   "run-yuno",         0,                  0,                  pm_run_yuno,    cmd_run_yuno,   "Run yuno"),
 SDATACM2 (ASN_SCHEMA,   "kill-yuno",        0,                  0,                  pm_kill_yuno,   cmd_kill_yuno,  "Kill yuno"),
 SDATACM2 (ASN_SCHEMA,   "play-yuno",        0,                  0,                  pm_play_yuno,   cmd_play_yuno,  "Play yuno"),
@@ -5507,7 +5506,7 @@ PRIVATE json_t *cmd_deactivate_snap(hgobj gobj, const char *cmd, json_t *kw, hgo
 /***************************************************************************
  *
  ***************************************************************************/
-PRIVATE json_t *cmd_list_instances(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
+PRIVATE json_t *cmd_node_instances(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
 {
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
 

@@ -103,7 +103,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     'type': 'array',                                \n\
                     'flag': ['hook'],                               \n\
                     'hook': {                                       \n\
-                        'yunos': 'realm_id'                        \n\
+                        'yunos': 'realm_id'                         \n\
                     }                                               \n\
                 }                                                   \n\
             }                                                       \n\
@@ -114,7 +114,7 @@ static char treedb_schema_yuneta_agent[]= "\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
             'topic_version': '3',                                   \n\
-            'topic_options': 'multiple',                            \n\
+            'topic_options': '',                                    \n\
             'cols': {                                               \n\
                 'id': {                                             \n\
                     'header': 'id',                                 \n\
@@ -302,7 +302,7 @@ static char treedb_schema_yuneta_agent[]= "\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
             'topic_version': '2',                                   \n\
-            'topic_options': 'multiple',                            \n\
+            'topic_options': '',                                    \n\
             'cols': {                                               \n\
                 'id': {                                             \n\
                     'header': 'id',                                 \n\
@@ -396,7 +396,7 @@ static char treedb_schema_yuneta_agent[]= "\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
             'topic_version': '2',                                   \n\
-            'topic_options': 'multiple',                            \n\
+            'topic_options': '',                                    \n\
             'cols': {                                               \n\
                 'id': {                                             \n\
                     'header': 'id',                                 \n\

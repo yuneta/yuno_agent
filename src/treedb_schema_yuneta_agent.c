@@ -25,7 +25,7 @@
 static char treedb_schema_yuneta_agent[]= "\
 {                                                                   \n\
     'id': 'yuneta_agent',                                           \n\
-    'schema_version': '2',                                          \n\
+    'schema_version': '3',                                          \n\
     'topics': [                                                     \n\
         {                                                           \n\
             'topic_name': 'realms',                                 \n\
@@ -113,8 +113,8 @@ static char treedb_schema_yuneta_agent[]= "\
             'topic_name': 'yunos',                                  \n\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
-            'topic_version': '2',                                   \n\
-            'topic_options': '',                                    \n\
+            'topic_version': '3',                                   \n\
+            'topic_options': 'multiple',                            \n\
             'cols': {                                               \n\
                 'id': {                                             \n\
                     'header': 'id',                                 \n\

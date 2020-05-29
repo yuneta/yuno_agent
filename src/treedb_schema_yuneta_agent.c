@@ -32,7 +32,6 @@ static char treedb_schema_yuneta_agent[]= "\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
             'topic_version': '1',                                   \n\
-            'topic_options': '',                                    \n\
             'cols': {                                               \n\
                 'id': {                                             \n\
                     'header': 'id',                                 \n\
@@ -114,7 +113,8 @@ static char treedb_schema_yuneta_agent[]= "\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
             'topic_version': '1',                                   \n\
-            'topic_options': 'multiple',                            \n\
+            'tkey': 'input_time_',                                  \n\
+            'pkey2': 'yuno_release',                                \n\
             'cols': {                                               \n\
                 'id': {                                             \n\
                     'header': 'id',                                 \n\
@@ -273,6 +273,16 @@ static char treedb_schema_yuneta_agent[]= "\
                         'persistent'                                \n\
                     ]                                               \n\
                 },                                                  \n\
+                'input_time': {                                     \n\
+                    'header': 'input_time',                         \n\
+                    'type': 'string',                               \n\
+                    'flag': ['persistent','required']               \n\
+                },                                                  \n\
+                'input_time_': {                                    \n\
+                    'header': 'input_time_',                        \n\
+                    'type': 'integer',                              \n\
+                    'flag': ['persistent','required']               \n\
+                },                                                  \n\
                 '_channel_gobj': {                                  \n\
                     'header': '_channel_gobj',                      \n\
                     'fillspace': 6,                                 \n\
@@ -298,11 +308,136 @@ static char treedb_schema_yuneta_agent[]= "\
         },                                                          \n\
                                                                     \n\
         {                                                           \n\
+            'topic_name': 'binaries',                               \n\
+            'pkey': 'id',                                           \n\
+            'system_flag': 'sf_string_key',                         \n\
+            'topic_version': '1',                                   \n\
+            'tkey': 'date_',                                        \n\
+            'pkey2': ['role','version'],                            \n\
+            'cols': {                                               \n\
+                'id': {                                             \n\
+                    'header': 'id',                                 \n\
+                    'fillspace': 8,                                 \n\
+                    'type': 'string',                               \n\
+                    'flag': [                                       \n\
+                        'persistent',                               \n\
+                        'required',                                 \n\
+                        'rowid'                                     \n\
+                    ]                                               \n\
+                },                                                  \n\
+                'role': {                                           \n\
+                    'header': 'role',                               \n\
+                    'fillspace': 18,                                \n\
+                    'type': 'string',                               \n\
+                    'flag': [                                       \n\
+                        'persistent',                               \n\
+                        'required'                                  \n\
+                    ]                                               \n\
+                },                                                  \n\
+                'version': {                                        \n\
+                    'header': 'version',                            \n\
+                    'fillspace': 14,                                \n\
+                    'type': 'string',                               \n\
+                    'flag': [                                       \n\
+                        'persistent',                               \n\
+                        'required'                                  \n\
+                    ]                                               \n\
+                },                                                  \n\
+                'size': {                                           \n\
+                    'header': 'size',                               \n\
+                    'fillspace': 10,                                \n\
+                    'type': 'integer',                              \n\
+                    'flag': [                                       \n\
+                        'persistent'                                \n\
+                    ]                                               \n\
+                },                                                  \n\
+                'date_': {                                          \n\
+                    'header': 'date_',                              \n\
+                    'type': 'integer',                              \n\
+                    'flag': ['persistent','required']               \n\
+                },                                                  \n\
+                'date': {                                           \n\
+                    'header': 'date',                               \n\
+                    'fillspace': 22,                                \n\
+                    'type': 'string',                               \n\
+                    'flag': [                                       \n\
+                        'persistent',                               \n\
+                        'required'                                  \n\
+                    ]                                               \n\
+                },                                                  \n\
+                'description': {                                    \n\
+                    'header': 'description',                        \n\
+                    'fillspace': 22,                                \n\
+                    'type': 'string',                               \n\
+                    'flag': [                                       \n\
+                        'persistent'                                \n\
+                    ]                                               \n\
+                },                                                  \n\
+                'classifiers': {                                    \n\
+                    'header': 'classifiers',                        \n\
+                    'fillspace': 22,                                \n\
+                    'type': 'blob',                                 \n\
+                    'flag': [                                       \n\
+                        'persistent'                                \n\
+                    ]                                               \n\
+                },                                                  \n\
+                'required_services': {                              \n\
+                    'header': 'required_services',                  \n\
+                    'fillspace': 22,                                \n\
+                    'type': 'blob',                                 \n\
+                    'flag': [                                       \n\
+                        'persistent'                                \n\
+                    ]                                               \n\
+                },                                                  \n\
+                'public_services': {                                \n\
+                    'header': 'public_services',                    \n\
+                    'fillspace': 22,                                \n\
+                    'type': 'blob',                                 \n\
+                    'flag': [                                       \n\
+                        'persistent'                                \n\
+                    ]                                               \n\
+                },                                                  \n\
+                'service_descriptor': {                             \n\
+                    'header': 'service_descriptor',                 \n\
+                    'fillspace': 22,                                \n\
+                    'type': 'blob',                                 \n\
+                    'flag': [                                       \n\
+                        'persistent'                                \n\
+                    ]                                               \n\
+                },                                                  \n\
+                'binary': {                                         \n\
+                    'header': 'binary',                             \n\
+                    'fillspace': 22,                                \n\
+                    'type': 'string',                               \n\
+                    'flag': [                                       \n\
+                        'persistent',                               \n\
+                        'required'                                  \n\
+                    ]                                               \n\
+                },                                                  \n\
+                'yunos': {                                          \n\
+                    'header': 'yunos',                              \n\
+                    'fillspace': 22,                                \n\
+                    'type': 'array',                                \n\
+                    'flag': ['fkey']                                \n\
+                },                                                  \n\
+                'source': {                                         \n\
+                    'header': 'source',                             \n\
+                    'fillspace': 0,                                 \n\
+                    'type': 'blob',                                 \n\
+                    'flag': [                                       \n\
+                        'persistent'                                \n\
+                    ]                                               \n\
+                }                                                   \n\
+            }                                                       \n\
+        },                                                          \n\
+                                                                    \n\
+        {                                                           \n\
             'topic_name': 'configurations',                         \n\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
             'topic_version': '1',                                   \n\
-            'topic_options': 'multiple',                            \n\
+            'tkey': '',                                             \n\
+            'pkey2': ['name','version'],                            \n\
             'cols': {                                               \n\
                 'id': {                                             \n\
                     'header': 'id',                                 \n\
@@ -392,129 +527,10 @@ static char treedb_schema_yuneta_agent[]= "\
         },                                                          \n\
                                                                     \n\
         {                                                           \n\
-            'topic_name': 'binaries',                               \n\
-            'pkey': 'id',                                           \n\
-            'system_flag': 'sf_string_key',                         \n\
-            'topic_version': '1',                                   \n\
-            'topic_options': 'multiple',                            \n\
-            'cols': {                                               \n\
-                'id': {                                             \n\
-                    'header': 'id',                                 \n\
-                    'fillspace': 8,                                 \n\
-                    'type': 'string',                               \n\
-                    'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required',                                 \n\
-                        'rowid'                                     \n\
-                    ]                                               \n\
-                },                                                  \n\
-                'role': {                                           \n\
-                    'header': 'role',                               \n\
-                    'fillspace': 18,                                \n\
-                    'type': 'string',                               \n\
-                    'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
-                    ]                                               \n\
-                },                                                  \n\
-                'version': {                                        \n\
-                    'header': 'version',                            \n\
-                    'fillspace': 14,                                \n\
-                    'type': 'string',                               \n\
-                    'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
-                    ]                                               \n\
-                },                                                  \n\
-                'size': {                                           \n\
-                    'header': 'size',                               \n\
-                    'fillspace': 10,                                \n\
-                    'type': 'integer',                              \n\
-                    'flag': [                                       \n\
-                        'persistent'                                \n\
-                    ]                                               \n\
-                },                                                  \n\
-                'date': {                                           \n\
-                    'header': 'date',                               \n\
-                    'fillspace': 22,                                \n\
-                    'type': 'string',                               \n\
-                    'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
-                    ]                                               \n\
-                },                                                  \n\
-                'description': {                                    \n\
-                    'header': 'description',                        \n\
-                    'fillspace': 22,                                \n\
-                    'type': 'string',                               \n\
-                    'flag': [                                       \n\
-                        'persistent'                                \n\
-                    ]                                               \n\
-                },                                                  \n\
-                'classifiers': {                                    \n\
-                    'header': 'classifiers',                        \n\
-                    'fillspace': 22,                                \n\
-                    'type': 'blob',                                 \n\
-                    'flag': [                                       \n\
-                        'persistent'                                \n\
-                    ]                                               \n\
-                },                                                  \n\
-                'required_services': {                              \n\
-                    'header': 'required_services',                  \n\
-                    'fillspace': 22,                                \n\
-                    'type': 'blob',                                 \n\
-                    'flag': [                                       \n\
-                        'persistent'                                \n\
-                    ]                                               \n\
-                },                                                  \n\
-                'public_services': {                                \n\
-                    'header': 'public_services',                    \n\
-                    'fillspace': 22,                                \n\
-                    'type': 'blob',                                 \n\
-                    'flag': [                                       \n\
-                        'persistent'                                \n\
-                    ]                                               \n\
-                },                                                  \n\
-                'service_descriptor': {                             \n\
-                    'header': 'service_descriptor',                 \n\
-                    'fillspace': 22,                                \n\
-                    'type': 'blob',                                 \n\
-                    'flag': [                                       \n\
-                        'persistent'                                \n\
-                    ]                                               \n\
-                },                                                  \n\
-                'binary': {                                         \n\
-                    'header': 'binary',                             \n\
-                    'fillspace': 22,                                \n\
-                    'type': 'string',                               \n\
-                    'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
-                    ]                                               \n\
-                },                                                  \n\
-                'yunos': {                                          \n\
-                    'header': 'yunos',                              \n\
-                    'fillspace': 22,                                \n\
-                    'type': 'array',                                \n\
-                    'flag': ['fkey']                                \n\
-                },                                                  \n\
-                'source': {                                         \n\
-                    'header': 'source',                             \n\
-                    'fillspace': 0,                                 \n\
-                    'type': 'blob',                                 \n\
-                    'flag': [                                       \n\
-                        'persistent'                                \n\
-                    ]                                               \n\
-                }                                                   \n\
-            }                                                       \n\
-        },                                                          \n\
-                                                                    \n\
-        {                                                           \n\
             'topic_name': 'public_services',                        \n\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
             'topic_version': '1',                                   \n\
-            'topic_options': '',                                    \n\
             'cols': {                                               \n\
                 'id': {                                             \n\
                     'header': 'id',                                 \n\

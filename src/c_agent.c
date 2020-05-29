@@ -710,6 +710,7 @@ PRIVATE sdata_desc_t pm_node_instances[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "topic_name",   0,              0,          "Topic name"),
 SDATAPM (ASN_OCTET_STR, "node_id",      0,              0,          "Node id"),
+SDATAPM (ASN_OCTET_STR, "pkey2",        0,              0,          "Primary Key 2"),
 SDATA_END()
 };
 
@@ -5527,6 +5528,7 @@ PRIVATE json_t *cmd_node_instances(hgobj gobj, const char *cmd, json_t *kw, hgob
 
     const char *topic_name = kw_get_str(kw, "topic_name", "", 0);
     const char *node_id = kw_get_str(kw, "node_id", "", 0);
+    const char *pkey2= kw_get_str(kw, "pkey2", "", 0);
 
     if(empty_string(topic_name)) {
         return msg_iev_build_webix(
@@ -5550,16 +5552,18 @@ PRIVATE json_t *cmd_node_instances(hgobj gobj, const char *cmd, json_t *kw, hgob
     }
 
     json_t *instances = gobj_node_instances(
-        priv->resource,
+        gobj,
         topic_name,
         node_id,
+        pkey2,
         json_incref(kw)
     );
 
-    return msg_iev_build_webix(gobj,
-        0,
-        0,
-        tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), topic_name),
+    return msg_iev_build_webix(
+        gobj,
+        instances?0:-1,
+        json_local_sprintf("%d instances", json_array_size(instances)),
+        tranger_list_topic_desc(priv->tranger, topic_name),
         instances,
         kw  // owned
     );

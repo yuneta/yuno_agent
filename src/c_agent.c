@@ -710,7 +710,9 @@ PRIVATE sdata_desc_t pm_node_instances[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "topic_name",   0,              0,          "Topic name"),
 SDATAPM (ASN_OCTET_STR, "node_id",      0,              0,          "Node id"),
-SDATAPM (ASN_OCTET_STR, "pkey2",        0,              0,          "Primary Key 2"),
+SDATAPM (ASN_OCTET_STR, "pkey2_field",  0,              0,          "PKey2 field"),
+SDATAPM (ASN_OCTET_STR, "filter",       0,              0,          "Search filter"),
+SDATAPM (ASN_BOOLEAN,   "expanded",     0,              0,          "Tree expanded"),
 SDATA_END()
 };
 
@@ -5528,7 +5530,9 @@ PRIVATE json_t *cmd_node_instances(hgobj gobj, const char *cmd, json_t *kw, hgob
 
     const char *topic_name = kw_get_str(kw, "topic_name", "", 0);
     const char *node_id = kw_get_str(kw, "node_id", "", 0);
-    const char *pkey2= kw_get_str(kw, "pkey2", "", 0);
+    const char *pkey2_field = kw_get_str(kw, "pkey2_field", "", 0);
+    const char *filter = kw_get_str(kw, "filter", "", 0);
+    BOOL collapsed = !kw_get_bool(kw, "expanded", 0, KW_WILD_NUMBER);
 
     if(empty_string(topic_name)) {
         return msg_iev_build_webix(
@@ -5550,13 +5554,37 @@ PRIVATE json_t *cmd_node_instances(hgobj gobj, const char *cmd, json_t *kw, hgob
             kw  // owned
         );
     }
+    if(empty_string(pkey2_field)) {
+        return msg_iev_build_webix(
+            gobj,
+            -1,
+            json_local_sprintf("What node pkey2_field?"),
+            0,
+            0,
+            kw  // owned
+        );
+    }
+    json_t *jn_filter = 0;
+    if(!empty_string(filter)) {
+        jn_filter = legalstring2json(filter, TRUE);
+        if(!jn_filter) {
+            return msg_iev_build_webix(
+                gobj,
+                -1,
+                json_local_sprintf("Can't decode filter json"),
+                0,
+                0,
+                kw  // owned
+            );
+        }
+    }
 
     json_t *instances = gobj_node_instances(
-        gobj,
+        priv->resource,
         topic_name,
-        node_id,
-        pkey2,
-        json_incref(kw)
+        pkey2_field,
+        jn_filter,  // owned
+        json_pack("{s:b}", "collapsed", collapsed)  // jn_options, owned "collapsed"
     );
 
     return msg_iev_build_webix(

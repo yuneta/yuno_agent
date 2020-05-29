@@ -276,12 +276,12 @@ static char treedb_schema_yuneta_agent[]= "\
                 'input_time': {                                     \n\
                     'header': 'input_time',                         \n\
                     'type': 'string',                               \n\
-                    'flag': ['persistent','required']               \n\
+                    'flag': ['persistent']                          \n\
                 },                                                  \n\
                 'input_time_': {                                    \n\
                     'header': 'input_time_',                        \n\
                     'type': 'integer',                              \n\
-                    'flag': ['persistent','required']               \n\
+                    'flag': ['persistent']                          \n\
                 },                                                  \n\
                 '_channel_gobj': {                                  \n\
                     'header': '_channel_gobj',                      \n\

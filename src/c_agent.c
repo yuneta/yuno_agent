@@ -5578,9 +5578,14 @@ PRIVATE json_t *cmd_node_instances(hgobj gobj, const char *cmd, json_t *kw, hgob
             );
         }
     }
+    if(!jn_filter) {
+        jn_filter = json_pack("{s:s}", "id", node_id);
+    } else {
+        json_object_set_new(jn_filter, "id", json_string(node_id));
+    }
 
     json_t *instances = gobj_node_instances(
-        priv->resource,
+        gobj,
         topic_name,
         pkey2_field,
         jn_filter,  // owned

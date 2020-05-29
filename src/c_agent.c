@@ -4158,6 +4158,21 @@ json_t* cmd_delete_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
                 kw  // owned
             );
         }
+        json_int_t __tag__ = kw_get_int(node, "__md_treedb__`__tag__", 0, KW_REQUIRED);
+        if(__tag__) {
+            JSON_DECREF(iter);
+            return msg_iev_build_webix(
+                gobj,
+                -141,
+                json_local_sprintf("Cannot delete yuno '%s', it's tagged (%d)",
+                    kw_get_str(node, "id", "", KW_REQUIRED),
+                    (int)__tag__
+                ),
+                0,
+                0,
+                kw  // owned
+            );
+        }
     }
 
     /*

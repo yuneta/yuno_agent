@@ -186,6 +186,7 @@ SDATADF (ASN_BOOLEAN,   "must_play",        SDF_PERSIST|SDF_WR,         0,      
 SDATADF (ASN_BOOLEAN,   "traced",           SDF_PERSIST|SDF_WR,         0,              "Traced",       6,      "True if the yuno is tracing"),
 SDATADF (ASN_BOOLEAN,   "multiple",         SDF_PERSIST,                0,              "Multiple",     6,      "True if yuno can have multiple instances with same name"),
 SDATADF (ASN_BOOLEAN,   "global",           SDF_PERSIST,                0,              "Global",       6,      "Yuno with global service (False: bind to 127.0.0.1, True: bind to realm ip)"),
+SDATADF (ASN_OCTET_STR, "date",             SDF_PERSIST,                0,              "Date",         21,     "Date last modification"),
 
 // Importante marcar el campo con SDF_PARENTID, para que el sistema conozca al grand_parent or parent.
 SDATADF (ASN_OCTET_STR, "realm_id",        SDF_PERSIST|SDF_PARENTID,   "realms", "Realm Id",     8,      "The Realm (parent) of the yuno. Cannot be changed once created"),
@@ -3876,6 +3877,14 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
     /*---------------------------------------------*
      *      Create the yuno
      *---------------------------------------------*/
+    char current_date[22];
+    current_timestamp(current_date, sizeof(current_date));  // "CCYY/MM/DD hh:mm:ss"
+    json_object_set_new(
+        kw,
+        "date",
+        json_string(current_date)
+    );
+
     json_t *yuno = gobj_create_node(
         priv->resource,
         resource,

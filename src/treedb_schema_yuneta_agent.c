@@ -113,7 +113,7 @@ static char treedb_schema_yuneta_agent[]= "\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
             'topic_version': '1',                                   \n\
-            'tkey': 'input_time_',                                  \n\
+            'tkey': '',                                             \n\
             'pkey2': 'yuno_release',                                \n\
             'cols': {                                               \n\
                 'id': {                                             \n\
@@ -239,6 +239,15 @@ static char treedb_schema_yuneta_agent[]= "\
                         'persistent'                                \n\
                     ]                                               \n\
                 },                                                  \n\
+                'date': {                                           \n\
+                    'header': 'date',                               \n\
+                    'fillspace': 22,                                \n\
+                    'type': 'string',                               \n\
+                    'flag': [                                       \n\
+                        'persistent',                               \n\
+                        'required'                                  \n\
+                    ]                                               \n\
+                },                                                  \n\
                 'realm_id': {                                       \n\
                     'header': 'realm_id',                           \n\
                     'fillspace': 8,                                 \n\
@@ -273,16 +282,6 @@ static char treedb_schema_yuneta_agent[]= "\
                         'persistent'                                \n\
                     ]                                               \n\
                 },                                                  \n\
-                'input_time': {                                     \n\
-                    'header': 'input_time',                         \n\
-                    'type': 'string',                               \n\
-                    'flag': ['persistent']                          \n\
-                },                                                  \n\
-                'input_time_': {                                    \n\
-                    'header': 'input_time_',                        \n\
-                    'type': 'integer',                              \n\
-                    'flag': ['persistent']                          \n\
-                },                                                  \n\
                 '_channel_gobj': {                                  \n\
                     'header': '_channel_gobj',                      \n\
                     'fillspace': 6,                                 \n\
@@ -296,13 +295,6 @@ static char treedb_schema_yuneta_agent[]= "\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
                     ]                                               \n\
-                },                                                  \n\
-                'global': {                                         \n\
-                    'header': 'global',                             \n\
-                    'fillspace': 6,                                 \n\
-                    'type': 'boolean',                              \n\
-                    'flag': [                                       \n\
-                    ]                                               \n\
                 }                                                   \n\
             }                                                       \n\
         },                                                          \n\
@@ -312,8 +304,8 @@ static char treedb_schema_yuneta_agent[]= "\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
             'topic_version': '1',                                   \n\
-            'tkey': 'date_',                                        \n\
-            'pkey2': ['role','version'],                            \n\
+            'tkey': '',                                             \n\
+            'pkey2': ['version'],                                   \n\
             'cols': {                                               \n\
                 'id': {                                             \n\
                     'header': 'id',                                 \n\
@@ -350,11 +342,6 @@ static char treedb_schema_yuneta_agent[]= "\
                     'flag': [                                       \n\
                         'persistent'                                \n\
                     ]                                               \n\
-                },                                                  \n\
-                'date_': {                                          \n\
-                    'header': 'date_',                              \n\
-                    'type': 'integer',                              \n\
-                    'flag': ['persistent','required']               \n\
                 },                                                  \n\
                 'date': {                                           \n\
                     'header': 'date',                               \n\
@@ -437,7 +424,7 @@ static char treedb_schema_yuneta_agent[]= "\
             'system_flag': 'sf_string_key',                         \n\
             'topic_version': '1',                                   \n\
             'tkey': '',                                             \n\
-            'pkey2': ['name','version'],                            \n\
+            'pkey2': ['version'],                                   \n\
             'cols': {                                               \n\
                 'id': {                                             \n\
                     'header': 'id',                                 \n\

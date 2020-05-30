@@ -711,7 +711,7 @@ PRIVATE sdata_desc_t pm_node_instances[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "topic_name",   0,              0,          "Topic name"),
 SDATAPM (ASN_OCTET_STR, "node_id",      0,              0,          "Node id"),
-SDATAPM (ASN_OCTET_STR, "pkey2_field",  0,              0,          "PKey2 field"),
+SDATAPM (ASN_OCTET_STR, "pkey2",        0,              0,          "PKey2 field"),
 SDATAPM (ASN_OCTET_STR, "filter",       0,              0,          "Search filter"),
 SDATAPM (ASN_BOOLEAN,   "expanded",     0,              0,          "Tree expanded"),
 SDATA_END()
@@ -5535,11 +5535,9 @@ PRIVATE json_t *cmd_deactivate_snap(hgobj gobj, const char *cmd, json_t *kw, hgo
  ***************************************************************************/
 PRIVATE json_t *cmd_node_instances(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
 {
-    PRIVATE_DATA *priv = gobj_priv_data(gobj);
-
     const char *topic_name = kw_get_str(kw, "topic_name", "", 0);
     const char *node_id = kw_get_str(kw, "node_id", "", 0);
-    const char *pkey2_field = kw_get_str(kw, "pkey2_field", "", 0);
+    const char *pkey2 = kw_get_str(kw, "pkey2", "", 0);
     const char *filter = kw_get_str(kw, "filter", "", 0);
     BOOL collapsed = !kw_get_bool(kw, "expanded", 0, KW_WILD_NUMBER);
 
@@ -5553,21 +5551,11 @@ PRIVATE json_t *cmd_node_instances(hgobj gobj, const char *cmd, json_t *kw, hgob
             kw  // owned
         );
     }
-    if(empty_string(node_id)) {
+    if(empty_string(pkey2)) {
         return msg_iev_build_webix(
             gobj,
             -1,
-            json_local_sprintf("What node id?"),
-            0,
-            0,
-            kw  // owned
-        );
-    }
-    if(empty_string(pkey2_field)) {
-        return msg_iev_build_webix(
-            gobj,
-            -1,
-            json_local_sprintf("What node pkey2_field?"),
+            json_local_sprintf("What pkey2"),
             0,
             0,
             kw  // owned
@@ -5587,25 +5575,27 @@ PRIVATE json_t *cmd_node_instances(hgobj gobj, const char *cmd, json_t *kw, hgob
             );
         }
     }
-    if(!jn_filter) {
-        jn_filter = json_pack("{s:s}", "id", node_id);
-    } else {
-        json_object_set_new(jn_filter, "id", json_string(node_id));
+    if(!empty_string(node_id)) {
+        if(!jn_filter) {
+            jn_filter = json_pack("{s:s}", "id", node_id);
+        } else {
+            json_object_set_new(jn_filter, "id", json_string(node_id));
+        }
     }
 
     json_t *instances = gobj_node_instances(
         gobj,
         topic_name,
-        pkey2_field,
+        pkey2,
         jn_filter,  // owned
         json_pack("{s:b}", "collapsed", collapsed)  // jn_options, owned "collapsed"
     );
 
     return msg_iev_build_webix(
         gobj,
-        instances?0:-1,
+        0,
         json_local_sprintf("%d instances", json_array_size(instances)),
-        tranger_list_topic_desc(priv->tranger, topic_name),
+        0,
         instances,
         kw  // owned
     );

@@ -128,7 +128,7 @@ static char treedb_schema_yuneta_agent[]= "\
             'system_flag': 'sf_string_key',                         \n\
             'topic_version': '1',                                   \n\
             'tkey': '',                                             \n\
-            'pkey2': 'yuno_release',                                \n\
+            'topic_pkey2': 'yuno_release',                          \n\
             'cols': {                                               \n\
                 'id': {                                             \n\
                     'header': 'id',                                 \n\
@@ -333,7 +333,7 @@ static char treedb_schema_yuneta_agent[]= "\
             'system_flag': 'sf_string_key',                         \n\
             'topic_version': '1',                                   \n\
             'tkey': '',                                             \n\
-            'pkey2': ['version'],                                   \n\
+            'topic_pkey2': ['version'],                             \n\
             'cols': {                                               \n\
                 'id': {                                             \n\
                     'header': 'id',                                 \n\
@@ -466,7 +466,7 @@ static char treedb_schema_yuneta_agent[]= "\
             'system_flag': 'sf_string_key',                         \n\
             'topic_version': '1',                                   \n\
             'tkey': '',                                             \n\
-            'pkey2': ['version'],                                   \n\
+            'topic_pkey2': ['version'],                             \n\
             'cols': {                                               \n\
                 'id': {                                             \n\
                     'header': 'id',                                 \n\

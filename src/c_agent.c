@@ -370,6 +370,12 @@ PRIVATE json_t *cmd_shoot_snap(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
 PRIVATE json_t *cmd_activate_snap(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_deactivate_snap(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 
+PRIVATE json_t *cmd_realms_instances(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
+PRIVATE json_t *cmd_yunos_instances(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
+PRIVATE json_t *cmd_binaries_instances(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
+PRIVATE json_t *cmd_configs_instances(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
+PRIVATE json_t *cmd_public_services_instances(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
+
 PRIVATE sdata_desc_t pm_help[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "cmd",          0,              0,          "command about you want help"),
@@ -730,11 +736,19 @@ PRIVATE const char *a_read_running_keys[] = {"EV_READ_RUNNING_KEYS", 0};
 PRIVATE const char *a_read_running_bin[] = {"EV_READ_RUNNING_BIN", 0};
 
 PRIVATE const char *a_top_yunos[] = {"t", 0};
+
 PRIVATE const char *a_list_yunos[] = {"1", 0};
 PRIVATE const char *a_list_binaries[] = {"2", 0};
 PRIVATE const char *a_list_configs[] = {"3", 0};
 PRIVATE const char *a_list_realms[] = {"4", 0};
 PRIVATE const char *a_list_public_services[] = {"5", 0};
+
+PRIVATE const char *a_yunos_instances[] = {"11", 0};
+PRIVATE const char *a_binaries_instances[] = {"22", 0};
+PRIVATE const char *a_configs_instances[] = {"33", 0};
+PRIVATE const char *a_realms_instances[] = {"44", 0};
+PRIVATE const char *a_public_services_instances[] = {"55", 0};
+
 PRIVATE const char *a_list_snaps[] = {"6", 0};
 
 PRIVATE sdata_desc_t command_table[] = {
@@ -765,7 +779,6 @@ SDATACM2 (ASN_SCHEMA,   "replicate-node",   0,                  0,              
 SDATACM2 (ASN_SCHEMA,   "upgrade-node",     0,                  0,                  pm_replicate_node, cmd_replicate_node, "Upgrade realms' yunos in other node or in file"),
 SDATACM2 (ASN_SCHEMA,   "replicate-binaries", 0,                0,                  pm_replicate_binaries, cmd_replicate_binaries, "Replicate binaries in other node or in file"),
 SDATACM2 (ASN_SCHEMA,   "",                 0,                  0,                  0,              0,              ""),
-SDATACM2 (ASN_SCHEMA,   "list-public-services", 0,              a_list_public_services,tb_public_services, cmd_list_public_services,"List public services"),
 SDATACM2 (ASN_SCHEMA,   "update-public-service", 0,             0,                  pm_update_service, cmd_update_public_service,"Update a public service"),
 SDATACM2 (ASN_SCHEMA,   "delete-public-service", 0,             0,                  pm_del_service, cmd_delete_public_service,"Remove a public service"),
 SDATACM2 (ASN_SCHEMA,   "",                 0,                  0,                  0,              0,              ""),
@@ -793,10 +806,21 @@ SDATACM2 (ASN_SCHEMA,   "view-yuno-config", 0,                  a_view_yuno_conf
 /*-CMD2--type-----------name----------------flag----------------alias---------------items-----------json_fn---------description---------- */
 SDATACM2 (ASN_SCHEMA,   "",                 0,                  0,                  0,              0,              "\nOperation\n---------"),
 SDATACM2 (ASN_SCHEMA,   "top",              0,                  a_top_yunos,        tb_yunos,       cmd_top_yunos,  "List only enabled yunos"),
+
+
+
 SDATACM2 (ASN_SCHEMA,   "list-yunos",       0,                  a_list_yunos,       tb_yunos,       cmd_list_yunos, "List all yunos"),
 SDATACM2 (ASN_SCHEMA,   "list-binaries",    0,                  a_list_binaries,    tb_binaries,    cmd_list_binaries,"List binaries"),
 SDATACM2 (ASN_SCHEMA,   "list-configs",     0,                  a_list_configs,     tb_configs,     cmd_list_configs,"List configurations"),
 SDATACM2 (ASN_SCHEMA,   "list-realms",      0,                  a_list_realms,      tb_realms,      cmd_list_realms,"List realms"),
+SDATACM2 (ASN_SCHEMA,   "list-public-services", 0,              a_list_public_services,tb_public_services, cmd_list_public_services,"List public services"),
+
+SDATACM2 (ASN_SCHEMA,   "list-yunos-instances",0,               a_yunos_instances,  tb_yunos,       cmd_yunos_instances, "List yunos instances"),
+SDATACM2 (ASN_SCHEMA,   "list-binaries-instances",0,            a_binaries_instances,tb_binaries,   cmd_binaries_instances,"List binaries instances"),
+SDATACM2 (ASN_SCHEMA,   "list-configs-instances",0,             a_configs_instances,tb_configs,     cmd_configs_instances,"List configurations instances"),
+SDATACM2 (ASN_SCHEMA,   "list-realms-instances",0,              a_realms_instances, tb_realms,      cmd_realms_instances,"List realms instances"),
+SDATACM2 (ASN_SCHEMA,   "list-public-services-instances",0,     a_public_services_instances,tb_public_services, cmd_public_services_instances,"List public services instances"),
+
 SDATACM2 (ASN_SCHEMA,   "list-snaps",       0,                  a_list_snaps,       0,              cmd_list_snaps, "List snaps"),
 SDATACM2 (ASN_SCHEMA,   "shoot-snap",       0,                  0,                  pm_shoot_snap,  cmd_shoot_snap, "Shoot snap"),
 SDATACM2 (ASN_SCHEMA,   "activate-snap",    0,                  0,                  pm_activate_snap,cmd_activate_snap,"Activate snap"),
@@ -5528,6 +5552,41 @@ PRIVATE json_t *cmd_deactivate_snap(hgobj gobj, const char *cmd, json_t *kw, hgo
         0,
         kw  // owned
     );
+}
+
+/***************************************************************************
+ *
+ ***************************************************************************/
+PRIVATE json_t *cmd_realms_instances(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
+{
+}
+
+/***************************************************************************
+ *
+ ***************************************************************************/
+PRIVATE json_t *cmd_yunos_instances(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
+{
+}
+
+/***************************************************************************
+ *
+ ***************************************************************************/
+PRIVATE json_t *cmd_binaries_instances(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
+{
+}
+
+/***************************************************************************
+ *
+ ***************************************************************************/
+PRIVATE json_t *cmd_configs_instances(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
+{
+}
+
+/***************************************************************************
+ *
+ ***************************************************************************/
+PRIVATE json_t *cmd_public_services_instances(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
+{
 }
 
 

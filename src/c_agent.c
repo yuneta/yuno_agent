@@ -5559,6 +5559,30 @@ PRIVATE json_t *cmd_deactivate_snap(hgobj gobj, const char *cmd, json_t *kw, hgo
  ***************************************************************************/
 PRIVATE json_t *cmd_realms_instances(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
 {
+    PRIVATE_DATA *priv = gobj_priv_data(gobj);
+    char *resource = "realms";
+
+    /*
+     *  Get a iter of matched resources
+     */
+    json_t *jn_data = gobj_list_nodes(
+        priv->resource,
+        resource,
+        kw_incref(kw), // filter
+        json_pack("{s:b}", "collapsed", 1)  // jn_options, owned "collapsed"
+    );
+
+    /*
+     *  Inform
+     */
+    return msg_iev_build_webix(
+        gobj,
+        0,
+        json_local_sprintf(cmd),
+        tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
+        jn_data, // owned
+        kw  // owned
+    );
 }
 
 /***************************************************************************
@@ -5566,6 +5590,32 @@ PRIVATE json_t *cmd_realms_instances(hgobj gobj, const char *cmd, json_t *kw, hg
  ***************************************************************************/
 PRIVATE json_t *cmd_yunos_instances(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
 {
+    PRIVATE_DATA *priv = gobj_priv_data(gobj);
+    char *resource = "yunos";
+
+    /*
+     *  Get a iter of matched resources.
+     */
+    json_t *iter = gobj_list_nodes(
+        priv->resource,
+        resource,
+        kw_incref(kw), // filter
+        json_pack("{s:b}", "collapsed", 1)  // jn_options, owned "collapsed"
+    );
+
+    /*
+     *  Inform
+     */
+    json_t *jn_data = iter;
+
+    return msg_iev_build_webix(
+        gobj,
+        0,
+        0,
+        tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
+        jn_data, // owned
+        kw  // owned
+    );
 }
 
 /***************************************************************************
@@ -5573,6 +5623,30 @@ PRIVATE json_t *cmd_yunos_instances(hgobj gobj, const char *cmd, json_t *kw, hgo
  ***************************************************************************/
 PRIVATE json_t *cmd_binaries_instances(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
 {
+    PRIVATE_DATA *priv = gobj_priv_data(gobj);
+    char *resource = "binaries";
+
+    /*
+     *  Get a iter of matched resources
+     */
+    json_t *jn_data = gobj_list_nodes(
+        priv->resource,
+        resource,
+        kw_incref(kw), // filter
+        json_pack("{s:b}", "collapsed", 1)  // jn_options, owned "collapsed"
+    );
+
+    /*
+     *  Inform
+     */
+    return msg_iev_build_webix(
+        gobj,
+        0,
+        json_local_sprintf(cmd),
+        tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
+        jn_data, // owned
+        kw  // owned
+    );
 }
 
 /***************************************************************************
@@ -5580,6 +5654,30 @@ PRIVATE json_t *cmd_binaries_instances(hgobj gobj, const char *cmd, json_t *kw, 
  ***************************************************************************/
 PRIVATE json_t *cmd_configs_instances(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
 {
+    PRIVATE_DATA *priv = gobj_priv_data(gobj);
+    char *resource = "configurations";
+
+    /*
+     *  Get a iter of matched resources
+     */
+    json_t *jn_data = gobj_list_nodes(
+        priv->resource,
+        resource,
+        kw_incref(kw), // filter
+        json_pack("{s:b}", "collapsed", 1)  // jn_options, owned "collapsed"
+    );
+
+    /*
+     *  Inform
+     */
+    return msg_iev_build_webix(
+        gobj,
+        0,
+        json_local_sprintf(cmd),
+        tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
+        jn_data, // owned
+        kw  // owned
+    );
 }
 
 /***************************************************************************
@@ -5587,6 +5685,30 @@ PRIVATE json_t *cmd_configs_instances(hgobj gobj, const char *cmd, json_t *kw, h
  ***************************************************************************/
 PRIVATE json_t *cmd_public_services_instances(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
 {
+    PRIVATE_DATA *priv = gobj_priv_data(gobj);
+    char *resource = "public_services";
+
+    /*
+     *  Get a iter of matched resources
+     */
+    json_t *jn_data = gobj_list_nodes(
+        priv->resource,
+        resource,
+        kw_incref(kw), // filter
+        json_pack("{s:b}", "collapsed", 1)  // jn_options, owned "collapsed"
+    );
+
+    /*
+     *  Inform
+     */
+    return msg_iev_build_webix(
+        gobj,
+        0,
+        json_local_sprintf(cmd),
+        tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
+        jn_data, // owned
+        kw  // owned
+    );
 }
 
 

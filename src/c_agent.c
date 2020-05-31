@@ -707,15 +707,6 @@ PRIVATE sdata_desc_t pm_activate_snap[] = {
 SDATAPM (ASN_OCTET_STR, "name",          0,              0,          "Snap name"),
 SDATA_END()
 };
-PRIVATE sdata_desc_t pm_node_instances[] = {
-/*-PM----type-----------name------------flag------------default-----description---------- */
-SDATAPM (ASN_OCTET_STR, "topic_name",   0,              0,          "Topic name"),
-SDATAPM (ASN_OCTET_STR, "node_id",      0,              0,          "Node id"),
-SDATAPM (ASN_OCTET_STR, "pkey2",        0,              0,          "PKey2 field"),
-SDATAPM (ASN_OCTET_STR, "filter",       0,              0,          "Search filter"),
-SDATAPM (ASN_BOOLEAN,   "expanded",     0,              0,          "Tree expanded"),
-SDATA_END()
-};
 
 PRIVATE const char *a_help[] = {"h", "?", 0};
 PRIVATE const char *a_edit_config[] = {"EV_EDIT_CONFIG", 0};
@@ -800,7 +791,6 @@ SDATACM2 (ASN_SCHEMA,   "list-snaps",       0,                  a_list_snaps,   
 SDATACM2 (ASN_SCHEMA,   "shoot-snap",       0,                  0,                  pm_shoot_snap,  cmd_shoot_snap, "Shoot snap"),
 SDATACM2 (ASN_SCHEMA,   "activate-snap",    0,                  0,                  pm_activate_snap,cmd_activate_snap,"Activate snap"),
 SDATACM2 (ASN_SCHEMA,   "deactivate-snap",  0,                  0,                  0,              cmd_deactivate_snap,"De-Activate snap"),
-SDATACM2 (ASN_SCHEMA,   "list-instances",   0,                  0,                  pm_node_instances,cmd_node_instances,"List topic instances"),
 SDATACM2 (ASN_SCHEMA,   "run-yuno",         0,                  0,                  pm_run_yuno,    cmd_run_yuno,   "Run yuno"),
 SDATACM2 (ASN_SCHEMA,   "kill-yuno",        0,                  0,                  pm_kill_yuno,   cmd_kill_yuno,  "Kill yuno"),
 SDATACM2 (ASN_SCHEMA,   "play-yuno",        0,                  0,                  pm_play_yuno,   cmd_play_yuno,  "Play yuno"),
@@ -5526,77 +5516,6 @@ PRIVATE json_t *cmd_deactivate_snap(hgobj gobj, const char *cmd, json_t *kw, hgo
         ret==0?json_sprintf("Snap deactivated"):json_string(log_last_message()),
         0,
         0,
-        kw  // owned
-    );
-}
-
-/***************************************************************************
- *
- ***************************************************************************/
-PRIVATE json_t *cmd_node_instances(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
-{
-    const char *topic_name = kw_get_str(kw, "topic_name", "", 0);
-    const char *node_id = kw_get_str(kw, "node_id", "", 0);
-    const char *pkey2 = kw_get_str(kw, "pkey2", "", 0);
-    const char *filter = kw_get_str(kw, "filter", "", 0);
-    BOOL collapsed = !kw_get_bool(kw, "expanded", 0, KW_WILD_NUMBER);
-
-    if(empty_string(topic_name)) {
-        return msg_iev_build_webix(
-            gobj,
-            -1,
-            json_local_sprintf("What topic_name?"),
-            0,
-            0,
-            kw  // owned
-        );
-    }
-    if(empty_string(pkey2)) {
-        return msg_iev_build_webix(
-            gobj,
-            -1,
-            json_local_sprintf("What pkey2"),
-            0,
-            0,
-            kw  // owned
-        );
-    }
-    json_t *jn_filter = 0;
-    if(!empty_string(filter)) {
-        jn_filter = legalstring2json(filter, TRUE);
-        if(!jn_filter) {
-            return msg_iev_build_webix(
-                gobj,
-                -1,
-                json_local_sprintf("Can't decode filter json"),
-                0,
-                0,
-                kw  // owned
-            );
-        }
-    }
-    if(!empty_string(node_id)) {
-        if(!jn_filter) {
-            jn_filter = json_pack("{s:s}", "id", node_id);
-        } else {
-            json_object_set_new(jn_filter, "id", json_string(node_id));
-        }
-    }
-
-    json_t *instances = gobj_node_instances(
-        gobj,
-        topic_name,
-        pkey2,
-        jn_filter,  // owned
-        json_pack("{s:b}", "collapsed", collapsed)  // jn_options, owned "collapsed"
-    );
-
-    return msg_iev_build_webix(
-        gobj,
-        0,
-        json_local_sprintf("%d instances", json_array_size(instances)),
-        0,
-        instances,
         kw  // owned
     );
 }

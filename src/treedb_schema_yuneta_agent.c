@@ -96,6 +96,20 @@ static char treedb_schema_yuneta_agent[]= "\
                         'persistent'                                \n\
                     ]                                               \n\
                 },                                                  \n\
+                'snap_tag': {                                       \n\
+                    'header': 'snap_tag',                           \n\
+                    'fillspace': 6,                                 \n\
+                    'type': 'integer',                              \n\
+                    'flag': [                                       \n\
+                    ]                                               \n\
+                },                                                  \n\
+                'snap_activated': {                                 \n\
+                    'header': 'snap_activated',                     \n\
+                    'fillspace': 6,                                 \n\
+                    'type': 'boolean',                              \n\
+                    'flag': [                                       \n\
+                    ]                                               \n\
+                },                                                  \n\
                 'yunos': {                                          \n\
                     'header': 'yunos',                              \n\
                     'fillspace': 22,                                \n\
@@ -289,6 +303,20 @@ static char treedb_schema_yuneta_agent[]= "\
                     'flag': [                                       \n\
                     ]                                               \n\
                 },                                                  \n\
+                'snap_tag': {                                       \n\
+                    'header': 'snap_tag',                           \n\
+                    'fillspace': 6,                                 \n\
+                    'type': 'integer',                              \n\
+                    'flag': [                                       \n\
+                    ]                                               \n\
+                },                                                  \n\
+                'snap_activated': {                                 \n\
+                    'header': 'snap_activated',                     \n\
+                    'fillspace': 6,                                 \n\
+                    'type': 'boolean',                              \n\
+                    'flag': [                                       \n\
+                    ]                                               \n\
+                },                                                  \n\
                 'solicitante': {                                    \n\
                     'header': 'solicitante',                        \n\
                     'fillspace': 6,                                 \n\
@@ -407,6 +435,20 @@ static char treedb_schema_yuneta_agent[]= "\
                     'type': 'array',                                \n\
                     'flag': ['fkey']                                \n\
                 },                                                  \n\
+                'snap_tag': {                                       \n\
+                    'header': 'snap_tag',                           \n\
+                    'fillspace': 6,                                 \n\
+                    'type': 'integer',                              \n\
+                    'flag': [                                       \n\
+                    ]                                               \n\
+                },                                                  \n\
+                'snap_activated': {                                 \n\
+                    'header': 'snap_activated',                     \n\
+                    'fillspace': 6,                                 \n\
+                    'type': 'boolean',                              \n\
+                    'flag': [                                       \n\
+                    ]                                               \n\
+                },                                                  \n\
                 'source': {                                         \n\
                     'header': 'source',                             \n\
                     'fillspace': 0,                                 \n\
@@ -500,6 +542,20 @@ static char treedb_schema_yuneta_agent[]= "\
                     'flag': [                                       \n\
                         'persistent',                               \n\
                         'required'                                  \n\
+                    ]                                               \n\
+                },                                                  \n\
+                'snap_tag': {                                       \n\
+                    'header': 'snap_tag',                           \n\
+                    'fillspace': 6,                                 \n\
+                    'type': 'integer',                              \n\
+                    'flag': [                                       \n\
+                    ]                                               \n\
+                },                                                  \n\
+                'snap_activated': {                                 \n\
+                    'header': 'snap_activated',                     \n\
+                    'fillspace': 6,                                 \n\
+                    'type': 'boolean',                              \n\
+                    'flag': [                                       \n\
                     ]                                               \n\
                 },                                                  \n\
                 'source': {                                         \n\
@@ -603,6 +659,20 @@ static char treedb_schema_yuneta_agent[]= "\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
                         'persistent'                                \n\
+                    ]                                               \n\
+                },                                                  \n\
+                'snap_tag': {                                       \n\
+                    'header': 'snap_tag',                           \n\
+                    'fillspace': 6,                                 \n\
+                    'type': 'integer',                              \n\
+                    'flag': [                                       \n\
+                    ]                                               \n\
+                },                                                  \n\
+                'snap_activated': {                                 \n\
+                    'header': 'snap_activated',                     \n\
+                    'fillspace': 6,                                 \n\
+                    'type': 'boolean',                              \n\
+                    'flag': [                                       \n\
                     ]                                               \n\
                 },                                                  \n\
                 'connector': {                                      \n\

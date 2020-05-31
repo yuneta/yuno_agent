@@ -148,6 +148,8 @@ SDATADF (ASN_JSON,      "required_services",SDF_PERSIST,                0,      
 SDATADF (ASN_JSON,      "public_services",  SDF_PERSIST,                0,              "Public Services",22,   "Public services offered"),
 SDATADF (ASN_JSON,      "service_descriptor",SDF_PERSIST,               0,              "Service Descriptor",22,"Public service descriptor"),
 SDATADF (ASN_OCTET_STR, "binary",           SDF_PERSIST|SDF_REQUIRED,   0,              "Binary",       22,     "Path to the binary in the file system"),
+SDATADF (ASN_UNSIGNED,  "snap_tag",         SDF_VOLATIL,                0,              "Snap Tag",     7,      "Snap Tag"),
+SDATADF (ASN_BOOLEAN,   "snap_activated",   SDF_VOLATIL,                0,              "Snap Activated",7,     "Snap activated"),
 SDATADF (ASN_JSON,      "source",           SDF_PERSIST|SDF_WR,         0,              "Source",       0,      "Optional auto-update from external source. FUTURE"),
 SDATA_END()
 };
@@ -163,6 +165,8 @@ SDATADF (ASN_OCTET_STR, "type",             SDF_PERSIST|SDF_WR,         0,      
 SDATADF (ASN_OCTET_STR, "destination",      SDF_PERSIST|SDF_WR,         0,              "Destination",  30,     "Directory to install. Default or empty: json in running dir"),
 SDATADF (ASN_OCTET_STR, "date",             SDF_PERSIST,                0,              "Date",         21,     "Date last modification"),
 SDATADF (ASN_JSON,      "zcontent",         SDF_PERSIST|SDF_WR,         0,              "Content",      35,     "Content configuration"),
+SDATADF (ASN_UNSIGNED,  "snap_tag",         SDF_VOLATIL,                0,              "Snap Tag",     7,      "Snap Tag"),
+SDATADF (ASN_BOOLEAN,   "snap_activated",   SDF_VOLATIL,                0,              "Snap Activated",7,     "Snap activated"),
 SDATADF (ASN_JSON,      "source",           SDF_PERSIST|SDF_WR,         0,              "Source",       0,      "Optional auto-update from external source. FUTURE"),
 SDATA_END()
 };
@@ -187,6 +191,9 @@ SDATADF (ASN_BOOLEAN,   "traced",           SDF_PERSIST|SDF_WR,         0,      
 SDATADF (ASN_BOOLEAN,   "multiple",         SDF_PERSIST,                0,              "Multiple",     6,      "True if yuno can have multiple instances with same name"),
 SDATADF (ASN_BOOLEAN,   "global",           SDF_PERSIST,                0,              "Global",       6,      "Yuno with global service (False: bind to 127.0.0.1, True: bind to realm ip)"),
 SDATADF (ASN_OCTET_STR, "date",             SDF_PERSIST,                0,              "Date",         21,     "Date last modification"),
+
+SDATADF (ASN_UNSIGNED,  "snap_tag",         SDF_VOLATIL,                0,              "Snap Tag",     7,      "Snap Tag"),
+SDATADF (ASN_BOOLEAN,   "snap_activated",   SDF_VOLATIL,                0,              "Snap Activated",7,     "Snap activated"),
 
 // Importante marcar el campo con SDF_PARENTID, para que el sistema conozca al grand_parent or parent.
 SDATADF (ASN_OCTET_STR, "realm_id",        SDF_PERSIST|SDF_PARENTID,   "realms", "Realm Id",     8,      "The Realm (parent) of the yuno. Cannot be changed once created"),
@@ -215,6 +222,8 @@ SDATADF (ASN_OCTET_STR, "role",             SDF_PERSIST|SDF_REQUIRED,   0,      
 SDATADF (ASN_OCTET_STR, "name",             SDF_PERSIST,                0,              "Realm Name",   22,     "Realm *name*. It's up to you"),
 SDATADF (ASN_OCTET_STR, "bind_ip",          SDF_PERSIST,                0,              "Bind IP",      22,     "Ip to be bind by the Realm"),
 SDATADF (ASN_UNSIGNED,  "last_port",        SDF_PERSIST,                0,              "Last Port",    10,     "Last port assigned"),
+SDATADF (ASN_UNSIGNED,  "snap_tag",         SDF_VOLATIL,                0,              "Snap Tag",     7,      "Snap Tag"),
+SDATADF (ASN_BOOLEAN,   "snap_activated",   SDF_VOLATIL,                0,              "Snap Activated",7,     "Snap activated"),
 
 /*-CHILD-type-----------name----------------flag------------------------resource------------free_fn---------header--------------fillsp---description--*/
 // Marca "yunos" con SDF_PURECHILD, es el iter de los child yunos.
@@ -236,6 +245,8 @@ SDATADF (ASN_OCTET_STR, "ip",               SDF_PERSIST|SDF_WR,         0,      
 SDATADF (ASN_UNSIGNED,  "port",             SDF_PERSIST|SDF_WR,         0,              "Port",         5,      "Service Port assigned"),
 SDATADF (ASN_OCTET_STR, "schema",           SDF_PERSIST,                0,              "Schema",       6,      "schema for service url"),
 SDATADF (ASN_OCTET_STR, "url",              SDF_PERSIST|SDF_WR,         0,              "Url",          22,      "Service Url assigned"),
+SDATADF (ASN_UNSIGNED,  "snap_tag",         SDF_VOLATIL,                0,              "Snap Tag",     7,      "Snap Tag"),
+SDATADF (ASN_BOOLEAN,   "snap_activated",   SDF_VOLATIL,                0,              "Snap Activated",7,     "Snap activated"),
 SDATADF (ASN_JSON,      "connector",        SDF_PERSIST,                0,              "Connector",    12,     "The client configuration to connect the service"),
 SDATA_END()
 };

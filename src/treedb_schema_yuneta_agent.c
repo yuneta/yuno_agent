@@ -153,26 +153,8 @@ static char treedb_schema_yuneta_agent[]= "\
                         'required'                                  \n\
                     ]                                               \n\
                 },                                                  \n\
-                'role_version': {                                   \n\
-                    'header': 'role_version',                       \n\
-                    'fillspace': 16,                                \n\
-                    'type': 'string',                               \n\
-                    'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
-                    ]                                               \n\
-                },                                                  \n\
                 'yuno_name': {                                      \n\
                     'header': 'yuno_name',                          \n\
-                    'fillspace': 16,                                \n\
-                    'type': 'string',                               \n\
-                    'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
-                    ]                                               \n\
-                },                                                  \n\
-                'name_version': {                                   \n\
-                    'header': 'name_version',                       \n\
                     'fillspace': 16,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
@@ -240,6 +222,24 @@ static char treedb_schema_yuneta_agent[]= "\
                     'type': 'boolean',                              \n\
                     'flag': [                                       \n\
                         'persistent'                                \n\
+                    ]                                               \n\
+                },                                                  \n\
+                'role_version': {                                   \n\
+                    'header': 'role_version',                       \n\
+                    'fillspace': 16,                                \n\
+                    'type': 'string',                               \n\
+                    'flag': [                                       \n\
+                        'persistent',                               \n\
+                        'required'                                  \n\
+                    ]                                               \n\
+                },                                                  \n\
+                'name_version': {                                   \n\
+                    'header': 'name_version',                       \n\
+                    'fillspace': 16,                                \n\
+                    'type': 'string',                               \n\
+                    'flag': [                                       \n\
+                        'persistent',                               \n\
+                        'required'                                  \n\
                     ]                                               \n\
                 },                                                  \n\
                 'traced': {                                         \n\

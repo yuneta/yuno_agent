@@ -96,6 +96,14 @@ static char treedb_schema_yuneta_agent[]= "\
                         'persistent'                                \n\
                     ]                                               \n\
                 },                                                  \n\
+                'version': {                                        \n\
+                    'header': 'version',                            \n\
+                    'fillspace': 14,                                \n\
+                    'type': 'string',                               \n\
+                    'flag': [                                       \n\
+                        'persistent'                                \n\
+                    ]                                               \n\
+                },                                                  \n\
                 'yunos': {                                          \n\
                     'header': 'yunos',                              \n\
                     'fillspace': 22,                                \n\
@@ -600,6 +608,14 @@ static char treedb_schema_yuneta_agent[]= "\
                 'url': {                                            \n\
                     'header': 'url',                                \n\
                     'fillspace': 22,                                \n\
+                    'type': 'string',                               \n\
+                    'flag': [                                       \n\
+                        'persistent'                                \n\
+                    ]                                               \n\
+                },                                                  \n\
+                'version': {                                        \n\
+                    'header': 'version',                            \n\
+                    'fillspace': 14,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
                         'persistent'                                \n\

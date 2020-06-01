@@ -7000,17 +7000,19 @@ PRIVATE json_t *find_last_id_by_name(
         key, value
     );
 
-    json_t *iter_find = gobj_list_nodes(
+    json_t *iter_find = gobj_node_instances(
         priv->resource,
         resource,
+        "",
         kw_find, // filter,
         0
     );
+
     if(json_array_size(iter_find)>0) {
         /*
          *  1 o more records
          */
-        json_t *node = json_array_get(iter_find, 0);
+        json_t *node = json_array_get(iter_find, 0); // The first is the last
         JSON_DECREF(iter_find);
         return node;
     } else {
@@ -7034,9 +7036,10 @@ PRIVATE json_t *find_binary_version(
         "role", role
     );
 
-    json_t *iter_find = gobj_list_nodes(
+    json_t *iter_find = gobj_node_instances(
         priv->resource,
         "binaries",
+        "",
         kw_find, // filter
         0
     );
@@ -7080,9 +7083,10 @@ PRIVATE json_t *find_configuration_version(
     json_t *kw_find = json_pack("{s:s}",
         "name", with_prefix
     );
-    json_t *iter_find = gobj_list_nodes(
+    json_t *iter_find = gobj_node_instances(
         priv->resource,
         "configurations",
+        "",
         kw_find, // filter
         0
     );

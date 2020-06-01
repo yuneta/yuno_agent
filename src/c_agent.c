@@ -3852,6 +3852,21 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
     build_release_name(yuno_release, sizeof(yuno_release), hs_binary, iter_configs);
     json_object_set_new(kw, "yuno_release", json_string(yuno_release));
 
+    if(empty_string(role_version)) {
+        json_object_set_new(
+            kw,
+            "role_version",
+            json_string(SDATA_GET_STR(hs_binary, "version"))
+        );
+    }
+    if(empty_string(name_version)) {
+        json_object_set_new(
+            kw,
+            "name_version",
+            json_string(SDATA_GET_STR(hs_configuration, "version"))
+        );
+    }
+
     /*---------------------------------------------*
      *      Check multiple yuno
      *---------------------------------------------*/
@@ -3860,10 +3875,12 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
         /*
          *  Check if already exists
          */
-        json_t *kw_find = json_pack("{s:s, s:s, s:s, s:s}",
+        json_t *kw_find = json_pack("{s:s, s:s, s:s, s:s, s:s, s:s}",
             "realm_name", realm_name,
             "yuno_role", yuno_role,
             "yuno_name", yuno_name,
+            "role_version", role_version,
+            "name_version", name_version,
             "yuno_release", yuno_release
         );
         json_t *iter_find = gobj_list_nodes(
@@ -5975,6 +5992,37 @@ PRIVATE json_t *get_yuno_binary(hgobj gobj, json_t *yuno)
 }
 
 /***************************************************************************
+ *
+ ***************************************************************************/
+PRIVATE json_t *get_yuno_config(hgobj gobj, json_t *yuno)
+{
+    PRIVATE_DATA *priv = gobj_priv_data(gobj);
+
+    json_t *configurations = treedb_list_childs(
+        gobj_read_json_attr(priv->resource, "tranger"),
+        "configurations",
+        yuno, // not owned
+        0
+    );
+
+    if(json_array_size(configurations)==0) {
+        log_error(0,
+            "gobj",         "%s", gobj_full_name(gobj),
+            "function",     "%s", __FUNCTION__,
+            "msgset",       "%s", MSGSET_INTERNAL_ERROR,
+            "msg",          "%s", "no configuration",
+            NULL
+        );
+        log_debug_json(0, configurations, "no configuration");
+        JSON_DECREF(configurations);
+        return 0;
+    }
+    json_t *hs_configuration = json_array_get(configurations, 0);
+    JSON_DECREF(configurations);
+    return hs_configuration;
+}
+
+/***************************************************************************
  *  Find a service for client
  ***************************************************************************/
 PRIVATE json_t *find_service_for_client(hgobj gobj, const char *service, json_t *yuno)
@@ -6176,7 +6224,6 @@ GBUFFER *build_yuno_running_script(
     int bfbinary_size
 )
 {
-    PRIVATE_DATA *priv = gobj_priv_data(gobj);
     const char *work_dir = yuneta_work_dir();
     const char *yuno_id = SDATA_GET_ID(yuno);
 
@@ -6283,42 +6330,33 @@ GBUFFER *build_yuno_running_script(
         /*--------------------------------------*
          *      Put yuno configuration
          *--------------------------------------*/
-        json_t *configurations = treedb_list_childs(
-            gobj_read_json_attr(priv->resource, "tranger"),
-            "configurations",
-            yuno,
-            0
+        json_t *hs_config = get_yuno_config(gobj, yuno);
+
+        gbuf_config = gbuf_create(4*1024, 256*1024, 0, 0);
+        snprintf(config_file_name, sizeof(config_file_name), "%d-%s",
+            n_config+1,
+            role_plus_name
+        );
+        snprintf(config_path, sizeof(config_path), "%s/%s.json", yuno_bin_path, config_file_name);
+
+        json_t *content = SDATA_GET_JSON(hs_config, "zcontent");
+        JSON_INCREF(content);
+        json_append2gbuf(
+            gbuf_config,
+            content // owned
         );
 
-        int idx; json_t *hs_config;
-        json_array_foreach(configurations, idx, hs_config) {
-            GBUFFER *gbuf_config = gbuf_create(4*1024, 256*1024, 0, 0);
-            snprintf(config_file_name, sizeof(config_file_name), "%d-%s",
-                n_config+1,
-                role_plus_name
-            );
-            snprintf(config_path, sizeof(config_path), "%s/%s.json", yuno_bin_path, config_file_name);
-
-            json_t *content = SDATA_GET_JSON(hs_config, "zcontent");
-            JSON_INCREF(content);
-            json_append2gbuf(
-                gbuf_config,
-                content // owned
-            );
-
-            gbuf2file( // save: user configurations
-                gbuf_config, // owned
-                config_path,
-                yuneta_rpermission(),
-                TRUE
-            );
-            if(n_config > 0) {
-                gbuf_printf(gbuf_script, ",");
-            }
-            gbuf_printf(gbuf_script, "\"%s\"", config_path);
-            n_config++;
+        gbuf2file( // save: user configurations
+            gbuf_config, // owned
+            config_path,
+            yuneta_rpermission(),
+            TRUE
+        );
+        if(n_config > 0) {
+            gbuf_printf(gbuf_script, ",");
         }
-        JSON_DECREF(configurations);
+        gbuf_printf(gbuf_script, "\"%s\"", config_path);
+        n_config++;
     }
     if(1) {
         /*-------------------------------------------*
@@ -6412,7 +6450,9 @@ PRIVATE int run_yuno(hgobj gobj, json_t *yuno, hgobj src)
     const char *yuno_id = kw_get_str(yuno, "id", "", KW_REQUIRED);
     const char *realm_name = kw_get_str(yuno, "realm_name", "", KW_REQUIRED);
     const char *yuno_role = kw_get_str(yuno, "yuno_role", "", KW_REQUIRED);
+    const char *role_version = kw_get_str(yuno, "role_version", "", KW_REQUIRED);
     const char *yuno_name = kw_get_str(yuno, "yuno_name", "", KW_REQUIRED);
+    const char *name_version = kw_get_str(yuno, "name_version", "", KW_REQUIRED);
     const char *yuno_alias = kw_get_str(yuno, "yuno_alias", "", KW_REQUIRED);
     const char *yuno_release = kw_get_str(yuno, "yuno_release", "", KW_REQUIRED);
 
@@ -6435,11 +6475,13 @@ PRIVATE int run_yuno(hgobj gobj, json_t *yuno, hgobj src)
         "msg",          "%s", "running yuno",
         "realm_id",    "%s", realm_id,
         "yuno_id",      "%s", yuno_id,
-        "realm_name",   "%s", realm_name?realm_name:"",
+        "realm_name",   "%s", realm_name,
         "yuno_role",    "%s", yuno_role,
-        "yuno_name",    "%s", yuno_name?yuno_name:"",
-        "yuno_alias",   "%s", yuno_name?yuno_alias:"",
-        "yuno_release", "%s", yuno_release?yuno_release:"",
+        "role_version", "%s", role_version,
+        "yuno_name",    "%s", yuno_name,
+        "name_version", "%s", name_version,
+        "yuno_alias",   "%s", yuno_name,
+        "yuno_release", "%s", yuno_release,
         "exec_cmd",     "%s", exec_cmd,
         NULL
     );

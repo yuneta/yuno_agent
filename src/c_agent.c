@@ -5968,10 +5968,14 @@ PRIVATE json_t *get_yuno_binary(hgobj gobj, json_t *yuno)
 {
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
 
-    json_t *binaries = treedb_list_childs(
-        gobj_read_json_attr(priv->resource, "tranger"),
-        "binary",
-        yuno, // not owned
+    json_t *kw_find = json_pack("{s:s, s:s}",
+        "role", SDATA_GET_STR(yuno, "yuno_role"),
+        "version", SDATA_GET_STR(yuno, "role_version")
+    );
+    json_t *binaries = gobj_list_nodes(
+        priv->resource,
+        "binaries",
+        kw_find, // filter
         0
     );
     if(json_array_size(binaries)==0) {
@@ -5982,13 +5986,13 @@ PRIVATE json_t *get_yuno_binary(hgobj gobj, json_t *yuno)
             "msg",          "%s", "no binary",
             NULL
         );
-        log_debug_json(0, binaries, "no binary");
         JSON_DECREF(binaries);
         return 0;
     }
     json_t *hs_binary = json_array_get(binaries, 0);
     JSON_DECREF(binaries);
     return hs_binary;
+
 }
 
 /***************************************************************************
@@ -5998,10 +6002,20 @@ PRIVATE json_t *get_yuno_config(hgobj gobj, json_t *yuno)
 {
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
 
-    json_t *configurations = treedb_list_childs(
-        gobj_read_json_attr(priv->resource, "tranger"),
+    char config_name[80];
+    snprintf(config_name, sizeof(config_name), "%s.%s",
+        SDATA_GET_STR(yuno, "yuno_role"),
+        SDATA_GET_STR(yuno, "yuno_name")
+    );
+
+    json_t *kw_find = json_pack("{s:s, s:s}",
+        "name", config_name,
+        "version", SDATA_GET_STR(yuno, "name_version")
+    );
+    json_t *configurations = gobj_list_nodes(
+        priv->resource,
         "configurations",
-        yuno, // not owned
+        kw_find, // filter
         0
     );
 
@@ -6013,7 +6027,6 @@ PRIVATE json_t *get_yuno_config(hgobj gobj, json_t *yuno)
             "msg",          "%s", "no configuration",
             NULL
         );
-        log_debug_json(0, configurations, "no configuration");
         JSON_DECREF(configurations);
         return 0;
     }

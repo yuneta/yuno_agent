@@ -3844,6 +3844,9 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
         );
     }
 
+print_json(hs_binary); // TODO TEST
+print_json(hs_configuration); // TODO TEST
+
     iter_configs = json_array();
     json_array_append(iter_configs, hs_configuration);
 

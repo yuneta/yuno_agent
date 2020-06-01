@@ -32,6 +32,7 @@ static char treedb_schema_yuneta_agent[]= "\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
             'topic_version': '1',                                   \n\
+            'topic_pkey2s': 'version',                              \n\
             'cols': {                                               \n\
                 'id': {                                             \n\
                     'header': 'id',                                 \n\
@@ -526,6 +527,7 @@ static char treedb_schema_yuneta_agent[]= "\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
             'topic_version': '1',                                   \n\
+            'topic_pkey2s': 'version',                              \n\
             'cols': {                                               \n\
                 'id': {                                             \n\
                     'header': 'id',                                 \n\

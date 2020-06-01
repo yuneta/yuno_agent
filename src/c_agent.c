@@ -705,7 +705,8 @@ SDATA_END()
 
 PRIVATE sdata_desc_t pm_snap_content[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
-SDATAPM (ASN_OCTET_STR, "name",         0,              0,          "Snap name"),
+SDATAPM (ASN_OCTET_STR, "topic_name",   0,              0,          "Topic name"),
+SDATAPM (ASN_OCTET_STR, "snap_name",    0,              0,          "Snap name"),
 SDATA_END()
 };
 PRIVATE sdata_desc_t pm_shoot_snap[] = {
@@ -5472,8 +5473,8 @@ PRIVATE json_t *cmd_snap_content(hgobj gobj, const char *cmd, json_t *kw, hgobj 
             kw  // owned
         );
     }
-    const char *name = kw_get_str(kw, "name", 0, 0);
-    if(empty_string(name)) {
+    const char *snap_name = kw_get_str(kw, "snap_name", 0, 0);
+    if(empty_string(snap_name)) {
         return msg_iev_build_webix(gobj,
             -1,
             json_local_sprintf(
@@ -5494,7 +5495,7 @@ PRIVATE json_t *cmd_snap_content(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         return msg_iev_build_webix(gobj,
             -1,
             json_local_sprintf(
-                "Cannot found snap '%s'", name
+                "Cannot found snap '%s'", snap_name
             ),
             0,
             0,

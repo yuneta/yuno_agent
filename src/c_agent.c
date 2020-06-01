@@ -355,6 +355,7 @@ PRIVATE json_t *cmd_set_qkill(hgobj gobj, const char *cmd, json_t *kw, hgobj src
 PRIVATE json_t *cmd_check_json(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 
 PRIVATE json_t *cmd_list_snaps(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
+PRIVATE json_t *cmd_snap_content(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_shoot_snap(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_activate_snap(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_deactivate_snap(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
@@ -702,6 +703,11 @@ SDATAPM (ASN_INTEGER, "max_refcount",   0,              0,          "Maximum ref
 SDATA_END()
 };
 
+PRIVATE sdata_desc_t pm_snap_content[] = {
+/*-PM----type-----------name------------flag------------default-----description---------- */
+SDATAPM (ASN_OCTET_STR, "name",         0,              0,          "Snap name"),
+SDATA_END()
+};
 PRIVATE sdata_desc_t pm_shoot_snap[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "name",         0,              0,          "Snap name"),
@@ -738,7 +744,7 @@ PRIVATE const char *a_configs_instances[] = {"33", 0};
 PRIVATE const char *a_realms_instances[] = {"44", 0};
 PRIVATE const char *a_public_services_instances[] = {"55", 0};
 
-PRIVATE const char *a_list_snaps[] = {"6", 0};
+PRIVATE const char *a_list_snaps[] = {"6", "snaps", 0};
 
 PRIVATE sdata_desc_t command_table[] = {
 /*-CMD2--type-----------name----------------flag----------------alias---------------items-----------json_fn---------description---------- */
@@ -811,6 +817,7 @@ SDATACM2 (ASN_SCHEMA,   "list-realms-instances",0,              a_realms_instanc
 SDATACM2 (ASN_SCHEMA,   "list-public-services-instances",0,     a_public_services_instances,tb_public_services, cmd_public_services_instances,"List public services instances"),
 
 SDATACM2 (ASN_SCHEMA,   "list-snaps",       0,                  a_list_snaps,       0,              cmd_list_snaps, "List snaps"),
+SDATACM2 (ASN_SCHEMA,   "snap-content",     0,                  0,                  pm_snap_content,              cmd_snap_content, "Show snap content"),
 SDATACM2 (ASN_SCHEMA,   "shoot-snap",       0,                  0,                  pm_shoot_snap,  cmd_shoot_snap, "Shoot snap"),
 SDATACM2 (ASN_SCHEMA,   "activate-snap",    0,                  0,                  pm_activate_snap,cmd_activate_snap,"Activate snap"),
 SDATACM2 (ASN_SCHEMA,   "deactivate-snap",  0,                  0,                  0,              cmd_deactivate_snap,"De-Activate snap"),
@@ -5445,6 +5452,67 @@ PRIVATE json_t *cmd_list_snaps(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
         jn_data,
         kw  // owned
     );
+}
+
+/***************************************************************************
+ *
+ ***************************************************************************/
+PRIVATE json_t *cmd_snap_content(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
+{
+    PRIVATE_DATA *priv = gobj_priv_data(gobj);
+
+    const char *topic_name = kw_get_str(kw, "topic_name", "", 0);
+    if(empty_string(topic_name)) {
+        return msg_iev_build_webix(
+            gobj,
+            -1,
+            json_local_sprintf("What topic_name?"),
+            0,
+            0,
+            kw  // owned
+        );
+    }
+    const char *name = kw_get_str(kw, "name", 0, 0);
+    if(empty_string(name)) {
+        return msg_iev_build_webix(gobj,
+            -1,
+            json_local_sprintf(
+                "What snap name?"
+            ),
+            0,
+            0,
+            kw  // owned
+        );
+    }
+
+    json_t *jn_data = gobj_list_snaps(
+        priv->resource,
+        kw_incref(kw)
+    );
+
+    if(json_array_size(jn_data)!=1) {
+        return msg_iev_build_webix(gobj,
+            -1,
+            json_local_sprintf(
+                "Cannot found snap '%s'", name
+            ),
+            0,
+            0,
+            kw  // owned
+        );
+    }
+
+    int snap_tag = kw_get_int(json_array_get(jn_data, 0), "id", 0, KW_WILD_NUMBER);
+    json_object_set_new(kw, "snap_tag", json_integer(snap_tag));
+    JSON_DECREF(jn_data);
+
+    json_t *webix = gobj_command(
+        priv->resource,
+        "snap-content",
+        kw, // owned
+        src
+    );
+    return webix;
 }
 
 /***************************************************************************

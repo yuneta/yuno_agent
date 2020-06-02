@@ -119,7 +119,7 @@ PRIVATE json_t *find_configuration_version(
     const char *name,
     const char *version
 );
-PRIVATE int build_release_name(char *bf, int bfsize, json_t *hs_binary, json_t *iter_configs);
+PRIVATE int build_release_name(char *bf, int bfsize, json_t *hs_binary, json_t *hs_config);
 
 PRIVATE int register_public_services(hgobj gobj, json_t *yuno);
 PRIVATE int restart_node(hgobj gobj);
@@ -3819,7 +3819,6 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
     /*---------------------------------------------*
      *      Name
      *---------------------------------------------*/
-    json_t *iter_configs = 0;
     json_t *hs_configuration = find_configuration_version(
         gobj,
         SDATA_GET_STR(hs_binary, "role"),
@@ -3842,14 +3841,11 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
         );
     }
 
-    iter_configs = json_array();
-    json_array_append(iter_configs, hs_configuration);
-
     /*---------------------------------------------*
      *      Release
      *---------------------------------------------*/
     char yuno_release[120];
-    build_release_name(yuno_release, sizeof(yuno_release), hs_binary, iter_configs);
+    build_release_name(yuno_release, sizeof(yuno_release), hs_binary, hs_configuration);
     json_object_set_new(kw, "yuno_release", json_string(yuno_release));
 
     if(empty_string(role_version)) {
@@ -3893,7 +3889,6 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
             /*
              *  1 o more records, yuno already stored and without overwrite.
              */
-            JSON_DECREF(iter_configs);
             json_t *jn_data = iter_find;
             json_t *webix = msg_iev_build_webix(
                 gobj,
@@ -3928,7 +3923,6 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
         0
     );
     if(!yuno) {
-        JSON_DECREF(iter_configs);
         return msg_iev_build_webix(
             gobj,
             -152,
@@ -3944,11 +3938,7 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
      *-----------------------------*/
     gobj_link_nodes(priv->resource, "yunos", hs_realm, yuno);
     gobj_link_nodes(priv->resource, "binary", yuno, hs_binary);
-    int idx; json_t *hs_config;
-    json_array_foreach(iter_configs, idx, hs_config) {
-        gobj_link_nodes(priv->resource, "configurations", yuno, hs_config);
-    }
-    JSON_DECREF(iter_configs);
+    gobj_link_nodes(priv->resource, "configurations", yuno, hs_configuration);
 
     /*-----------------------------*
      *  Register public services
@@ -6980,7 +6970,7 @@ PRIVATE json_t *find_configuration_version(
 /***************************************************************************
  *
  ***************************************************************************/
-PRIVATE int build_release_name(char *bf, int bfsize, json_t *hs_binary, json_t *iter_configs)
+PRIVATE int build_release_name(char *bf, int bfsize, json_t *hs_binary, json_t *hs_config)
 {
     int len;
     char *p = bf;
@@ -6989,13 +6979,10 @@ PRIVATE int build_release_name(char *bf, int bfsize, json_t *hs_binary, json_t *
     snprintf(p, bfsize, "%s", binary_version);
     len = strlen(p); p += len; bfsize -= len;
 
-    int idx; json_t *hs;
-    json_array_foreach(iter_configs, idx, hs) {
-        const char *version_ = SDATA_GET_STR(hs, "version");
+    const char *version_ = SDATA_GET_STR(hs_config, "version");
 
-        snprintf(p, bfsize, "-%s", version_);
-        len = strlen(p); p += len; bfsize -= len;
-    }
+    snprintf(p, bfsize, "-%s", version_);
+    len = strlen(p); p += len; bfsize -= len;
     return 0;
 }
 

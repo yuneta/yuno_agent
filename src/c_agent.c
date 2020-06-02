@@ -571,6 +571,7 @@ PRIVATE sdata_desc_t pm_update_realm[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_JSON,      "__filter__",   0,              0,          "Filter to match records"),
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id"),
+SDATAPM (ASN_OCTET_STR, "version",      0,              0,          "realm version"),
 SDATAPM (ASN_OCTET_STR, "bind_ip",      0,              0,          "Ip to be bind by the Realm"),
 SDATAPM (ASN_UNSIGNED,  "last_port",    0,              0,          "Last port assigned"),
 
@@ -579,6 +580,7 @@ SDATA_END()
 PRIVATE sdata_desc_t pm_del_realm[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id"),
+SDATAPM (ASN_OCTET_STR, "version",      0,              0,          "realm version"),
 SDATAPM (ASN_BOOLEAN,   "force",        0,              0,          "Force delete"),
 SDATA_END()
 };
@@ -587,6 +589,7 @@ PRIVATE sdata_desc_t pm_update_service[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_JSON,      "__filter__",   0,              0,          "Filter to match records"),
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id"),
+SDATAPM (ASN_OCTET_STR, "version",      0,              0,          "binary version"),
 SDATAPM (ASN_OCTET_STR, "ip",           0,              0,          "Ip assigned"),
 SDATAPM (ASN_UNSIGNED,  "port",         0,              0,          "Port assigned"),
 SDATAPM (ASN_OCTET_STR, "url",          0,              0,          "Url assigned"),
@@ -595,6 +598,7 @@ SDATA_END()
 PRIVATE sdata_desc_t pm_del_service[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id"),
+SDATAPM (ASN_OCTET_STR, "version",      0,              0,          "service version"),
 SDATAPM (ASN_BOOLEAN,   "force",        0,              0,          "Force delete"),
 SDATA_END()
 };
@@ -615,6 +619,7 @@ SDATA_END()
 PRIVATE sdata_desc_t pm_delete_binary[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id"),
+SDATAPM (ASN_OCTET_STR, "version",      0,              0,          "binary version"),
 SDATAPM (ASN_BOOLEAN,   "force",        0,              0,          "Force delete"),
 SDATA_END()
 };
@@ -660,6 +665,7 @@ SDATA_END()
 PRIVATE sdata_desc_t pm_delete_config[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id"),
+SDATAPM (ASN_OCTET_STR, "version",      0,              0,          "configuration version"),
 SDATAPM (ASN_BOOLEAN,   "force",        0,              0,          "Force delete"),
 SDATA_END()
 };
@@ -685,6 +691,12 @@ SDATA_END()
 PRIVATE sdata_desc_t pm_delete_yuno[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id"),
+SDATAPM (ASN_OCTET_STR, "yuno_role",    0,              0,          "Yuno role"),
+SDATAPM (ASN_OCTET_STR, "role_version", 0,              0,          "Role version"),
+SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno name"),
+SDATAPM (ASN_OCTET_STR, "name_version", 0,              0,          "Name version"),
+SDATAPM (ASN_OCTET_STR, "yuno_alias",   0,              0,          "Yuno alias"),
+SDATAPM (ASN_OCTET_STR, "yuno_release", 0,              0,          "Yuno release"),
 SDATAPM (ASN_BOOLEAN,   "force",        0,              0,          "Force delete"),
 SDATA_END()
 };

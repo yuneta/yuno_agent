@@ -81,13 +81,6 @@ PRIVATE char * build_yuno_public_domain(hgobj gobj, json_t *yuno, char *subdomai
 PRIVATE int build_role_plus_name(char *bf, int bf_len, json_t *yuno);
 PRIVATE char * build_yuno_bin_path(hgobj gobj, json_t *yuno, char *bf, int bfsize, BOOL create_dir);
 PRIVATE char * build_yuno_log_path(hgobj gobj, json_t *yuno, char *bf, int bfsize, BOOL create_dir);
-PRIVATE GBUFFER* build_yuno_running_script(
-    hgobj gobj,
-    GBUFFER* gbuf_script,
-    json_t *yuno,
-    char *bfbinary,
-    int bfbinary_size
-);
 PRIVATE int run_yuno(hgobj gobj, json_t *yuno, hgobj src);
 PRIVATE int kill_yuno(hgobj gobj, json_t *yuno);
 PRIVATE int play_yuno(hgobj gobj, json_t *yuno, json_t *kw, hgobj src);
@@ -5954,6 +5947,13 @@ PRIVATE json_t *get_yuno_binary(hgobj gobj, json_t *yuno)
 {
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
 
+    json_t *snaps = gobj_list_snaps(
+        priv->resource,
+        json_pack("{s:b}", "active", 1)
+    );
+    BOOL is_snap_activated = json_array_size(snaps)?TRUE:FALSE;
+    JSON_DECREF(snaps);
+
     json_t *kw_find = json_pack("{s:s, s:s}",
         "role", SDATA_GET_STR(yuno, "yuno_role"),
         "version", SDATA_GET_STR(yuno, "role_version")
@@ -5961,21 +5961,47 @@ PRIVATE json_t *get_yuno_binary(hgobj gobj, json_t *yuno)
     json_t *binaries = gobj_list_nodes(
         priv->resource,
         "binaries",
-        kw_find, // filter
+        json_incref(kw_find), // filter
         0
     );
     if(json_array_size(binaries)==0) {
-        log_error(0,
-            "gobj",         "%s", gobj_full_name(gobj),
-            "function",     "%s", __FUNCTION__,
-            "msgset",       "%s", MSGSET_INTERNAL_ERROR,
-            "msg",          "%s", "no binary",
-            NULL
-        );
+        if(is_snap_activated) {
+            log_error(0,
+                "gobj",         "%s", gobj_full_name(gobj),
+                "function",     "%s", __FUNCTION__,
+                "msgset",       "%s", MSGSET_INTERNAL_ERROR,
+                "msg",          "%s", "primary binary not found",
+                NULL
+            );
+            JSON_DECREF(kw_find);
+            JSON_DECREF(binaries);
+            return 0;
+        }
+
         JSON_DECREF(binaries);
-        return 0;
+        binaries = gobj_node_instances(
+            priv->resource,
+            "binaries",
+            "",
+            json_incref(kw_find), // filter
+            0
+        );
+        if(json_array_size(binaries)==0) {
+            log_error(0,
+                "gobj",         "%s", gobj_full_name(gobj),
+                "function",     "%s", __FUNCTION__,
+                "msgset",       "%s", MSGSET_INTERNAL_ERROR,
+                "msg",          "%s", "secondary binary not found",
+                NULL
+            );
+            JSON_DECREF(kw_find);
+            JSON_DECREF(binaries);
+            return 0;
+        }
     }
+
     json_t *hs_binary = json_array_get(binaries, 0);
+    JSON_DECREF(kw_find);
     JSON_DECREF(binaries);
     return hs_binary;
 
@@ -5987,6 +6013,13 @@ PRIVATE json_t *get_yuno_binary(hgobj gobj, json_t *yuno)
 PRIVATE json_t *get_yuno_config(hgobj gobj, json_t *yuno)
 {
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
+
+    json_t *snaps = gobj_list_snaps(
+        priv->resource,
+        json_pack("{s:b}", "active", 1)
+    );
+    BOOL is_snap_activated = json_array_size(snaps)?TRUE:FALSE;
+    JSON_DECREF(snaps);
 
     char config_name[80];
     snprintf(config_name, sizeof(config_name), "%s.%s",
@@ -6001,22 +6034,48 @@ PRIVATE json_t *get_yuno_config(hgobj gobj, json_t *yuno)
     json_t *configurations = gobj_list_nodes(
         priv->resource,
         "configurations",
-        kw_find, // filter
+        json_incref(kw_find), // filter
         0
     );
 
     if(json_array_size(configurations)==0) {
-        log_error(0,
-            "gobj",         "%s", gobj_full_name(gobj),
-            "function",     "%s", __FUNCTION__,
-            "msgset",       "%s", MSGSET_INTERNAL_ERROR,
-            "msg",          "%s", "no configuration",
-            NULL
-        );
+        if(is_snap_activated) {
+            log_error(0,
+                "gobj",         "%s", gobj_full_name(gobj),
+                "function",     "%s", __FUNCTION__,
+                "msgset",       "%s", MSGSET_INTERNAL_ERROR,
+                "msg",          "%s", "primary configuration not found",
+                NULL
+            );
+            JSON_DECREF(kw_find);
+            JSON_DECREF(configurations);
+            return 0;
+        }
+
         JSON_DECREF(configurations);
-        return 0;
+        configurations = gobj_node_instances(
+            priv->resource,
+            "configurations",
+            "",
+            json_incref(kw_find), // filter
+            0
+        );
+        if(json_array_size(configurations)==0) {
+            log_error(0,
+                "gobj",         "%s", gobj_full_name(gobj),
+                "function",     "%s", __FUNCTION__,
+                "msgset",       "%s", MSGSET_INTERNAL_ERROR,
+                "msg",          "%s", "secondary configuration not found",
+                NULL
+            );
+            JSON_DECREF(kw_find);
+            JSON_DECREF(configurations);
+            return 0;
+        }
     }
+
     json_t *hs_configuration = json_array_get(configurations, 0);
+    JSON_DECREF(kw_find);
     JSON_DECREF(configurations);
     return hs_configuration;
 }
@@ -6215,7 +6274,7 @@ PRIVATE json_t *assigned_yuno_global_service_variables(
 /***************************************************************************
  *
  ***************************************************************************/
-GBUFFER *build_yuno_running_script(
+PRIVATE GBUFFER *build_yuno_running_script(
     hgobj gobj,
     GBUFFER* gbuf_script,
     json_t *yuno,
@@ -8141,7 +8200,7 @@ PRIVATE int ac_read_running_bin(hgobj gobj, const char *event, json_t *kw, hgobj
     json_t *yuno = json_array_get(iter, 0);
 
     /*------------------------------------------------*
-     *  Walk over yunos iter:
+     *  Walk over yunos iter
      *------------------------------------------------*/
     char bfbinary[NAME_MAX];
     GBUFFER *gbuf_sh = gbuf_create(4*1024, 32*1024, 0, 0);

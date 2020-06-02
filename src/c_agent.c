@@ -2507,7 +2507,7 @@ PRIVATE json_t *cmd_create_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         return msg_iev_build_webix(
             gobj,
             -110,
-            json_local_sprintf("Cannot create node"),
+            json_local_sprintf("Cannot create realm: %s", log_last_message()),
             0,
             0,
             kw  // owned
@@ -2961,7 +2961,7 @@ PRIVATE json_t *cmd_install_binary(hgobj gobj, const char *cmd, json_t *kw, hgob
         return msg_iev_build_webix(
             gobj,
             -122,
-            json_local_sprintf("Cannot create node"),
+            json_local_sprintf("Cannot create binary: %s", log_last_message()),
             0,
             0,
             kw  // owned
@@ -3422,7 +3422,7 @@ PRIVATE json_t *cmd_create_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
         return msg_iev_build_webix(
             gobj,
             -135,
-            json_local_sprintf("Cannot create node"),
+            json_local_sprintf("Cannot create config: %s", log_last_message()),
             0,
             0,
             kw  // owned
@@ -3920,13 +3920,13 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
         priv->resource,
         resource,
         kw_incref(kw),
-        0
+        multiple?"multiple":""
     );
     if(!yuno) {
         return msg_iev_build_webix(
             gobj,
             -152,
-            json_local_sprintf("Cannot create resource"),
+            json_local_sprintf("Cannot create yuno: %s", log_last_message()),
             0,
             0,
             kw  // owned

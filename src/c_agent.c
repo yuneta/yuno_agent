@@ -8433,9 +8433,10 @@ PRIVATE int ac_on_open(hgobj gobj, const char *event, json_t *kw, hgobj src)
     const char *yuno_startdate= kw_get_str(kw, "identity_card`yuno_startdate", "", KW_REQUIRED);
     hgobj channel_gobj = (hgobj)(size_t)kw_get_int(kw, "__temp__`channel_gobj", 0, KW_REQUIRED);
 
-    json_t *kw_find = json_pack("{s:s, s:s, s:b, s:s}",
+    json_t *kw_find = json_pack("{s:s, s:s, s:s, s:b, s:s}",
         "yuno_role", yuno_role,
         "yuno_name", yuno_name,
+        "yuno_release", yuno_release,
         "disabled", 0,
         "id", yuno_id
     );

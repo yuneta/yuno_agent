@@ -3913,7 +3913,7 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
         priv->resource,
         resource,
         kw_incref(kw),
-        multiple?"multiple":""
+        0
     );
     if(!yuno) {
         return msg_iev_build_webix(

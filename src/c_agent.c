@@ -19,27 +19,6 @@
 #include <uuid/uuid.h>
 #include "c_agent.h"
 
-// TODO comando para enviar el json del agente a los nodos
-// Y tendrá que rearrancar, no?
-
-// TODO fallo a investigar. Al editar la configuración del emailsender, el servicio ha dejado de funcionar,
-// porque no se le pasaban los valores globales __url__, __ip__, __port__
-// Reproducción: crea un segundo yuno emailsender con la misma configuración, y luego borralo.
-// Deja de funcionar.
-/*
-{
-    "global": {
-        "emailsender.__json_config_variables__": {      ESTA PARTE VACIA!!!
-            "__yuno_name__": "gpss",
-            "__yuno_role__": "emailsender",
-            "__yuno_service__": "emailsender",
-            "__ip__": "127.0.0.1",
-            "__port__": "3100",
-            "__url__": "ws://127.0.0.1:3100"
-        }
-    },
-}
-*/
 /***************************************************************************
  *              Constants
  ***************************************************************************/
@@ -4144,7 +4123,6 @@ PRIVATE json_t *cmd_run_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
                 }
                 total_run++;
             } else {
-                // TODO por aquí se escapa algo.
                 log_error(0,
                     "gobj",             "%s", gobj_full_name(gobj),
                     "function",         "%s", __FUNCTION__,
@@ -6245,7 +6223,7 @@ PRIVATE json_t *assigned_yuno_global_service_variables(
     json_t *kw_find = json_pack("{s:s}",
         "yuno_id", yuno_id
     );
-    json_t *iter = gobj_list_nodes( // TODO usa get_get_node()
+    json_t *iter = gobj_list_nodes(
         priv->resource,
         "public_services",
         kw_find, // filter

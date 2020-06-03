@@ -844,7 +844,7 @@ SDATA_END()
  *---------------------------------------------*/
 PRIVATE sdata_desc_t tattr_desc[] = {
 /*-ATTR-type------------name----------------flag----------------default---------description---------- */
-SDATA (ASN_OCTET_STR,   "tranger_path",     SDF_RD,             "/yuneta/store/resources/yuneta_agent.trdb", "tranger path"),
+SDATA (ASN_OCTET_STR,   "tranger_path",     SDF_RD,             "/yuneta/store/agent/yuneta_agent.trdb", "tranger path"),
 SDATA (ASN_OCTET_STR,   "jwt_public_key",   SDF_RD,             0,              "JWT public key"),
 SDATA (ASN_OCTET_STR,   "startup_command",  SDF_RD,             0,              "Command to execute at startup"),
 SDATA (ASN_JSON,        "agent_environment",SDF_RD,             0,              "Agent environment. Override the yuno environment"),

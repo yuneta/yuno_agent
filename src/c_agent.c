@@ -3570,9 +3570,9 @@ PRIVATE json_t *cmd_delete_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
      */
     int idx; json_t *node;
     json_array_foreach(iter, idx, node) {
-        int use = treedb_childs_size(
+        int use = treedb_parents_size(
             gobj_read_json_attr(priv->resource, "tranger"),
-            "configurations",
+            "yunos",
             node
         );
         if(use > 0) {
@@ -7081,7 +7081,6 @@ PRIVATE json_t *find_public_service(
     );
 
     json_t *hs = json_array_get(iter_find, 0);
-    JSON_INCREF(hs);
     JSON_DECREF(iter_find);
     return hs;
 }

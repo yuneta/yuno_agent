@@ -25,7 +25,7 @@
 static char treedb_schema_yuneta_agent[]= "\
 {                                                                   \n\
     'id': 'yuneta_agent',                                           \n\
-    'schema_version': '1',                                          \n\
+    'schema_version': '2',                                          \n\
     'topics': [                                                     \n\
         {                                                           \n\
             'topic_name': 'realms',                                 \n\
@@ -121,7 +121,7 @@ static char treedb_schema_yuneta_agent[]= "\
             'topic_name': 'yunos',                                  \n\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
-            'topic_version': '1',                                   \n\
+            'topic_version': '2',                                   \n\
             'tkey': '',                                             \n\
             'topic_pkey2s': 'yuno_release',                         \n\
             'cols': {                                               \n\
@@ -306,7 +306,6 @@ static char treedb_schema_yuneta_agent[]= "\
                     'fillspace': 10,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
-                        'persistent'                                \n\
                     ]                                               \n\
                 },                                                  \n\
                 '_channel_gobj': {                                  \n\

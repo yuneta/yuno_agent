@@ -94,7 +94,7 @@ PRIVATE json_t *find_configuration_version(
 PRIVATE int build_release_name(char *bf, int bfsize, json_t *hs_binary, json_t *hs_config);
 
 PRIVATE int register_public_services(hgobj gobj, json_t *yuno);
-PRIVATE int restart_node(hgobj gobj);
+PRIVATE int restart_nodes(hgobj gobj);
 
 /***************************************************************************
  *              Resources
@@ -5379,7 +5379,7 @@ PRIVATE json_t *cmd_activate_snap(hgobj gobj, const char *cmd, json_t *kw, hgobj
         name
     );
     if(ret>=0) {
-        ret = restart_node(gobj);
+        ret = restart_nodes(gobj);
     }
     return msg_iev_build_webix(gobj,
         ret,
@@ -5401,7 +5401,9 @@ PRIVATE json_t *cmd_deactivate_snap(hgobj gobj, const char *cmd, json_t *kw, hgo
         priv->resource,
         "__clear__"
     );
-
+    if(ret>=0) {
+        ret = restart_nodes(gobj);
+    }
     return msg_iev_build_webix(gobj,
         ret,
         ret==0?json_sprintf("Snap deactivated"):json_string(log_last_message()),
@@ -7240,7 +7242,7 @@ PRIVATE int register_public_services(hgobj gobj, json_t *yuno)
 /***************************************************************************
  *
  ***************************************************************************/
-PRIVATE int restart_node(hgobj gobj)
+PRIVATE int restart_nodes(hgobj gobj)
 {
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
     int ret = 0;

@@ -313,6 +313,7 @@ PRIVATE json_t *cmd_delete_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
 
 PRIVATE json_t *cmd_top_yunos(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_list_yunos(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
+PRIVATE json_t *cmd_find_new_yunos(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_create_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_delete_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_set_alias(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
@@ -775,6 +776,7 @@ SDATACM2 (ASN_SCHEMA,   "view-config",      0,                  a_view_config,  
 SDATACM2 (ASN_SCHEMA,   "update-config",    0,                  0,                  pm_update_config,cmd_update_config, "Update configuration"),
 SDATACM2 (ASN_SCHEMA,   "delete-config",    0,                  0,                  pm_delete_config,cmd_delete_config, "Delete configuration"),
 SDATACM2 (ASN_SCHEMA,   "",                 0,                  0,                  0,              0,              ""),
+SDATACM2 (ASN_SCHEMA,   "find-new-yunos",   0,                  0,                  0,              cmd_find_new_yunos, "Find new yunos"),
 SDATACM2 (ASN_SCHEMA,   "create-yuno",      0,                  0,                  pm_create_yuno, cmd_create_yuno, "Create yuno"),
 SDATACM2 (ASN_SCHEMA,   "delete-yuno",      0,                  0,                  pm_delete_yuno, cmd_delete_yuno, "Delete yuno"),
 SDATACM2 (ASN_SCHEMA,   "set-alias",        0,                  0,                  pm_set_alias,   cmd_set_alias,  "Set yuno alias"),
@@ -3741,6 +3743,149 @@ PRIVATE json_t *cmd_list_yunos(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
         0,
         0,
         tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
+        jn_data, // owned
+        kw  // owned
+    );
+}
+
+/***************************************************************************
+ *  Get numeric version
+ ***************************************************************************/
+PRIVATE int get_n_v(const char *sversion)
+{
+    int version = 0;
+
+    int list_size;
+    const char **segments = split2(sversion, ".-", &list_size);
+
+    int power = 1;
+    for(int i=list_size-1; i>=0; i--, power *=1000) {
+        version += atoi(segments[i]) * power;
+    }
+
+    split_free2(segments);
+
+    return version;
+}
+
+/***************************************************************************
+ *
+ ***************************************************************************/
+PRIVATE json_t *cmd_find_new_yunos(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
+{
+    PRIVATE_DATA *priv = gobj_priv_data(gobj);
+
+    /*
+     *  Get a iter of matched resources.
+     */
+    json_t *iter = gobj_list_nodes(
+        priv->resource,
+        "yunos",
+        kw_incref(kw), // filter
+        0
+    );
+
+    json_t *jn_data = json_array();
+
+    int idx; json_t *yuno;
+    json_array_foreach(iter, idx, yuno) {
+        const char *id = SDATA_GET_ID(yuno);
+        const char *realm_name = SDATA_GET_STR(yuno, "realm_name");
+        const char *yuno_role = SDATA_GET_STR(yuno, "yuno_role");
+        const char *yuno_name = SDATA_GET_STR(yuno, "yuno_name");
+        const char *role_version = SDATA_GET_STR(yuno, "role_version");
+        const char *name_version = SDATA_GET_STR(yuno, "name_version");
+
+        /*
+         *  Find a greater config version
+         */
+        char config_name[NAME_MAX];
+        snprintf(config_name, sizeof(config_name), "%s.%s", yuno_role, yuno_name);
+        json_t *configs = gobj_node_instances(
+            priv->resource,
+            "configurations",
+            "",
+            json_pack("{s:s}", "name", config_name),
+            0
+        );
+        json_t *config_found = 0;
+        int ix; json_t *config;
+        json_array_foreach(configs, ix, config) {
+            const char *name_version_ = SDATA_GET_STR(config, "version");
+            if(config_found) {
+                if(get_n_v(SDATA_GET_STR(config_found, "version")) < get_n_v(name_version_)) {
+                    config_found = config;
+                }
+            } else {
+                if(get_n_v(name_version) < get_n_v(name_version_)) {
+                    config_found = config;
+                }
+            }
+        }
+        JSON_DECREF(configs);
+
+        /*
+         *  Find a greater role version
+         */
+        json_t *binaries = gobj_node_instances(
+            priv->resource,
+            "binaries",
+            "",
+            json_pack("{s:s}", "role", yuno_role),
+            0
+        );
+        json_t *binary_found = 0;
+        json_t *binary;
+        json_array_foreach(binaries, ix, binary) {
+            const char *role_version_ = SDATA_GET_STR(binary, "version");
+            if(binary_found) {
+                if(get_n_v(SDATA_GET_STR(binary_found, "version")) < get_n_v(role_version_)) {
+                    binary_found = binary;
+                }
+            } else {
+                if(get_n_v(role_version) < get_n_v(role_version_)) {
+                    binary_found = binary;
+                }
+            }
+        }
+        JSON_DECREF(binaries);
+
+        if(!config_found && !binary_found) {
+            continue;
+        }
+        const char *new_name_version = config_found?
+            SDATA_GET_STR(config_found, "version"):
+            SDATA_GET_STR(yuno, "name_version");
+
+        const char *new_role_version = binary_found?
+            SDATA_GET_STR(binary_found, "version"):
+            SDATA_GET_STR(yuno, "role_version");
+
+        json_array_append_new(
+            jn_data,
+            json_sprintf(
+                "create-yuno id=%s realm_name=%s yuno_role=%s role_version=%s "
+                "yuno_name=%s name_version=%s yuno_alias=%s",
+                id,
+                realm_name,
+                yuno_role,
+                new_role_version,
+                yuno_name,
+                new_name_version,
+                SDATA_GET_STR(yuno, "yuno_alias")
+            )
+        );
+    }
+    JSON_DECREF(iter);
+
+    /*
+     *  Inform
+     */
+    return msg_iev_build_webix(
+        gobj,
+        0,
+        0,
+        0,
         jn_data, // owned
         kw  // owned
     );

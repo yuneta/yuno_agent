@@ -11,8 +11,6 @@
 #define _C_AGENT_H 1
 
 #include <yuneta.h>
-#include "rc_sqlite3.h" // TODO quita cuando treedb esté probado
-#include "rc_treedb.h"
 
 /**rst**
 

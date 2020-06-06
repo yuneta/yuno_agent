@@ -1117,24 +1117,66 @@ PRIVATE int mt_stop(hgobj gobj)
 PRIVATE json_t *mt_authenticate(hgobj gobj, const char *service, json_t *kw, hgobj src)
 {
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
-
     const char *peername = gobj_read_str_attr(src, "peername");
-    const char *localhost = "127.0.0.";
-    if(strncmp(peername, localhost, strlen(localhost))==0) {
+
+    if(is_ip_denied(peername)) {
         /*
-         *  Autorizado, informa
+         *  IP autorizada sin user/passw, informa
          */
         return msg_iev_build_webix(
             gobj,
-            0,
-            0,
+            -1,
+            json_local_sprintf("Ip denied"),
             0,
             0,
             kw  // owned
         );
     }
 
-    const char *jwt= kw_get_str(kw, "jwt", "", KW_REQUIRED);
+    if(is_ip_allowed(peername)) {
+        /*
+         *  IP autorizada sin user/passw, informa
+         */
+        return msg_iev_build_webix(
+            gobj,
+            0,
+            json_local_sprintf("Ip allowed"),
+            0,
+            0,
+            kw  // owned
+        );
+    }
+
+    const char *localhost = "127.0.0.";
+    if(strncmp(peername, localhost, strlen(localhost))==0) {
+        /*
+         *  LOCALHOST Autorizado, informa
+         */
+        return msg_iev_build_webix(
+            gobj,
+            0,
+            json_local_sprintf("Ip local allowed"),
+            0,
+            0,
+            kw  // owned
+        );
+    }
+
+    const char *jwt= kw_get_str(kw, "jwt", "", 0);
+    if(empty_string(jwt)) {
+        /*
+         *  Need auth
+         */
+        return msg_iev_build_webix(
+            gobj,
+            -1,
+            json_local_sprintf("Needed jwt to auth"),
+            0,
+            0,
+            kw  // owned
+        );
+    }
+
     json_t *jwt_payload = NULL;
     if(!oauth2_token_verify(priv->oath2_log, priv->verify, jwt, &jwt_payload)) {
         JSON_DECREF(jwt_payload);

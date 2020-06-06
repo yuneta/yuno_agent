@@ -650,6 +650,11 @@ SDATAPM (ASN_BOOLEAN,   "force",        0,              0,          "Force delet
 SDATA_END()
 };
 
+PRIVATE sdata_desc_t pm_find_new_yunos[] = {
+/*-PM----type-----------name------------flag------------default-----description---------- */
+SDATAPM (ASN_BOOLEAN,   "create",       0,              0,          "Create new found yunos"),
+SDATA_END()
+};
 PRIVATE sdata_desc_t pm_create_yuno[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id"),
@@ -776,7 +781,7 @@ SDATACM2 (ASN_SCHEMA,   "view-config",      0,                  a_view_config,  
 SDATACM2 (ASN_SCHEMA,   "update-config",    0,                  0,                  pm_update_config,cmd_update_config, "Update configuration"),
 SDATACM2 (ASN_SCHEMA,   "delete-config",    0,                  0,                  pm_delete_config,cmd_delete_config, "Delete configuration"),
 SDATACM2 (ASN_SCHEMA,   "",                 0,                  0,                  0,              0,              ""),
-SDATACM2 (ASN_SCHEMA,   "find-new-yunos",   0,                  0,                  0,              cmd_find_new_yunos, "Find new yunos"),
+SDATACM2 (ASN_SCHEMA,   "find-new-yunos",   0,                  0,                  pm_find_new_yunos,cmd_find_new_yunos, "Find new yunos"),
 SDATACM2 (ASN_SCHEMA,   "create-yuno",      0,                  0,                  pm_create_yuno, cmd_create_yuno, "Create yuno"),
 SDATACM2 (ASN_SCHEMA,   "delete-yuno",      0,                  0,                  pm_delete_yuno, cmd_delete_yuno, "Delete yuno"),
 SDATACM2 (ASN_SCHEMA,   "set-alias",        0,                  0,                  pm_set_alias,   cmd_set_alias,  "Set yuno alias"),
@@ -3775,6 +3780,8 @@ PRIVATE json_t *cmd_find_new_yunos(hgobj gobj, const char *cmd, json_t *kw, hgob
 {
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
 
+    BOOL create = kw_get_bool(kw, "create", 0, KW_WILD_NUMBER);
+
     /*
      *  Get a iter of matched resources.
      */
@@ -3878,6 +3885,28 @@ PRIVATE json_t *cmd_find_new_yunos(hgobj gobj, const char *cmd, json_t *kw, hgob
     }
     JSON_DECREF(iter);
 
+    json_t *schema = 0;
+    if(create) {
+        if(json_array_size(jn_data)) {
+            json_t *new_jn_data = json_array();
+            int idx; json_t *jn_command;
+            json_array_foreach(jn_data, idx, jn_command) {
+                const char *command = json_string_value(jn_command);
+                json_t *webix = gobj_command(
+                    gobj,
+                    command,
+                    0,
+                    gobj
+                );
+                json_array_extend(new_jn_data, kw_get_dict_value(webix, "data", 0, KW_REQUIRED));
+                JSON_DECREF(webix);
+            }
+            JSON_DECREF(jn_data);
+            jn_data = new_jn_data;
+            schema = tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), "yunos");
+        }
+    }
+
     /*
      *  Inform
      */
@@ -3885,7 +3914,7 @@ PRIVATE json_t *cmd_find_new_yunos(hgobj gobj, const char *cmd, json_t *kw, hgob
         gobj,
         0,
         0,
-        0,
+        schema,
         jn_data, // owned
         kw  // owned
     );

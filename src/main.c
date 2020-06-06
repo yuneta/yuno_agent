@@ -138,9 +138,7 @@ PRIVATE char variable_config[]= "\
                                     'gclass': 'Channel',                        \n\
                                     'kw': {                                         \n\
                                         'lHost': '(^^__input_host__^^)',            \n\
-                                        'lPort': '(^^__input_port__^^)',            \n\
-                                        'allowd_urls': [],                          \n\
-                                        'denied_urls': []                           \n\
+                                        'lPort': '(^^__input_port__^^)'             \n\
                                     },                                              \n\
                                     'zchilds': [                                     \n\
                                         {                                               \n\

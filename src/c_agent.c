@@ -1204,8 +1204,8 @@ PRIVATE json_t *mt_authenticate(hgobj gobj, const char *service, json_t *kw, hgo
      *  User autentificado, crea su registro si es nuevo
      *  e informa de su estado en el ack.
      */
+    const char *username = kw_get_str(jwt_payload, "preferred_username", 0, KW_REQUIRED);
     if(priv->users_accesses) {
-        const char *username = kw_get_str(jwt_payload, "preferred_username", 0, KW_REQUIRED);
         json_t *user = trmsg_get_active_message(priv->users_accesses, username);
         if(!user) {
             create_new_user(gobj, jwt_payload);
@@ -1220,7 +1220,7 @@ PRIVATE json_t *mt_authenticate(hgobj gobj, const char *service, json_t *kw, hgo
     return msg_iev_build_webix(
         gobj,
         0,
-        0,
+        json_local_sprintf("JWT User authenticated: %s", username),
         0,
         0,
         kw  // owned

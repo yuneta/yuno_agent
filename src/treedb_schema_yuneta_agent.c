@@ -5,20 +5,22 @@
                         ┌───────────────┐
                         │     realms    │
                         └───────────────┘
-                                ▲ n (dl 'yunos')
+                                ▲ n (hook 'yunos')
                                 ┃
                                 ┃
-                                ▼ 1 ('realm_id')
+                                ▼ 1 (fkey 'realm_id')
                 ┌───────────────────────────────────────┐
                 │               yunos                   │
                 └───────────────────────────────────────┘
-                        ▲ 1 ('binary')          ▲ n (dl 'configurations')
+                        ▲ 1 (hook 'binary')     ▲ n (hook 'configurations')
                         ┃                       ┃
                         ┃                       ┃
-                        ▼ n (dl 'yunos')        ▼ n (dl 'yunos')
+                        ▼ n ('fkey yunos')      ▼ n (fkey 'yunos')
                 ┌────────────────┐      ┌────────────────┐
                 │   binaries     │      │ configurations │
                 └────────────────┘      └────────────────┘
+
+                where n -> dl or []
 
 */
 

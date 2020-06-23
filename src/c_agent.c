@@ -6095,7 +6095,7 @@ PRIVATE char * build_yuno_log_path(hgobj gobj, json_t *yuno, char *bf, int bfsiz
 PRIVATE int save_pid_in_file(hgobj gobj, json_t *yuno, uint32_t pid)
 {
     char yuno_bin_path[NAME_MAX];
-    char filename_pid_path[NAME_MAX];
+    char filename_pid_path[NAME_MAX*2];
     /*
      *  Let it create the bin_path. Can exist some zombi yuno.
      */
@@ -6529,7 +6529,7 @@ PRIVATE GBUFFER *build_yuno_running_script(
     snprintf(bfbinary, bfbinary_size, "%s", binary_path);
 
     char config_file_name[NAME_MAX];
-    char config_path[NAME_MAX];
+    char config_path[NAME_MAX*2];
     int n_config = 0;
     gbuf_printf(gbuf_script, "[");
     if(1) {

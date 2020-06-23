@@ -2880,8 +2880,7 @@ PRIVATE json_t *cmd_install_binary(hgobj gobj, const char *cmd, json_t *kw, hgob
          *  1 o more records, yuno already stored and without overwrite.
          */
         JSON_DECREF(iter);
-        JSON_DECREF(jn_basic_info);
-        return msg_iev_build_webix(
+        json_t *msg_webix = msg_iev_build_webix(
             gobj,
             -119,
             json_local_sprintf(
@@ -2891,6 +2890,8 @@ PRIVATE json_t *cmd_install_binary(hgobj gobj, const char *cmd, json_t *kw, hgob
             iter,
             kw  // owned
         );
+        JSON_DECREF(jn_basic_info);
+        return msg_webix;
     }
     JSON_DECREF(iter);
 

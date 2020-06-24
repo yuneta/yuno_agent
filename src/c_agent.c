@@ -6727,7 +6727,7 @@ PRIVATE int run_yuno(hgobj gobj, json_t *yuno, hgobj src)
     char role_plus_name[NAME_MAX];
     build_role_plus_name(role_plus_name, sizeof(role_plus_name), yuno);
 
-    char script_path[NAME_MAX];
+    char script_path[NAME_MAX*2 + 10];
     snprintf(script_path, sizeof(script_path), "%s/%s.sh", yuno_bin_path, role_plus_name);
 
     char exec_cmd[PATH_MAX];

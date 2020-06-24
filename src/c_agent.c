@@ -6530,7 +6530,7 @@ PRIVATE GBUFFER *build_yuno_running_script(
     snprintf(bfbinary, bfbinary_size, "%s", binary_path);
 
     char config_file_name[NAME_MAX+15];
-    char config_path[NAME_MAX*2];
+    char config_path[(NAME_MAX+15)*2];
     int n_config = 0;
     gbuf_printf(gbuf_script, "[");
     if(1) {

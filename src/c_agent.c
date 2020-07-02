@@ -6290,14 +6290,24 @@ PRIVATE json_t *get_yuno_config(hgobj gobj, json_t *yuno)
 /***************************************************************************
  *  Find a service for client
  ***************************************************************************/
-PRIVATE json_t *find_service_for_client(hgobj gobj, const char *service, json_t *yuno)
+PRIVATE json_t *find_service_for_client(hgobj gobj, const char *service_, json_t *yuno)
 {
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
     char *resource = "public_services";
 
+    char *service = gbmem_strdup(service_);
+    char *service_yuno_name = strchr(service, '.');
+    if(service_yuno_name) {
+        *service_yuno_name = 0;
+        service_yuno_name++; // yuno_name of service required
+    }
+
     json_t *kw_find = json_pack("{s:s}",
         "service", service
     );
+    if(service_yuno_name) {
+        json_object_set_new(kw_find, "yuno_name", json_string(service_yuno_name));
+    }
 
     json_t *iter_find = gobj_list_nodes(
         priv->resource,
@@ -6308,6 +6318,7 @@ PRIVATE json_t *find_service_for_client(hgobj gobj, const char *service, json_t 
 
     json_t *hs = json_array_get(iter_find, 0);
     JSON_DECREF(iter_find);
+    gbmem_free(service);
 
     return hs;
 }

@@ -3492,7 +3492,7 @@ PRIVATE json_t *cmd_create_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
     return msg_iev_build_webix(
         gobj,
         0,
-        0,
+        json_local_sprintf("version: %s", kw_get_str(node, "version", "", KW_REQUIRED)),
         tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
         kw  // owned

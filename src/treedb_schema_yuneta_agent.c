@@ -27,7 +27,7 @@
 static char treedb_schema_yuneta_agent[]= "\
 {                                                                   \n\
     'id': 'yuneta_agent',                                           \n\
-    'schema_version': '4',                                          \n\
+    'schema_version': '7',                                          \n\
     'topics': [                                                     \n\
         {                                                           \n\
             'topic_name': 'realms',                                 \n\
@@ -453,7 +453,7 @@ static char treedb_schema_yuneta_agent[]= "\
             'topic_name': 'configurations',                         \n\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
-            'topic_version': '2',                                   \n\
+            'topic_version': '5',                                   \n\
             'tkey': '',                                             \n\
             'topic_pkey2s': 'version',                              \n\
             'cols': {                                               \n\
@@ -478,6 +478,15 @@ static char treedb_schema_yuneta_agent[]= "\
                 },                                                  \n\
                 'version': {                                        \n\
                     'header': 'version',                            \n\
+                    'fillspace': 14,                                \n\
+                    'type': 'string',                               \n\
+                    'flag': [                                       \n\
+                        'persistent',                               \n\
+                        'required'                                  \n\
+                    ]                                               \n\
+                },                                                  \n\
+                'date': {                                           \n\
+                    'header': 'date',                               \n\
                     'fillspace': 22,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
@@ -492,6 +501,12 @@ static char treedb_schema_yuneta_agent[]= "\
                     'flag': [                                       \n\
                         'persistent'                                \n\
                     ]                                               \n\
+                },                                                  \n\
+                'yunos': {                                          \n\
+                    'header': 'yunos',                              \n\
+                    'fillspace': 22,                                \n\
+                    'type': 'array',                                \n\
+                    'flag': ['fkey']                                \n\
                 },                                                  \n\
                 'type': {                                           \n\
                     'header': 'type',                               \n\
@@ -508,21 +523,6 @@ static char treedb_schema_yuneta_agent[]= "\
                     'flag': [                                       \n\
                         'persistent'                                \n\
                     ]                                               \n\
-                },                                                  \n\
-                'date': {                                           \n\
-                    'header': 'date',                               \n\
-                    'fillspace': 21,                                \n\
-                    'type': 'string',                               \n\
-                    'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
-                    ]                                               \n\
-                },                                                  \n\
-                'yunos': {                                          \n\
-                    'header': 'yunos',                              \n\
-                    'fillspace': 22,                                \n\
-                    'type': 'array',                                \n\
-                    'flag': ['fkey']                                \n\
                 },                                                  \n\
                 'zcontent': {                                       \n\
                     'header': 'zcontent',                           \n\

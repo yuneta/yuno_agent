@@ -3361,38 +3361,8 @@ PRIVATE json_t *cmd_create_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
     const char *autoupdate= kw_get_str(kw, "autoupdate", "", 0);
 
     /*------------------------------------------------*
-     *      Check if already exists
+     *  Firstly get content in base64 and decode
      *------------------------------------------------*/
-    json_t *kw_find = json_pack("{s:s, s:s}",
-        "name", name,
-        "version", version
-    );
-    json_t *iter = gobj_list_nodes(
-        priv->resource,
-        resource,
-        kw_find, // filter
-        0
-    );
-    if(json_array_size(iter)) {
-        /*
-         *  1 o more records, yuno already stored and without overwrite.
-         */
-        return msg_iev_build_webix(
-            gobj,
-            -133,
-            json_local_sprintf(
-                "Configuration already exists"
-            ),
-            tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
-            iter,
-            kw  // owned
-        );
-    }
-    JSON_DECREF(iter);
-
-    /*
-     *  Get content in base64 and decode
-     */
     json_t *jn_config;
     const char *content64 = kw_get_str(kw, "content64", "", 0);
     if(!empty_string(content64)) {
@@ -3414,6 +3384,58 @@ PRIVATE json_t *cmd_create_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
     } else {
         jn_config = json_object();
     }
+
+    /*
+     *  NEW: get version and description from config file
+     */
+    if(kw_has_key(jn_config, "__version__")) {
+        version = kw_get_str(jn_config, "__version__", "", 0);
+    }
+    if(kw_has_key(jn_config, "__description__")) {
+        description = kw_get_str(jn_config, "__description__", "", 0);
+    }
+    if(empty_string(version)) {
+        JSON_DECREF(jn_config);
+        return msg_iev_build_webix(
+            gobj,
+            -134,
+            json_local_sprintf("Configuration version is required"),
+            0,
+            0,
+            kw  // owned
+        );
+    }
+
+    /*------------------------------------------------*
+     *      Check if already exists
+     *------------------------------------------------*/
+    json_t *kw_find = json_pack("{s:s, s:s}",
+        "name", name,
+        "version", version
+    );
+    json_t *iter = gobj_list_nodes(
+        priv->resource,
+        resource,
+        kw_find, // filter
+        0
+    );
+    if(json_array_size(iter)) {
+        /*
+         *  1 o more records, yuno already stored and without overwrite.
+         */
+        JSON_DECREF(jn_config);
+        return msg_iev_build_webix(
+            gobj,
+            -133,
+            json_local_sprintf(
+                "Configuration already exists: %s", version
+            ),
+            tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
+            iter,
+            kw  // owned
+        );
+    }
+    JSON_DECREF(iter);
 
     /*------------------------------------------------*
      *      Create record
@@ -3517,27 +3539,25 @@ PRIVATE json_t *cmd_update_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
      *  Get new config (or not)
      */
     const char *content64 = kw_get_str(kw, "content64", "", 0);
+    json_t *jn_config = 0;
     if(!empty_string(content64)) {
-        json_t *jn_config = 0;
-        if(!empty_string(content64)) {
-            GBUFFER *gbuf_content = gbuf_decodebase64string(content64);
-            jn_config = gbuf2json(
-                gbuf_content,  // owned
-                1
-            );
-        }
-        if(!jn_config) {
-            return msg_iev_build_webix(
-                gobj,
-                -138,
-                json_local_sprintf("Bad json in content64"),
-                0,
-                0,
-                kw  // owned
-            );
-        }
-        json_object_set_new(node, "zcontent", jn_config);
+        GBUFFER *gbuf_content = gbuf_decodebase64string(content64);
+        jn_config = gbuf2json(
+            gbuf_content,  // owned
+            1
+        );
     }
+    if(!jn_config) {
+        return msg_iev_build_webix(
+            gobj,
+            -138,
+            json_local_sprintf("Bad json in content64"),
+            0,
+            0,
+            kw  // owned
+        );
+    }
+    json_object_set_new(node, "zcontent", jn_config);
 
     /*
      *  Update config

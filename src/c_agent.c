@@ -3012,7 +3012,7 @@ PRIVATE json_t *cmd_install_binary(hgobj gobj, const char *cmd, json_t *kw, hgob
     return msg_iev_build_webix(
         gobj,
         0,
-        0,
+        json_local_sprintf("version: %s", kw_get_str(node, "version", "", KW_REQUIRED)),
         tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
         kw  // owned
@@ -3194,7 +3194,7 @@ PRIVATE json_t *cmd_update_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
     json_t *webix = msg_iev_build_webix(
         gobj,
         0,
-        0,
+        json_local_sprintf("version: %s", kw_get_str(node, "version", "", KW_REQUIRED)),
         tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
         kw  // owned
@@ -3573,7 +3573,7 @@ PRIVATE json_t *cmd_update_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
     json_t *webix = msg_iev_build_webix(
         gobj,
         0,
-        0,
+        json_local_sprintf("version: %s", kw_get_str(node, "version", "", KW_REQUIRED)),
         tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
         kw  // owned

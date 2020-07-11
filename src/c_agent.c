@@ -139,42 +139,42 @@ SDATADF (ASN_JSON,      "source",           SDF_PERSIST|SDF_WR,         0,      
 SDATA_END()
 };
 
-PRIVATE sdata_desc_t tb_yunos[] = {
-/*-FIELD-type-----------name----------------flag------------------------resource--------header----------fillsp--description---------*/
-SDATADF (ASN_JSON,      "__filter__",       SDF_NOTACCESS,              0,              0,              0,      "Filter to match records"),
-SDATADF (ASN_OCTET_STR, "id",               SDF_PERSIST|SDF_PKEY,       0,              "Id",           8,      "Id"),
-SDATADF (ASN_OCTET_STR, "realm_name",       SDF_PERSIST,                0,              "Realm Name",   16,     "Realm of yuno"),
-SDATADF (ASN_OCTET_STR, "yuno_role",        SDF_PERSIST,                0,              "Yuno Role",    16,     "Yuno *role*"),
-SDATADF (ASN_OCTET_STR, "yuno_name",        SDF_PERSIST,                0,              "Yuno Name",    16,     "Yuno *name*"),
-SDATADF (ASN_OCTET_STR, "yuno_release",     SDF_PERSIST,                0,              "Yuno Release", 16,     "Yuno *release*"),
-SDATADF (ASN_OCTET_STR, "yuno_alias",       SDF_PERSIST,                0,              "Yuno Alias",   16,     "Yuno *alias*"),
-
-SDATADF (ASN_BOOLEAN,   "yuno_running",     SDF_VOLATIL,                0,              "Running",      7,      "True if the yuno is running"),
-SDATADF (ASN_BOOLEAN,   "yuno_playing",     SDF_VOLATIL,                0,              "Playing",      7,      "True if the yuno is playing"),
-SDATADF (ASN_UNSIGNED,  "yuno_pid",         SDF_VOLATIL,                0,              "Pid",          7,      "Linux Process ID of the running yuno"),
-SDATADF (ASN_UNSIGNED,  "watcher_pid",      SDF_VOLATIL,                0,              "Pid",          7,      "Linux Process ID of the watcher yuno"),
-SDATADF (ASN_BOOLEAN,   "disabled",         SDF_PERSIST|SDF_WR,         0,              "Disabled",     8,      "True if the yuno is disabled and therefore cannot be running"),
-SDATADF (ASN_BOOLEAN,   "must_play",        SDF_PERSIST|SDF_WR,         0,              "MustPlay",     8,      "If true the agent will play the yuno automatically after be set running"),
-SDATADF (ASN_BOOLEAN,   "traced",           SDF_PERSIST|SDF_WR,         0,              "Traced",       6,      "True if the yuno is tracing"),
-SDATADF (ASN_BOOLEAN,   "multiple",         SDF_PERSIST,                0,              "Multiple",     6,      "True if yuno can have multiple instances with same name"),
-SDATADF (ASN_BOOLEAN,   "global",           SDF_PERSIST,                0,              "Global",       6,      "Yuno with global service (False: bind to 127.0.0.1, True: bind to realm ip)"),
-SDATADF (ASN_OCTET_STR, "date",             SDF_PERSIST,                0,              "Date",         21,     "Date last modification"),
-
-// Importante marcar el campo con SDF_PARENTID, para que el sistema conozca al grand_parent or parent.
-SDATADF (ASN_OCTET_STR, "realm_id",        SDF_PERSIST|SDF_PARENTID,   "realms", "Realm Id",     8,      "The Realm (parent) of the yuno. Cannot be changed once created"),
-SDATADF (ASN_OCTET_STR, "binary_id",        SDF_PERSIST|SDF_FKEY,       "binaries",     "Binary Id",    8,      "Binary (child) of the yuno"),
-
-/*-CHILD-type-----------name----------------flag------------------------resource------------free_fn---------header----------fillsp---description--*/
-SDATADC (ASN_ITER,      "config_ids",       SDF_RESOURCE,               "configurations",   sdata_destroy,  "Config. Ids",  15,     "Configurations associated to the yuno. Order is important! The last has prevalence over the previous"),
-
-/*-FIELD-type-----------name----------------flag------------------------resource--------header----------fillsp--description---------*/
-SDATADF (ASN_OCTET_STR, "yuno_startdate",   SDF_PERSIST,                0,              "Start Date",   10,     "Last start date of the yuno"),
-SDATADF (ASN_POINTER,   "_channel_gobj",     SDF_NOTACCESS,              0,              "Channel gobj", 0,      "Channel gobj"),
-SDATADF (ASN_OCTET_STR, "solicitante",      SDF_NOTACCESS,              0,              "Solicitante",  0,      "Solicitante"),
-SDATADF (ASN_COUNTER64, "launch_id",        SDF_NOTACCESS,              0,              "Launch Id",    0,      "time_t + counter"),
-
-SDATA_END()
-};
+// PRIVATE sdata_desc_t tb_yunos[] = {
+// /*-FIELD-type-----------name----------------flag------------------------resource--------header----------fillsp--description---------*/
+// SDATADF (ASN_JSON,      "__filter__",       SDF_NOTACCESS,              0,              0,              0,      "Filter to match records"),
+// SDATADF (ASN_OCTET_STR, "id",               SDF_PERSIST|SDF_PKEY,       0,              "Id",           8,      "Id"),
+// SDATADF (ASN_OCTET_STR, "realm_name",       SDF_PERSIST,                0,              "Realm Name",   16,     "Realm of yuno"),
+// SDATADF (ASN_OCTET_STR, "yuno_role",        SDF_PERSIST,                0,              "Yuno Role",    16,     "Yuno *role*"),
+// SDATADF (ASN_OCTET_STR, "yuno_name",        SDF_PERSIST,                0,              "Yuno Name",    16,     "Yuno *name*"),
+// SDATADF (ASN_OCTET_STR, "yuno_release",     SDF_PERSIST,                0,              "Yuno Release", 16,     "Yuno *release*"),
+// SDATADF (ASN_OCTET_STR, "yuno_alias",       SDF_PERSIST,                0,              "Yuno Alias",   16,     "Yuno *alias*"),
+//
+// SDATADF (ASN_BOOLEAN,   "yuno_running",     SDF_VOLATIL,                0,              "Running",      7,      "True if the yuno is running"),
+// SDATADF (ASN_BOOLEAN,   "yuno_playing",     SDF_VOLATIL,                0,              "Playing",      7,      "True if the yuno is playing"),
+// SDATADF (ASN_UNSIGNED,  "yuno_pid",         SDF_VOLATIL,                0,              "Pid",          7,      "Linux Process ID of the running yuno"),
+// SDATADF (ASN_UNSIGNED,  "watcher_pid",      SDF_VOLATIL,                0,              "Pid",          7,      "Linux Process ID of the watcher yuno"),
+// SDATADF (ASN_BOOLEAN,   "disabled",         SDF_PERSIST|SDF_WR,         0,              "Disabled",     8,      "True if the yuno is disabled and therefore cannot be running"),
+// SDATADF (ASN_BOOLEAN,   "must_play",        SDF_PERSIST|SDF_WR,         0,              "MustPlay",     8,      "If true the agent will play the yuno automatically after be set running"),
+// SDATADF (ASN_BOOLEAN,   "traced",           SDF_PERSIST|SDF_WR,         0,              "Traced",       6,      "True if the yuno is tracing"),
+// SDATADF (ASN_BOOLEAN,   "multiple",         SDF_PERSIST,                0,              "Multiple",     6,      "True if yuno can have multiple instances with same name"),
+// SDATADF (ASN_BOOLEAN,   "global",           SDF_PERSIST,                0,              "Global",       6,      "Yuno with global service (False: bind to 127.0.0.1, True: bind to realm ip)"),
+// SDATADF (ASN_OCTET_STR, "date",             SDF_PERSIST,                0,              "Date",         21,     "Date last modification"),
+//
+// // Importante marcar el campo con SDF_PARENTID, para que el sistema conozca al grand_parent or parent.
+// SDATADF (ASN_OCTET_STR, "realm_id",        SDF_PERSIST|SDF_PARENTID,   "realms", "Realm Id",     8,      "The Realm (parent) of the yuno. Cannot be changed once created"),
+// SDATADF (ASN_OCTET_STR, "binary_id",        SDF_PERSIST|SDF_FKEY,       "binaries",     "Binary Id",    8,      "Binary (child) of the yuno"),
+//
+// /*-CHILD-type-----------name----------------flag------------------------resource------------free_fn---------header----------fillsp---description--*/
+// SDATADC (ASN_ITER,      "config_ids",       SDF_RESOURCE,               "configurations",   sdata_destroy,  "Config. Ids",  15,     "Configurations associated to the yuno. Order is important! The last has prevalence over the previous"),
+//
+// /*-FIELD-type-----------name----------------flag------------------------resource--------header----------fillsp--description---------*/
+// SDATADF (ASN_OCTET_STR, "yuno_startdate",   SDF_PERSIST,                0,              "Start Date",   10,     "Last start date of the yuno"),
+// SDATADF (ASN_POINTER,   "_channel_gobj",     SDF_NOTACCESS,              0,              "Channel gobj", 0,      "Channel gobj"),
+// SDATADF (ASN_OCTET_STR, "solicitante",      SDF_NOTACCESS,              0,              "Solicitante",  0,      "Solicitante"),
+// SDATADF (ASN_COUNTER64, "launch_id",        SDF_NOTACCESS,              0,              "Launch Id",    0,      "time_t + counter"),
+//
+// SDATA_END()
+// };
 
 
 PRIVATE sdata_desc_t tb_realms[] = {
@@ -387,6 +387,26 @@ SDATAPM (ASN_OCTET_STR, "yuno_release", 0,              0,          "Yuno Releas
 SDATAPM (ASN_OCTET_STR, "yuno_alias",   0,              0,          "Yuno Alias"),
 SDATAPM (ASN_BOOLEAN,   "app",          0,              0,          "Kill app yunos (id>=1000)"),
 SDATAPM (ASN_BOOLEAN,   "force",        0,              0,          "kill with SIGKILL instead of SIGQUIT"),
+SDATA_END()
+};
+PRIVATE sdata_desc_t pm_list_yunos[] = {
+/*-PM----type-----------name------------flag------------default-----description---------- */
+SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id"),
+SDATAPM (ASN_OCTET_STR, "realm_name",   0,              0,          "Yuno realm"),
+SDATAPM (ASN_OCTET_STR, "yuno_role",    0,              0,          "Yuno role"),
+SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno name"),
+SDATAPM (ASN_OCTET_STR, "yuno_release", 0,              0,          "Yuno Release"),
+SDATAPM (ASN_OCTET_STR, "yuno_alias",   0,              0,          "Yuno alias"),
+SDATAPM (ASN_BOOLEAN,   "yuno_running", 0,              0,          "True if yuno is running"),
+SDATAPM (ASN_BOOLEAN,   "yuno_playing", 0,              0,          "True if yuno is playing"),
+SDATAPM (ASN_BOOLEAN,   "disabled",     0,              0,          "True if yuno is disabled"),
+SDATAPM (ASN_BOOLEAN,   "must_play",    0,              0,          "True if yuno must play"),
+SDATAPM (ASN_OCTET_STR, "role_version", 0,              0,          "Role version"),
+SDATAPM (ASN_OCTET_STR, "name_version", 0,              0,          "Name version"),
+SDATAPM (ASN_BOOLEAN,   "traced",       0,              0,          "True if yuno is tracing"),
+SDATAPM (ASN_BOOLEAN,   "multiple",     0,              0,          "True if yuno can have multiple instances with same name"),
+SDATAPM (ASN_BOOLEAN,   "global",       0,              0,          "Yuno with public service (False: bind to 127.0.0.1, True: bind to realm ip)"),
+SDATAPM (ASN_BOOLEAN,   "webix",        0,              0,          "List in webix format [{id,value}]"),
 SDATA_END()
 };
 PRIVATE sdata_desc_t pm_play_yuno[] = {
@@ -655,6 +675,7 @@ PRIVATE sdata_desc_t pm_find_new_yunos[] = {
 SDATAPM (ASN_BOOLEAN,   "create",       0,              0,          "Create new found yunos"),
 SDATA_END()
 };
+
 PRIVATE sdata_desc_t pm_create_yuno[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id"),
@@ -785,22 +806,20 @@ SDATACM2 (ASN_SCHEMA,   "find-new-yunos",   0,                  0,              
 SDATACM2 (ASN_SCHEMA,   "create-yuno",      0,                  0,                  pm_create_yuno, cmd_create_yuno, "Create yuno"),
 SDATACM2 (ASN_SCHEMA,   "delete-yuno",      0,                  0,                  pm_delete_yuno, cmd_delete_yuno, "Delete yuno"),
 SDATACM2 (ASN_SCHEMA,   "set-alias",        0,                  0,                  pm_set_alias,   cmd_set_alias,  "Set yuno alias"),
-SDATACM2 (ASN_SCHEMA,   "edit-yuno-config", 0,                  a_edit_yuno_config, tb_yunos,       0,              "Edit yuno configuration"),
-SDATACM2 (ASN_SCHEMA,   "view-yuno-config", 0,                  a_view_yuno_config, tb_yunos,       0,              "View yuno configuration"),
+SDATACM2 (ASN_SCHEMA,   "edit-yuno-config", 0,                  a_edit_yuno_config, pm_list_yunos,       0,              "Edit yuno configuration"),
+SDATACM2 (ASN_SCHEMA,   "view-yuno-config", 0,                  a_view_yuno_config, pm_list_yunos,       0,              "View yuno configuration"),
 
 /*-CMD2--type-----------name----------------flag----------------alias---------------items-----------json_fn---------description---------- */
 SDATACM2 (ASN_SCHEMA,   "",                 0,                  0,                  0,              0,              "\nOperation\n---------"),
-SDATACM2 (ASN_SCHEMA,   "top",              0,                  a_top_yunos,        tb_yunos,       cmd_top_yunos,  "List only enabled yunos"),
+SDATACM2 (ASN_SCHEMA,   "top",              0,                  a_top_yunos,        pm_list_yunos,       cmd_top_yunos,  "List only enabled yunos"),
 
-
-
-SDATACM2 (ASN_SCHEMA,   "list-yunos",       0,                  a_list_yunos,       tb_yunos,       cmd_list_yunos, "List all yunos"),
+SDATACM2 (ASN_SCHEMA,   "list-yunos",       0,                  a_list_yunos,       pm_list_yunos,       cmd_list_yunos, "List all yunos"),
 SDATACM2 (ASN_SCHEMA,   "list-binaries",    0,                  a_list_binaries,    tb_binaries,    cmd_list_binaries,"List binaries"),
 SDATACM2 (ASN_SCHEMA,   "list-configs",     0,                  a_list_configs,     tb_configs,     cmd_list_configs,"List configurations"),
 SDATACM2 (ASN_SCHEMA,   "list-realms",      0,                  a_list_realms,      tb_realms,      cmd_list_realms,"List realms"),
 SDATACM2 (ASN_SCHEMA,   "list-public-services", 0,              a_list_public_services,tb_public_services, cmd_list_public_services,"List public services"),
 
-SDATACM2 (ASN_SCHEMA,   "list-yunos-instances",0,               a_yunos_instances,  tb_yunos,       cmd_yunos_instances, "List yunos instances"),
+SDATACM2 (ASN_SCHEMA,   "list-yunos-instances",0,               a_yunos_instances,  pm_list_yunos,       cmd_yunos_instances, "List yunos instances"),
 SDATACM2 (ASN_SCHEMA,   "list-binaries-instances",0,            a_binaries_instances,tb_binaries,   cmd_binaries_instances,"List binaries instances"),
 SDATACM2 (ASN_SCHEMA,   "list-configs-instances",0,             a_configs_instances,tb_configs,     cmd_configs_instances,"List configurations instances"),
 SDATACM2 (ASN_SCHEMA,   "list-realms-instances",0,              a_realms_instances, tb_realms,      cmd_realms_instances,"List realms instances"),
@@ -3744,9 +3763,33 @@ PRIVATE json_t *cmd_set_alias(hgobj gobj, const char *cmd, json_t *kw, hgobj src
 /***************************************************************************
  *
  ***************************************************************************/
+PRIVATE json_t *yuno2multiselect(
+    json_t *node // not owned
+)
+{
+    json_t * multiselect_element = json_object();
+    json_object_set_new(
+        multiselect_element,
+        "id",
+        json_string(kw_get_str(node, "id", "", KW_REQUIRED))
+    );
+    char value[NAME_MAX];
+    snprintf(value, sizeof(value), "%s^%s",
+        kw_get_str(node, "yuno_role", "", KW_REQUIRED),
+        kw_get_str(node, "yuno_name", "", KW_REQUIRED)
+    );
+    json_object_set_new(multiselect_element, "value", json_string(value));
+
+    return multiselect_element;
+}
+
+/***************************************************************************
+ *
+ ***************************************************************************/
 PRIVATE json_t *cmd_top_yunos(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
 {
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
+    BOOL webix = kw_get_bool(kw, "webix", 0, KW_WILD_NUMBER);
     char *resource = "yunos";
 
     /*
@@ -3768,16 +3811,19 @@ PRIVATE json_t *cmd_top_yunos(hgobj gobj, const char *cmd, json_t *kw, hgobj src
         BOOL disabled = kw_get_bool(node, "disabled", 0, KW_REQUIRED);
         const char *yuno_alias = kw_get_str(node, "yuno_alias", 0, KW_REQUIRED);
         if(!disabled || !empty_string(yuno_alias)) {
-            json_array_append(jn_data, node);
+            json_array_append(jn_data, webix?yuno2multiselect(node):node);
         }
     }
     JSON_DECREF(iter);
 
+    json_t *schema = webix?
+        0:tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource)
+    ;
     return msg_iev_build_webix(
         gobj,
         0,
         0,
-        tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
+        schema,
         jn_data, // owned
         kw  // owned
     );
@@ -3786,9 +3832,27 @@ PRIVATE json_t *cmd_top_yunos(hgobj gobj, const char *cmd, json_t *kw, hgobj src
 /***************************************************************************
  *
  ***************************************************************************/
+PRIVATE json_t *yunos2multilselect(
+    json_t *iter  // owned
+)
+{
+    json_t *jn_data = json_array();
+    int idx; json_t *node;
+    json_array_foreach(iter, idx, node) {
+        json_array_append(jn_data, yuno2multiselect(node));
+    }
+    JSON_DECREF(iter);
+
+    return jn_data;
+}
+
+/***************************************************************************
+ *
+ ***************************************************************************/
 PRIVATE json_t *cmd_list_yunos(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
 {
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
+    BOOL webix = kw_get_bool(kw, "webix", 0, KW_WILD_NUMBER);
     char *resource = "yunos";
 
     /*
@@ -3804,13 +3868,16 @@ PRIVATE json_t *cmd_list_yunos(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
     /*
      *  Inform
      */
-    json_t *jn_data = iter;
+    json_t *jn_data = webix?yunos2multilselect(iter):iter;
 
+    json_t *schema = webix?
+        0:tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource)
+    ;
     return msg_iev_build_webix(
         gobj,
         0,
         0,
-        tranger_list_topic_desc(gobj_read_json_attr(priv->resource, "tranger"), resource),
+        schema,
         jn_data, // owned
         kw  // owned
     );

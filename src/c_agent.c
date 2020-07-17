@@ -287,6 +287,7 @@ PRIVATE json_t *cmd_dir_logs(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
 PRIVATE json_t *cmd_dir_repos(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_dir_store(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_sumdir(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
+PRIVATE json_t *cmd_remove_persistent_attrs(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_list_persistent_attrs(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_launch_scripts(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_replicate_node(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
@@ -533,6 +534,11 @@ PRIVATE sdata_desc_t pm_logs[] = {
 SDATAPM (ASN_COUNTER64, "id",           0,              0,          "Yuno Id to get logs"),
 SDATA_END()
 };
+PRIVATE sdata_desc_t pm_domain[] = {
+/*-PM----type-----------name------------flag------------default-----description---------- */
+SDATAPM (ASN_OCTET_STR, "domain",       0,              0,          "Domain wanted"),
+SDATA_END()
+};
 PRIVATE sdata_desc_t pm_sumdir[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "directory",    0,              0,          "Display files with sizes of 'directory'"),
@@ -772,7 +778,8 @@ SDATACM2 (ASN_SCHEMA,   "dir-realms",       0,                  0,              
 SDATACM2 (ASN_SCHEMA,   "dir-repos",        0,                  0,                  pm_dir,         cmd_dir_repos,  "List /yuneta/repos directory"),
 SDATACM2 (ASN_SCHEMA,   "dir-store",        0,                  0,                  pm_dir,         cmd_dir_store,  "List /yuenta/store directory"),
 SDATACM2 (ASN_SCHEMA,   "sumdir",           0,                  0,                  pm_sumdir,      cmd_sumdir,     "List /yuneta directory with file sizes"),
-SDATACM2 (ASN_SCHEMA,   "list-persistent-attrs", 0,             0,                  0,              cmd_list_persistent_attrs, "List persistent attributes in /yuneta/realm directory"),
+SDATACM2 (ASN_SCHEMA,   "remove-persistent-attrs", 0,           0,                  pm_domain,              cmd_remove_persistent_attrs, "Remove persistent attributes files in domain directory"),
+SDATACM2 (ASN_SCHEMA,   "list-persistent-attrs", 0,             0,                  pm_domain,              cmd_list_persistent_attrs, "List persistent attributes in domain directory"),
 SDATACM2 (ASN_SCHEMA,   "launch-scripts",   0,                  0,                  pm_launch_scripts, cmd_launch_scripts, "Launch scripts found in specified path"),
 SDATACM2 (ASN_SCHEMA,   "read-json",        0,                  a_read_json,        pm_read_json,   0,              "Read json file"),
 SDATACM2 (ASN_SCHEMA,   "read-file",        0,                  a_read_file,        pm_read_file,   0,              "Read a text file"),
@@ -1591,6 +1598,69 @@ PRIVATE json_t *cmd_sumdir(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
 /***************************************************************************
  *
  ***************************************************************************/
+PRIVATE BOOL remove_file_cb(
+    void *user_data,
+    wd_found_type type,     // type found
+    char *fullpath,         // directory+filename found
+    const char *directory,  // directory of found filename
+    char *name,             // dname[255]
+    int level,              // level of tree where file found
+    int index               // index of file inside of directory, relative to 0
+)
+{
+    json_t *jn_dict = user_data;
+
+    int ret = unlink(fullpath);
+    json_object_set_new(jn_dict, fullpath, json_integer(ret));
+
+    return TRUE; // to continue
+}
+
+/***************************************************************************
+ *
+ ***************************************************************************/
+PRIVATE json_t* cmd_remove_persistent_attrs(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
+{
+    const char *domain = kw_get_str(kw, "domain", "", 0);
+    if(empty_string(domain)) {
+        return msg_iev_build_webix(
+            gobj,
+            -1,
+            json_local_sprintf("domain required"),
+            0,
+            0,
+            kw  // owned
+        );
+    }
+
+    char path[PATH_MAX];
+    snprintf(path, sizeof(path), "%s/realms/%s", yuneta_work_dir(), domain);
+
+    json_t *jn_dict = json_object();
+
+    walk_dir_tree(
+        path,
+        ".*persistent-attrs.json",
+        WD_RECURSIVE|WD_MATCH_REGULAR_FILE,
+        remove_file_cb,
+        jn_dict
+    );
+
+    /*
+     *  Inform
+     */
+    return msg_iev_build_webix(gobj,
+        0,
+        0,
+        0,
+        jn_dict, // owned
+        kw  // owned
+    );
+}
+
+/***************************************************************************
+ *
+ ***************************************************************************/
 PRIVATE BOOL read_json_cb(
     void *user_data,
     wd_found_type type,     // type found
@@ -1619,8 +1689,15 @@ PRIVATE BOOL read_json_cb(
  ***************************************************************************/
 PRIVATE json_t* cmd_list_persistent_attrs(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
 {
+    const char *domain = kw_get_str(kw, "domain", "", 0);
+
     char path[PATH_MAX];
-    snprintf(path, sizeof(path), "%s/%s", yuneta_work_dir(), yuneta_domain());
+    if(empty_string(domain)) {
+        snprintf(path, sizeof(path), "%s/realms", yuneta_work_dir());
+    } else {
+        snprintf(path, sizeof(path), "%s/realms/%s", yuneta_work_dir(), domain);
+    }
+
     json_t *jn_dict = json_object();
 
     walk_dir_tree(

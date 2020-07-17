@@ -1613,13 +1613,14 @@ PRIVATE BOOL read_json_cb(
     }
     return TRUE; // to continue
 }
+
 /***************************************************************************
  *
  ***************************************************************************/
 PRIVATE json_t* cmd_list_persistent_attrs(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
 {
     char path[PATH_MAX];
-    snprintf(path, sizeof(path), "%s/realms", yuneta_work_dir());
+    snprintf(path, sizeof(path), "%s/%s", yuneta_work_dir(), yuneta_domain());
     json_t *jn_dict = json_object();
 
     walk_dir_tree(

@@ -6120,7 +6120,18 @@ PRIVATE char * build_yuno_private_domain(
     );
 
     if(create_dir) {
-        mkrdir(bf, 0, yuneta_xpermission());
+        if(mkrdir(bf, 0, yuneta_xpermission())<0) {
+            log_error(0,
+                "gobj",         "%s", gobj_full_name(gobj),
+                "function",     "%s", __FUNCTION__,
+                "msgset",       "%s", MSGSET_SYSTEM_ERROR,
+                "msg",          "%s", "Cannot create directory",
+                "path",         "%s", bf,
+                "errno",        "%d", errno,
+                "serrno",       "%s", strerror(errno),
+                NULL
+            );
+        }
     }
     return bf;
 }
@@ -6177,7 +6188,18 @@ PRIVATE char * build_yuno_public_domain(
     );
 
     if(create_dir) {
-        mkrdir(bf, 0, yuneta_xpermission());
+        if(mkrdir(bf, 0, yuneta_xpermission())<0) {
+            log_error(0,
+                "gobj",         "%s", gobj_full_name(gobj),
+                "function",     "%s", __FUNCTION__,
+                "msgset",       "%s", MSGSET_SYSTEM_ERROR,
+                "msg",          "%s", "Cannot create directory",
+                "path",         "%s", bf,
+                "errno",        "%d", errno,
+                "serrno",       "%s", strerror(errno),
+                NULL
+            );
+        }
     }
     return bf;
 }
@@ -6228,7 +6250,18 @@ PRIVATE char * build_yuno_bin_path(hgobj gobj, json_t *yuno, char *bf, int bfsiz
     );
 
     if(create_dir) {
-        mkrdir(bf, 0, yuneta_xpermission());
+        if(mkrdir(bf, 0, yuneta_xpermission())<0) {
+            log_error(0,
+                "gobj",         "%s", gobj_full_name(gobj),
+                "function",     "%s", __FUNCTION__,
+                "msgset",       "%s", MSGSET_SYSTEM_ERROR,
+                "msg",          "%s", "Cannot create directory",
+                "path",         "%s", bf,
+                "errno",        "%d", errno,
+                "serrno",       "%s", strerror(errno),
+                NULL
+            );
+        }
     }
     return bf;
 }
@@ -6250,7 +6283,18 @@ PRIVATE char * build_yuno_log_path(hgobj gobj, json_t *yuno, char *bf, int bfsiz
     build_yuno_public_domain(gobj, yuno, "logs", p, bfsize - strlen(bf), create_dir);
 
     if(create_dir) {
-        mkrdir(bf, 0, yuneta_xpermission());
+        if(mkrdir(bf, 0, yuneta_xpermission())<0) {
+            log_error(0,
+                "gobj",         "%s", gobj_full_name(gobj),
+                "function",     "%s", __FUNCTION__,
+                "msgset",       "%s", MSGSET_SYSTEM_ERROR,
+                "msg",          "%s", "Cannot create directory",
+                "path",         "%s", bf,
+                "errno",        "%d", errno,
+                "serrno",       "%s", strerror(errno),
+                NULL
+            );
+        }
     }
     return bf;
 }

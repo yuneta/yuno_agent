@@ -927,7 +927,7 @@ PRIVATE void mt_create(hgobj gobj)
         exit(-1);
     }
 
-    priv->timer = gobj_create("agent", GCLASS_TIMER, 0, gobj);
+    priv->timer = gobj_create("", GCLASS_TIMER, 0, gobj);
 
     FILE *file = fopen("/yuneta/realms/agent/yuneta_agent.pid", "w");
     if(file) {

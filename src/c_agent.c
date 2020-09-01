@@ -55,7 +55,7 @@ PRIVATE void oauth2_log_callback(
 );
 PRIVATE int create_new_user(hgobj gobj, json_t *jwt_payload);
 PRIVATE json_t *get_yuno_realm(hgobj gobj, json_t *yuno);
-PRIVATE char * build_yuno_private_domain(hgobj gobj, json_t *yuno, char *bf, int bfsize, BOOL create_dir);
+PRIVATE char * build_yuno_private_domain(hgobj gobj, json_t *yuno, char *bf, int bfsize);
 PRIVATE char * build_yuno_public_domain(hgobj gobj, json_t *yuno, char *subdomain, char *bf, int bfsize, BOOL create_dir);
 PRIVATE int build_role_plus_name(char *bf, int bf_len, json_t *yuno);
 PRIVATE char * build_yuno_bin_path(hgobj gobj, json_t *yuno, char *bf, int bfsize, BOOL create_dir);
@@ -6075,8 +6075,7 @@ PRIVATE char * build_yuno_private_domain(
     hgobj gobj,
     json_t *yuno,
     char *bf,
-    int bfsize,
-    BOOL create_dir
+    int bfsize
 )
 {
     char *p;
@@ -6119,20 +6118,6 @@ PRIVATE char * build_yuno_private_domain(
         role_plus_name
     );
 
-    if(create_dir) {
-        if(mkrdir(bf, 0, yuneta_xpermission())<0) {
-            log_error(0,
-                "gobj",         "%s", gobj_full_name(gobj),
-                "function",     "%s", __FUNCTION__,
-                "msgset",       "%s", MSGSET_SYSTEM_ERROR,
-                "msg",          "%s", "Cannot create directory",
-                "path",         "%s", bf,
-                "errno",        "%d", errno,
-                "serrno",       "%s", strerror(errno),
-                NULL
-            );
-        }
-    }
     return bf;
 }
 
@@ -6189,7 +6174,7 @@ PRIVATE char * build_yuno_public_domain(
 
     if(create_dir) {
         if(mkrdir(bf, 0, yuneta_xpermission())<0) {
-            log_error(0,
+            log_error(LOG_OPT_TRACE_STACK,
                 "gobj",         "%s", gobj_full_name(gobj),
                 "function",     "%s", __FUNCTION__,
                 "msgset",       "%s", MSGSET_SYSTEM_ERROR,
@@ -6239,7 +6224,7 @@ PRIVATE char * build_yuno_bin_path(hgobj gobj, json_t *yuno, char *bf, int bfsiz
     snprintf(p, bfsize - strlen(bf), "%s", work_dir);
 
     p = bf + strlen(bf);
-    build_yuno_private_domain(gobj, yuno, p, bfsize - strlen(bf), create_dir);
+    build_yuno_private_domain(gobj, yuno, p, bfsize - strlen(bf));
     p = bf + strlen(bf);
     snprintf(p, bfsize - strlen(bf), "/bin");
 
@@ -6251,7 +6236,7 @@ PRIVATE char * build_yuno_bin_path(hgobj gobj, json_t *yuno, char *bf, int bfsiz
 
     if(create_dir) {
         if(mkrdir(bf, 0, yuneta_xpermission())<0) {
-            log_error(0,
+            log_error(LOG_OPT_TRACE_STACK,
                 "gobj",         "%s", gobj_full_name(gobj),
                 "function",     "%s", __FUNCTION__,
                 "msgset",       "%s", MSGSET_SYSTEM_ERROR,
@@ -6284,7 +6269,7 @@ PRIVATE char * build_yuno_log_path(hgobj gobj, json_t *yuno, char *bf, int bfsiz
 
     if(create_dir) {
         if(mkrdir(bf, 0, yuneta_xpermission())<0) {
-            log_error(0,
+            log_error(LOG_OPT_TRACE_STACK,
                 "gobj",         "%s", gobj_full_name(gobj),
                 "function",     "%s", __FUNCTION__,
                 "msgset",       "%s", MSGSET_SYSTEM_ERROR,
@@ -6716,7 +6701,7 @@ PRIVATE GBUFFER *build_yuno_running_script(
      *  Build the domain of yuno (defined by his realm)
      */
     char domain_dir[NAME_MAX];
-    build_yuno_private_domain(gobj, yuno, domain_dir, sizeof(domain_dir), TRUE);
+    build_yuno_private_domain(gobj, yuno, domain_dir, sizeof(domain_dir));
 
     char yuno_bin_path[NAME_MAX];
     build_yuno_bin_path(gobj, yuno, yuno_bin_path, sizeof(yuno_bin_path), TRUE);

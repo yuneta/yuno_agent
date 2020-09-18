@@ -271,6 +271,7 @@ PRIVATE char agent_filter_chain_config[]= "\
 ";
 
 PRIVATE json_t *cmd_help(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
+PRIVATE json_t *cmd_print_tranger(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 
 PRIVATE json_t *cmd_run_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_kill_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
@@ -766,6 +767,8 @@ PRIVATE const char *a_list_snaps[] = {"6", "snaps", 0};
 PRIVATE sdata_desc_t command_table[] = {
 /*-CMD2--type-----------name----------------flag----------------alias---------------items-----------json_fn---------description---------- */
 SDATACM2 (ASN_SCHEMA,   "help",             0,                  a_help,             pm_help,        cmd_help,       "Command's help"),
+SDATACM2 (ASN_SCHEMA,   "print-tranger",    0,                  0,                  0,              cmd_print_tranger,  "Print tranger"),
+
 SDATACM2 (ASN_SCHEMA,   "",                 0,                  0,                  0,              0,              "\nAgent\n-----------"),
 SDATACM2 (ASN_SCHEMA,   "command-agent",    SDF_WILD_CMD,       0,                  pm_command_agent,cmd_command_agent,"Command to agent. WARNING: parameter's keys are not checked"),
 SDATACM2 (ASN_SCHEMA,   "stats-agent",      SDF_WILD_CMD,       0,                  pm_stats_agent, cmd_stats_agent, "Get statistics of agent"),
@@ -1298,6 +1301,23 @@ PRIVATE json_t *cmd_help(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
         jn_resp,
         0,
         0,
+        kw  // owned
+    );
+}
+
+/***************************************************************************
+ *
+ ***************************************************************************/
+PRIVATE json_t *cmd_print_tranger(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
+{
+    PRIVATE_DATA *priv = gobj_priv_data(gobj);
+
+    json_t *tranger = kw_incref(priv->tranger);
+    return msg_iev_build_webix(gobj,
+        0,
+        0,
+        0,
+        tranger,
         kw  // owned
     );
 }

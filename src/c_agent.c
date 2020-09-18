@@ -1029,8 +1029,8 @@ PRIVATE void mt_create(hgobj gobj)
             "yuneta_agent",
             KW_REQUIRED
         );
-        json_t *kw_resource = json_pack("{s:O, s:s, s:o, s:i}",
-            "tranger", priv->tranger,
+        json_t *kw_resource = json_pack("{s:I, s:s, s:o, s:i}",
+            "tranger", (json_int_t)(size_t)priv->tranger,
             "treedb_name", treedb_name,
             "treedb_schema", jn_treedb_schema_yuneta_agent,
             "exit_on_error", LOG_OPT_EXIT_ZERO
@@ -1313,6 +1313,7 @@ PRIVATE json_t *cmd_print_tranger(hgobj gobj, const char *cmd, json_t *kw, hgobj
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
 
     json_t *tranger = kw_incref(priv->tranger);
+
     return msg_iev_build_webix(gobj,
         0,
         0,

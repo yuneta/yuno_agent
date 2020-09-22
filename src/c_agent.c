@@ -968,35 +968,35 @@ PRIVATE void mt_create(hgobj gobj)
         }
     }
 
-    if(1) {
-        /*---------------------------*
-         *      Timeranger
-         *---------------------------*/
-        const char *path = gobj_read_str_attr(gobj, "tranger_path");
-        json_t *jn_tranger = json_pack("{s:s, s:s, s:b}",
-            "path", path,
-            "filename_mask", "%Y",
-            "master", 1
-        );
+    /*---------------------------*
+     *      Timeranger
+     *---------------------------*/
+    const char *path = gobj_read_str_attr(gobj, "tranger_path");
+    json_t *jn_tranger = json_pack("{s:s, s:s, s:b}",
+        "path", path,
+        "filename_mask", "%Y",
+        "master", 1
+    );
 
-        /*
-         *  Abre trmsg fichajes (messages, instances)
-         */
-        priv->tranger = tranger_startup(
-            jn_tranger // owned
-        );
+    priv->tranger = tranger_startup(
+        jn_tranger // owned
+    );
 
-        if(!priv->tranger) {
-            log_critical(LOG_OPT_EXIT_ZERO,
-                "gobj",         "%s", gobj_full_name(gobj),
-                "function",     "%s", __FUNCTION__,
-                "msgset",       "%s", MSGSET_INTERNAL_ERROR,
-                "msg",          "%s", "Cannot open tranger",
-                "path",         "%s", path,
-                NULL
-            );
-        }
+    if(!priv->tranger) {
+        log_critical(LOG_OPT_EXIT_ZERO,
+            "gobj",         "%s", gobj_full_name(gobj),
+            "function",     "%s", __FUNCTION__,
+            "msgset",       "%s", MSGSET_INTERNAL_ERROR,
+            "msg",          "%s", "Cannot open tranger",
+            "path",         "%s", path,
+            NULL
+        );
     }
+
+    /*
+     *  Registra tranger en 2key (in-memory double-key) para su acceso externo
+     */
+    gobj_2key_register("tranger", "agent", priv->tranger);
 
     if(1) {
         /*---------------------------*

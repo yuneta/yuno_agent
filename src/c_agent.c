@@ -3487,7 +3487,7 @@ PRIVATE json_t *cmd_create_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
         GBUFFER *gbuf_content = gbuf_decodebase64string(content64);
         jn_config = gbuf2json(
             gbuf_content,  // owned
-            1
+            2
         );
         if(!jn_config) {
             return msg_iev_build_webix(
@@ -3662,7 +3662,7 @@ PRIVATE json_t *cmd_update_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
         GBUFFER *gbuf_content = gbuf_decodebase64string(content64);
         jn_config = gbuf2json(
             gbuf_content,  // owned
-            1
+            2
         );
     }
     if(!jn_config) {

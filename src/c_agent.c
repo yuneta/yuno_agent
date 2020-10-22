@@ -1107,6 +1107,7 @@ PRIVATE void mt_destroy(hgobj gobj)
     }
     EXEC_AND_RESET(oauth2_log_free, priv->oath2_log);
     EXEC_AND_RESET(tranger_shutdown, priv->tranger);
+    gobj_2key_deregister("tranger", "agent");
 }
 
 /***************************************************************************

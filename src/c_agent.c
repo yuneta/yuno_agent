@@ -889,6 +889,7 @@ typedef struct _PRIVATE_DATA {
     int32_t timerStBoot;
     BOOL enabled_yunos_running;
 
+    hgobj gobj_tranger;
     json_t *tranger;
     oauth2_log_t *oath2_log;
     oauth2_log_sink_t *oath2_sink;
@@ -970,31 +971,21 @@ PRIVATE void mt_create(hgobj gobj)
      *      Timeranger
      *---------------------------*/
     const char *path = gobj_read_str_attr(gobj, "tranger_path");
-    json_t *jn_tranger = json_pack("{s:s, s:s, s:b}",
+    json_t *kw_tranger = json_pack("{s:s, s:s, s:b, s:I, s:i}",
         "path", path,
         "filename_mask", "%Y",
-        "master", 1
+        "master", 1,
+        "subscriber", (json_int_t)(size_t)gobj,
+        "on_critical_error", (int)(LOG_OPT_EXIT_ZERO)
     );
-
-    priv->tranger = tranger_startup(
-        jn_tranger // owned
+    priv->gobj_tranger = gobj_create_service(
+        "tranger_agent",
+        GCLASS_TRANGER,
+        kw_tranger,
+        gobj
     );
-
-    if(!priv->tranger) {
-        log_critical(LOG_OPT_EXIT_ZERO,
-            "gobj",         "%s", gobj_full_name(gobj),
-            "function",     "%s", __FUNCTION__,
-            "msgset",       "%s", MSGSET_INTERNAL_ERROR,
-            "msg",          "%s", "Cannot open tranger",
-            "path",         "%s", path,
-            NULL
-        );
-    }
-
-    /*
-     *  Registra tranger en 2key (in-memory double-key) para su acceso externo
-     */
-    gobj_2key_register("tranger", "agent", priv->tranger);
+    gobj_start(priv->gobj_tranger);
+    priv->tranger = gobj_read_pointer_attr(priv->gobj_tranger, "tranger");
 
     if(1) {
         /*---------------------------*
@@ -1104,8 +1095,6 @@ PRIVATE void mt_destroy(hgobj gobj)
         priv->verify = 0;
     }
     EXEC_AND_RESET(oauth2_log_free, priv->oath2_log);
-    EXEC_AND_RESET(tranger_shutdown, priv->tranger);
-    gobj_2key_deregister("tranger", "agent");
 }
 
 /***************************************************************************

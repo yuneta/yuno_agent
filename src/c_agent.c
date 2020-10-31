@@ -987,6 +987,12 @@ PRIVATE void mt_create(hgobj gobj)
     gobj_start(priv->gobj_tranger);
     priv->tranger = gobj_read_pointer_attr(priv->gobj_tranger, "tranger");
 
+    /*
+     *  Registra tranger en 2key (in-memory double-key) para su acceso externo
+     *  TODO elimina cuando c_tranger esté completa
+     */
+    gobj_2key_register("tranger", "agent", priv->tranger);
+
     if(1) {
         /*---------------------------*
          *  Open topics as messages

@@ -5,6 +5,7 @@
  *          Copyright (c) 2014,2018 Niyamaka.
  *          All Rights Reserved.
  ****************************************************************************/
+#include <yuneta_tls.h>
 #include <yuneta.h>
 #include "c_agent.h"
 #include "yuno_yuneta_agent.h"
@@ -42,8 +43,7 @@ PRIVATE char variable_config[]= "\
 {                                                                   \n\
     '__json_config_variables__': {                                  \n\
         '__input_url__': 'ws://127.0.0.1:1991',                     \n\
-        '__input_host__': '127.0.0.1',                              \n\
-        '__input_port__': '1991'                                    \n\
+        '__top_url__': 'wss://0.0.0.0:1993'                         \n\
     },                                                              \n\
     'environment': {                                                \n\
         'use_system_memory': true,                                  \n\
@@ -80,7 +80,9 @@ PRIVATE char variable_config[]= "\
         'yuno_name': '(^^__hostname__^^)',                          \n\
         'trace_levels': {                                           \n\
             'Tcp0': ['connections'],                                \n\
-            'TcpS0': ['listen', 'not-accepted', 'accepted']         \n\
+            'TcpS0': ['listen', 'not-accepted', 'accepted'],        \n\
+            'Tcp1': ['connections'],                                \n\
+            'TcpS1': ['listen', 'not-accepted', 'accepted']         \n\
         }                                                           \n\
     },                                                              \n\
     'global': {                                                     \n\
@@ -105,8 +107,9 @@ PRIVATE char variable_config[]= "\
                     },                                          \n\
                     'zchilds': [                                        \n\
                         {                                               \n\
-                            'name': 'routerPort',                       \n\
+                            'name': 'server_port',                      \n\
                             'gclass': 'TcpS0',                          \n\
+                            'as_unique': true,                          \n\
                             'kw': {                                     \n\
                                 'url': '(^^__input_url__^^)',           \n\
                                 'child_tree_filter': {                  \n\
@@ -115,13 +118,34 @@ PRIVATE char variable_config[]= "\
                                         '__prefix_gobj_name__': 'wss',      \n\
                                         '__gclass_name__': 'IEvent_srv',    \n\
                                         '__disabled__': false,              \n\
-                                        'connected': false,                 \n\
-                                        'lHost': '(^^__input_host__^^)',    \n\
-                                        'lPort': '(^^__input_port__^^)'     \n\
+                                        'connected': false                  \n\
                                     }                                       \n\
-                                }                                       \n\
-                            }                                           \n\
-                        }                                               \n\
+                                }                                           \n\
+                            }                                               \n\
+                        },                                                  \n\
+                        {                                                   \n\
+                            'name': 'secure_port',                          \n\
+                            'gclass': 'TcpS1',                              \n\
+                            'as_unique': true,                              \n\
+                            'kw': {                                         \n\
+                                'crypto': {                                 \n\
+                                    'library': 'openssl',                   \n\
+'ssl_certificate': '/yuneta/store/certs/self-signed/yuneta_agent.crt',      \n\
+'ssl_certificate_key': '/yuneta/store/certs/self-signed/yuneta_agent.key',  \n\
+                                    'trace': false                          \n\
+                                },                                          \n\
+                                'url': '(^^__top_url__^^)',                 \n\
+                                'child_tree_filter': {                      \n\
+                                    'op': 'find',                           \n\
+                                    'kw': {                                 \n\
+                                        '__prefix_gobj_name__': 'wss',      \n\
+                                        '__gclass_name__': 'IEvent_srv',    \n\
+                                        '__disabled__': false,              \n\
+                                        'connected': false                  \n\
+                                    }                                       \n\
+                                }                                           \n\
+                            }                                               \n\
+                        }                                                   \n\
                     ],                                                  \n\
                     '[^^zchilds^^]': {                                  \n\
                         '__range__': [[12000,12099]], #^^ max 100 users \n\
@@ -137,8 +161,6 @@ PRIVATE char variable_config[]= "\
                                     'name': 'wss-(^^__range__^^)',              \n\
                                     'gclass': 'Channel',                        \n\
                                     'kw': {                                         \n\
-                                        'lHost': '(^^__input_host__^^)',            \n\
-                                        'lPort': '(^^__input_port__^^)'             \n\
                                     },                                              \n\
                                     'zchilds': [                                     \n\
                                         {                                               \n\
@@ -167,6 +189,11 @@ PRIVATE char variable_config[]= "\
  ***************************************************************************/
 static void register_yuno_and_more(void)
 {
+    /*------------------------*
+     *  Register yuneta-tls
+     *------------------------*/
+    yuneta_register_c_tls();
+
     /*-------------------*
      *  Register yuno
      *-------------------*/

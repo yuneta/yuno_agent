@@ -55,8 +55,10 @@ SET (YUNO_HDRS
 ADD_EXECUTABLE(yuneta_agent ${YUNO_SRCS} ${YUNO_HDRS})
 
 TARGET_LINK_LIBRARIES(yuneta_agent
+    /yuneta/development/output/lib/libyuneta-tls.a
     /yuneta/development/output/lib/libyuneta-core.a
     /yuneta/development/output/lib/libginsfsm.a
+    /yuneta/development/output/lib/libytls.a
     /yuneta/development/output/lib/libghelpers.a
     /yuneta/development/output/lib/libuv.a
     /yuneta/development/output/lib/liboauth2.a

@@ -3121,6 +3121,7 @@ PRIVATE json_t *cmd_update_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
     char *resource = "binaries";
 
+    // TODO permite hacer update solo al binario activo!, con las config igual creo.
     const char *id = kw_get_str(kw, "id", 0, 0);
     if(!id) {
         return msg_iev_build_webix(

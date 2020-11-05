@@ -9312,7 +9312,7 @@ PRIVATE LMETHOD lmt[] = {
  *---------------------------------------------*/
 PRIVATE GCLASS _gclass = {
     0,  // base
-    GCLASS_AGENT_NAME,      // CHANGE WITH each gclass
+    GCLASS_AGENT_NAME,
     &fsm,
     {
         mt_create,

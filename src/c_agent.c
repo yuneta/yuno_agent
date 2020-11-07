@@ -6579,7 +6579,7 @@ PRIVATE int write_service_client_connectors(
         const char *yuno_role = SDATA_GET_STR(hs_service, "yuno_role");
         const char *yuno_name = SDATA_GET_STR(hs_service, "yuno_name");
         const char *schema = SDATA_GET_STR(hs_service, "schema");
-        const char *ip =  SDATA_GET_STR(hs_service, "ip");
+        const char *ip =  SDATA_GET_STR(hs_service, "ip"); // TODO sácalo de la url
         uint32_t port_ =  SDATA_GET_INT(hs_service, "port");
         char port[32];
         snprintf(port, sizeof(port), "%d", port_);

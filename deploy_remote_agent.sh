@@ -20,6 +20,7 @@ scp -p \
     /yuneta/bin/tranger_search \
     /yuneta/bin/treedb_list \
     /yuneta/bin/json_diff \
+    /yuneta/bin/tranger_delete \
     yuneta@$1:/yuneta/bin
 
 scp -p \

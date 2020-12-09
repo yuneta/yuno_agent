@@ -1494,7 +1494,7 @@ PRIVATE json_t *cmd_dir_logs(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
         );
     }
 
-    json_t *node = gobj_get_node(priv->resource, "yunos", id, 0);
+    json_t *node = gobj_get_node(priv->resource, "yunos", id, 0, src);
     if(!node) {
         return msg_iev_build_webix(gobj,
             -198,
@@ -2366,7 +2366,8 @@ PRIVATE json_t *cmd_list_public_services(hgobj gobj, const char *cmd, json_t *kw
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        json_pack("{s:b}", "collapsed", 1)  // jn_options, owned "collapsed"
+        json_pack("{s:b}", "collapsed", 1),  // jn_options, owned "collapsed"
+        src
     );
 
     /*
@@ -2400,7 +2401,8 @@ PRIVATE json_t *cmd_update_public_service(hgobj gobj, const char *cmd, json_t *k
         priv->resource,
         resource,
         kw_incref(kw),
-        0
+        0,
+        src
     );
 
     if(json_array_size(iter)==0) {
@@ -2423,7 +2425,7 @@ PRIVATE json_t *cmd_update_public_service(hgobj gobj, const char *cmd, json_t *k
     json_array_foreach(iter, idx, node) {
         json_t *update = kw_duplicate(kw);
         json_object_set(update, "id", kw_get_dict_value(node, "id", 0, KW_REQUIRED));
-        if(gobj_update_node(priv->resource, resource, update, "")<0) {
+        if(gobj_update_node(priv->resource, resource, update, 0, src)<0) {
             result += -1;
             log_error(0,
                 "gobj",         "%s", gobj_full_name(gobj),
@@ -2468,7 +2470,8 @@ PRIVATE json_t *cmd_delete_public_service(hgobj gobj, const char *cmd, json_t *k
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        0
+        0,
+        src
     );
 
     if(json_array_size(iter)==0) {
@@ -2491,7 +2494,8 @@ PRIVATE json_t *cmd_delete_public_service(hgobj gobj, const char *cmd, json_t *k
     int idx; json_t *node;
     json_array_foreach(iter, idx, node) {
         json_array_append_new(jn_data, json_string(kw_get_str(node, "name", "", 0)));
-        if(gobj_delete_node(priv->resource, resource, node, force?"force":"")<0) {
+        if(gobj_delete_node(
+                priv->resource, resource, node, json_pack("{s:b}", "force", force), src)<0) {
             result += -1;
             log_error(0,
                 "gobj",         "%s", gobj_full_name(gobj),
@@ -2532,7 +2536,8 @@ PRIVATE json_t *cmd_list_realms(hgobj gobj, const char *cmd, json_t *kw, hgobj s
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        json_pack("{s:b}", "collapsed", 1)  // jn_options, owned "collapsed"
+        json_pack("{s:b}", "collapsed", 1),  // jn_options, owned "collapsed"
+        src
     );
 
     /*
@@ -2604,7 +2609,8 @@ PRIVATE json_t *cmd_create_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         priv->resource,
         resource,
         kw_find, // filter
-        0
+        0,
+        src
     );
     if(json_array_size(iter)) {
         /*
@@ -2627,7 +2633,7 @@ PRIVATE json_t *cmd_create_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
      *  Add to database
      */
     KW_INCREF(kw);
-    json_t *node = gobj_create_node(priv->resource, resource, kw, "");
+    json_t *node = gobj_create_node(priv->resource, resource, kw, 0, src);
     if(!node) {
         return msg_iev_build_webix(
             gobj,
@@ -2676,7 +2682,8 @@ PRIVATE json_t *cmd_update_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        0
+        0,
+        src
     );
 
     if(json_array_size(iter)==0) {
@@ -2699,7 +2706,7 @@ PRIVATE json_t *cmd_update_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
     json_array_foreach(iter, idx, node) {
         json_t *update = kw_duplicate(kw);
         json_object_set(update, "id", kw_get_dict_value(node, "id", 0, KW_REQUIRED));
-        if(gobj_update_node(priv->resource, resource, update, "")<0) {
+        if(gobj_update_node(priv->resource, resource, update, 0, src)<0) {
             result += -1;
             log_error(0,
                 "gobj",         "%s", gobj_full_name(gobj),
@@ -2744,7 +2751,8 @@ PRIVATE json_t *cmd_delete_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        0
+        0,
+        src
     );
 
     if(json_array_size(iter)==0) {
@@ -2793,7 +2801,8 @@ PRIVATE json_t *cmd_delete_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
     json_t *jn_data = json_array();
     json_array_foreach(iter, idx, node) {
         json_array_append_new(jn_data, json_string(kw_get_str(node, "name", "", 0)));
-        if(gobj_delete_node(priv->resource, resource, node, force?"force":"")<0) {
+        if(gobj_delete_node(
+                priv->resource, resource, node, json_pack("{s:b}", "force", force), src)<0) {
             result += -1;
             log_error(0,
                 "gobj",         "%s", gobj_full_name(gobj),
@@ -2834,7 +2843,8 @@ PRIVATE json_t *cmd_list_binaries(hgobj gobj, const char *cmd, json_t *kw, hgobj
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        json_pack("{s:b}", "collapsed", 1)  // jn_options, owned "collapsed"
+        json_pack("{s:b}", "collapsed", 1),  // jn_options, owned "collapsed"
+        src
     );
 
     /*
@@ -2967,7 +2977,8 @@ PRIVATE json_t *cmd_install_binary(hgobj gobj, const char *cmd, json_t *kw, hgob
         priv->resource,
         resource,
         kw_find, // filter
-        0
+        0,
+        src
     );
     if(json_array_size(iter)) {
         /*
@@ -3082,7 +3093,7 @@ PRIVATE json_t *cmd_install_binary(hgobj gobj, const char *cmd, json_t *kw, hgob
     /*
      *  Add to database
      */
-    json_t *node = gobj_create_node(priv->resource, resource, jn_basic_info, "");
+    json_t *node = gobj_create_node(priv->resource, resource, jn_basic_info, 0, src);
     if(!node) {
         return msg_iev_build_webix(
             gobj,
@@ -3134,7 +3145,7 @@ PRIVATE json_t *cmd_update_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
         );
     }
 
-    json_t *node = gobj_get_node(priv->resource, resource, id, 0);
+    json_t *node = gobj_get_node(priv->resource, resource, id, 0, src);
     if(!node) {
         return msg_iev_build_webix(
             gobj,
@@ -3275,7 +3286,7 @@ PRIVATE json_t *cmd_update_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
     json_object_update(node, jn_basic_info);
     JSON_DECREF(jn_basic_info);
 
-    node = gobj_update_node(priv->resource, resource, kw_incref(node), "");
+    node = gobj_update_node(priv->resource, resource, kw_incref(node), 0, src);
 
     /*
      *  Convert result in json
@@ -3315,7 +3326,8 @@ PRIVATE json_t *cmd_delete_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
         priv->resource,
         resource,
         kw_incref(kw),  // filter
-        0
+        0,
+        src
     );
 
     if(json_array_size(iter)==0) {
@@ -3375,7 +3387,8 @@ PRIVATE json_t *cmd_delete_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
             FALSE
         );
 
-        if(gobj_delete_node(priv->resource, resource, node, force?"force":"")<0) {
+        if(gobj_delete_node(
+                priv->resource, resource, node, json_pack("{s:b}", "force", force), src)<0) {
             result += -1;
             log_error(0,
                 "gobj",         "%s", __FILE__,
@@ -3424,7 +3437,8 @@ PRIVATE json_t *cmd_list_configs(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        json_pack("{s:b}", "collapsed", 1)  // jn_options, owned "collapsed"
+        json_pack("{s:b}", "collapsed", 1),  // jn_options, owned "collapsed"
+        src
     );
 
     /*
@@ -3512,7 +3526,8 @@ PRIVATE json_t *cmd_create_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
         priv->resource,
         resource,
         kw_find, // filter
-        0
+        0,
+        src
     );
     if(json_array_size(iter)) {
         /*
@@ -3566,7 +3581,7 @@ PRIVATE json_t *cmd_create_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
     /*
      *  Add to database
      */
-    json_t *node = gobj_create_node(priv->resource, resource, kw_configuration, "");
+    json_t *node = gobj_create_node(priv->resource, resource, kw_configuration, 0, src);
     if(!node) {
         return msg_iev_build_webix(
             gobj,
@@ -3618,7 +3633,7 @@ PRIVATE json_t *cmd_update_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
         );
     }
 
-    json_t *node = gobj_get_node(priv->resource, resource, id, 0);
+    json_t *node = gobj_get_node(priv->resource, resource, id, 0, src);
     if(!node) {
         return msg_iev_build_webix(
             gobj,
@@ -3657,7 +3672,7 @@ PRIVATE json_t *cmd_update_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
     /*
      *  Update config
      */
-    node = gobj_update_node(priv->resource, resource, kw_incref(node), "");
+    node = gobj_update_node(priv->resource, resource, kw_incref(node), 0, src);
 
     /*
      *  Inform
@@ -3694,7 +3709,8 @@ PRIVATE json_t *cmd_delete_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
         priv->resource,
         resource,
         kw_incref(kw),  // filter
-        0
+        0,
+        src
     );
 
     if(json_array_size(iter)==0) {
@@ -3743,7 +3759,8 @@ PRIVATE json_t *cmd_delete_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
         const char *name = kw_get_str(node, "name", "", KW_REQUIRED);
         const char *version = kw_get_str(node, "version", "", KW_REQUIRED);
 
-        if(gobj_delete_node(priv->resource, resource, node, force?"force":"")<0) {
+        if(gobj_delete_node(
+                priv->resource, resource, node, json_pack("{s:b}", "force", force), src)<0) {
             JSON_DECREF(iter);
             return msg_iev_build_webix(
                 gobj,
@@ -3795,7 +3812,8 @@ PRIVATE json_t *cmd_set_alias(hgobj gobj, const char *cmd, json_t *kw, hgobj src
         priv->resource,
         resource,
         kw_incref(kw),  // filter
-        0
+        0,
+        src
     );
 
     if(json_array_size(iter)==0) {
@@ -3818,7 +3836,7 @@ PRIVATE json_t *cmd_set_alias(hgobj gobj, const char *cmd, json_t *kw, hgobj src
         json_t *update = kw_duplicate(kw);
         json_object_set(update, "id", kw_get_dict_value(node, "id", 0, KW_REQUIRED));
         json_object_set_new(update, "yuno_alias", json_string(yuno_alias));
-        gobj_update_node(priv->resource, resource, update, "");
+        gobj_update_node(priv->resource, resource, update, 0, src);
     }
 
     /*
@@ -3875,7 +3893,8 @@ PRIVATE json_t *cmd_top_yunos(hgobj gobj, const char *cmd, json_t *kw, hgobj src
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        json_pack("{s:b}", "collapsed", 1)  // jn_options, owned "collapsed"
+        json_pack("{s:b}", "collapsed", 1),  // jn_options, owned "collapsed"
+        src
     );
 
     /*
@@ -3938,7 +3957,8 @@ PRIVATE json_t *cmd_list_yunos(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        json_pack("{s:b}", "collapsed", 1)  // jn_options, owned "collapsed"
+        json_pack("{s:b}", "collapsed", 1),  // jn_options, owned "collapsed"
+        src
     );
 
     /*
@@ -3995,7 +4015,8 @@ PRIVATE json_t *cmd_find_new_yunos(hgobj gobj, const char *cmd, json_t *kw, hgob
         priv->resource,
         "yunos",
         kw_incref(kw), // filter
-        0
+        0,
+        src
     );
 
     json_t *jn_data = json_array();
@@ -4019,7 +4040,8 @@ PRIVATE json_t *cmd_find_new_yunos(hgobj gobj, const char *cmd, json_t *kw, hgob
             "configurations",
             "",
             json_pack("{s:s}", "name", config_name),
-            0
+            0,
+            src
         );
         json_t *config_found = 0;
         int ix; json_t *config;
@@ -4045,7 +4067,8 @@ PRIVATE json_t *cmd_find_new_yunos(hgobj gobj, const char *cmd, json_t *kw, hgob
             "binaries",
             "",
             json_pack("{s:s}", "role", yuno_role),
-            0
+            0,
+            src
         );
         json_t *binary_found = 0;
         json_t *binary;
@@ -4245,7 +4268,8 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
             priv->resource,
             resource,
             kw_find, // filter
-            json_pack("{s:b}", "collapsed", 1)  // jn_options, owned "collapsed"
+            json_pack("{s:b}", "collapsed", 1),  // jn_options, owned "collapsed"
+            src
         );
         if(json_array_size(iter_find)) {
             /*
@@ -4282,7 +4306,8 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
         priv->resource,
         resource,
         kw_incref(kw),
-        0
+        0,
+        src
     );
     if(!yuno) {
         return msg_iev_build_webix(
@@ -4298,9 +4323,9 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
     /*-----------------------------*
      *  Link
      *-----------------------------*/
-    gobj_link_nodes(priv->resource, "yunos", hs_realm, yuno);
-    gobj_link_nodes(priv->resource, "binary", yuno, hs_binary);
-    gobj_link_nodes(priv->resource, "configurations", yuno, hs_configuration);
+    gobj_link_nodes(priv->resource, "yunos", hs_realm, yuno, 0, src);
+    gobj_link_nodes(priv->resource, "binary", yuno, hs_binary, 0, src);
+    gobj_link_nodes(priv->resource, "configurations", yuno, hs_configuration, 0, src);
 
     /*-----------------------------*
      *  Register public services
@@ -4341,7 +4366,8 @@ json_t* cmd_delete_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
         priv->resource,
         resource,
         kw_incref(kw),  // filter
-        0
+        0,
+        src
     );
 
     if(json_array_size(iter)==0) {
@@ -4399,7 +4425,8 @@ json_t* cmd_delete_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
     int result = 0;
     int deleted = 0;
     json_array_foreach(iter, idx, node) {
-        if(gobj_delete_node(priv->resource, resource, node, force?"force":"")<0) {
+        if(gobj_delete_node(
+                priv->resource, resource, node, json_pack("{s:b}", "force", force), src)<0) {
             result += -1;
             log_error(0,
                 "gobj",         "%s", __FILE__,
@@ -4422,7 +4449,8 @@ json_t* cmd_delete_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
         priv->resource,
         resource,
         kw_incref(kw),  // filter
-        0
+        0,
+        src
     );
 
     return msg_iev_build_webix(
@@ -4454,7 +4482,8 @@ PRIVATE json_t *cmd_run_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        0
+        0,
+        src
     );
     if(json_array_size(iter)==0) {
         JSON_DECREF(iter);
@@ -4622,7 +4651,8 @@ PRIVATE json_t *cmd_kill_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        0
+        0,
+        src
     );
     if(json_array_size(iter)==0) {
         JSON_DECREF(iter);
@@ -4787,7 +4817,8 @@ PRIVATE json_t *cmd_play_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        0
+        0,
+        src
     );
     if(json_array_size(iter)==0) {
         JSON_DECREF(iter);
@@ -4821,7 +4852,8 @@ PRIVATE json_t *cmd_play_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
 
             gobj_save_node( // Return is NOT YOURS
                 priv->resource,
-                yuno // not owned
+                yuno, // not owned
+                src
             );
             total_to_preplayed++;
         }
@@ -4969,7 +5001,8 @@ PRIVATE json_t *cmd_pause_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        0
+        0,
+        src
     );
     if(json_array_size(iter)==0) {
         JSON_DECREF(iter);
@@ -5003,7 +5036,8 @@ PRIVATE json_t *cmd_pause_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
 
             gobj_save_node( // Return is NOT YOURS
                 priv->resource,
-                yuno // not owned
+                yuno, // not owned
+                src
             );
             total_to_prepaused++;
         }
@@ -5136,7 +5170,8 @@ PRIVATE json_t* cmd_enable_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj s
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        0
+        0,
+        src
     );
     if(json_array_size(iter)==0) {
         JSON_DECREF(iter);
@@ -5157,7 +5192,7 @@ PRIVATE json_t* cmd_enable_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj s
          *  Enable yuno
          */
         json_object_set_new(yuno, "disabled", json_false());
-        gobj_save_node(priv->resource, yuno);
+        gobj_save_node(priv->resource, yuno, src);
     }
 
     /*
@@ -5192,7 +5227,8 @@ PRIVATE json_t* cmd_disable_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj 
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        0
+        0,
+        src
     );
     if(json_array_size(iter)==0) {
         JSON_DECREF(iter);
@@ -5228,7 +5264,7 @@ PRIVATE json_t* cmd_disable_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj 
             }
 
             json_object_set_new(yuno, "disabled", json_true());
-            gobj_save_node(priv->resource, yuno);
+            gobj_save_node(priv->resource, yuno, src);
         }
     }
 
@@ -5267,7 +5303,8 @@ PRIVATE json_t* cmd_trace_on_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        0
+        0,
+        src
     );
     if(json_array_size(iter)==0) {
         JSON_DECREF(iter);
@@ -5290,7 +5327,7 @@ PRIVATE json_t* cmd_trace_on_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj
         json_object_set_new(yuno, "traced", json_true());
         json_t *kw_clone = msg_iev_pure_clone(kw);
         trace_on_yuno(gobj, yuno, kw_clone, src);
-        gobj_save_node(priv->resource, yuno);
+        gobj_save_node(priv->resource, yuno, src);
     }
 
     /*
@@ -5325,7 +5362,8 @@ PRIVATE json_t* cmd_trace_off_yuno(hgobj gobj, const char* cmd, json_t* kw, hgob
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        0
+        0,
+        src
     );
     if(json_array_size(iter)==0) {
         JSON_DECREF(iter);
@@ -5348,7 +5386,7 @@ PRIVATE json_t* cmd_trace_off_yuno(hgobj gobj, const char* cmd, json_t* kw, hgob
         json_object_set_new(yuno, "traced", json_false());
         json_t *kw_clone = msg_iev_pure_clone(kw);
         trace_off_yuno(gobj, yuno, kw_clone, src);
-        gobj_save_node(priv->resource, yuno);
+        gobj_save_node(priv->resource, yuno, src);
     }
 
     /*
@@ -5398,7 +5436,8 @@ PRIVATE json_t *cmd_command_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        0
+        0,
+        src
     );
     if(json_array_size(iter)==0) {
         JSON_DECREF(iter);
@@ -5452,7 +5491,8 @@ PRIVATE json_t *cmd_stats_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        0
+        0,
+        src
     );
     if(json_array_size(iter)==0) {
         JSON_DECREF(iter);
@@ -5622,7 +5662,8 @@ PRIVATE json_t *cmd_list_snaps(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
 
     json_t *jn_data = gobj_list_snaps(
         priv->resource,
-        kw_incref(kw)
+        kw_incref(kw),
+        src
     );
 
     return msg_iev_build_webix(gobj,
@@ -5667,7 +5708,8 @@ PRIVATE json_t *cmd_snap_content(hgobj gobj, const char *cmd, json_t *kw, hgobj 
 
     json_t *jn_data = gobj_list_snaps(
         priv->resource,
-        kw_incref(kw)
+        kw_incref(kw),
+        src
     );
 
     if(json_array_size(jn_data)==0) {
@@ -5716,13 +5758,16 @@ PRIVATE json_t *cmd_shoot_snap(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
     }
     int ret = gobj_shoot_snap(
         priv->resource,
-        name
+        name,
+        0,
+        src
     );
     json_t *jn_data = 0;
     if(ret == 0) {
         jn_data = gobj_list_snaps(
             priv->resource,
-            json_pack("{s:s}", "name", name)
+            json_pack("{s:s}", "name", name),
+            src
         );
     }
 
@@ -5756,7 +5801,9 @@ PRIVATE json_t *cmd_activate_snap(hgobj gobj, const char *cmd, json_t *kw, hgobj
     }
     int ret = gobj_activate_snap(
         priv->resource,
-        name
+        name,
+        0,
+        src
     );
     if(ret>=0) {
         ret = restart_nodes(gobj);
@@ -5779,7 +5826,9 @@ PRIVATE json_t *cmd_deactivate_snap(hgobj gobj, const char *cmd, json_t *kw, hgo
 
     int ret = gobj_activate_snap(
         priv->resource,
-        "__clear__"
+        "__clear__",
+        0,
+        src
     );
     if(ret>=0) {
         ret = restart_nodes(gobj);
@@ -5809,7 +5858,8 @@ PRIVATE json_t *cmd_realms_instances(hgobj gobj, const char *cmd, json_t *kw, hg
         resource,
         "",
         kw_incref(kw), // filter
-        json_pack("{s:b}", "collapsed", 1)  // jn_options, owned "collapsed"
+        json_pack("{s:b}", "collapsed", 1),  // jn_options, owned "collapsed"
+        src
     );
 
     /*
@@ -5841,7 +5891,8 @@ PRIVATE json_t *cmd_yunos_instances(hgobj gobj, const char *cmd, json_t *kw, hgo
         resource,
         "",
         kw_incref(kw), // filter
-        json_pack("{s:b}", "collapsed", 1)  // jn_options, owned "collapsed"
+        json_pack("{s:b}", "collapsed", 1),  // jn_options, owned "collapsed"
+        src
     );
 
     /*
@@ -5875,7 +5926,8 @@ PRIVATE json_t *cmd_binaries_instances(hgobj gobj, const char *cmd, json_t *kw, 
         resource,
         "",
         kw_incref(kw), // filter
-        json_pack("{s:b}", "collapsed", 1)  // jn_options, owned "collapsed"
+        json_pack("{s:b}", "collapsed", 1),  // jn_options, owned "collapsed"
+        src
     );
 
     /*
@@ -5907,7 +5959,8 @@ PRIVATE json_t *cmd_configs_instances(hgobj gobj, const char *cmd, json_t *kw, h
         resource,
         "",
         kw_incref(kw), // filter
-        json_pack("{s:b}", "collapsed", 1)  // jn_options, owned "collapsed"
+        json_pack("{s:b}", "collapsed", 1),  // jn_options, owned "collapsed"
+        src
     );
 
     /*
@@ -5939,7 +5992,8 @@ PRIVATE json_t *cmd_public_services_instances(hgobj gobj, const char *cmd, json_
         resource,
         "",
         kw_incref(kw), // filter
-        json_pack("{s:b}", "collapsed", 1)  // jn_options, owned "collapsed"
+        json_pack("{s:b}", "collapsed", 1),  // jn_options, owned "collapsed"
+        src
     );
 
     /*
@@ -6348,7 +6402,8 @@ PRIVATE json_t *get_yuno_binary(hgobj gobj, json_t *yuno)
 
     json_t *snaps = gobj_list_snaps(
         priv->resource,
-        json_pack("{s:b}", "active", 1)
+        json_pack("{s:b}", "active", 1),
+        gobj
     );
     BOOL is_snap_activated = json_array_size(snaps)?TRUE:FALSE;
     JSON_DECREF(snaps);
@@ -6361,7 +6416,8 @@ PRIVATE json_t *get_yuno_binary(hgobj gobj, json_t *yuno)
         priv->resource,
         "binaries",
         json_incref(kw_find), // filter
-        0
+        0,
+        gobj
     );
     if(json_array_size(binaries)==0) {
         if(is_snap_activated) {
@@ -6383,7 +6439,8 @@ PRIVATE json_t *get_yuno_binary(hgobj gobj, json_t *yuno)
             "binaries",
             "",
             json_incref(kw_find), // filter
-            0
+            0,
+            gobj
         );
         if(json_array_size(binaries)==0) {
             log_error(0,
@@ -6415,7 +6472,8 @@ PRIVATE json_t *get_yuno_config(hgobj gobj, json_t *yuno)
 
     json_t *snaps = gobj_list_snaps(
         priv->resource,
-        json_pack("{s:b}", "active", 1)
+        json_pack("{s:b}", "active", 1),
+        gobj
     );
     BOOL is_snap_activated = json_array_size(snaps)?TRUE:FALSE;
     JSON_DECREF(snaps);
@@ -6434,7 +6492,8 @@ PRIVATE json_t *get_yuno_config(hgobj gobj, json_t *yuno)
         priv->resource,
         "configurations",
         json_incref(kw_find), // filter
-        0
+        0,
+        gobj
     );
 
     if(json_array_size(configurations)==0) {
@@ -6457,7 +6516,8 @@ PRIVATE json_t *get_yuno_config(hgobj gobj, json_t *yuno)
             "configurations",
             "",
             json_incref(kw_find), // filter
-            0
+            0,
+            gobj
         );
         if(json_array_size(configurations)==0) {
             log_error(0,
@@ -6505,7 +6565,8 @@ PRIVATE json_t *find_service_for_client(hgobj gobj, const char *service_, json_t
         priv->resource,
         resource,
         kw_find, // filter
-        0
+        0,
+        gobj
     );
 
     json_t *hs = json_array_get(iter_find, 0);
@@ -6649,7 +6710,8 @@ PRIVATE json_t *assigned_yuno_global_service_variables(
         priv->resource,
         "public_services",
         kw_find, // filter
-        0
+        0,
+        gobj
     );
 
     int idx; json_t *hs;
@@ -7257,7 +7319,8 @@ PRIVATE int run_enabled_yunos(hgobj gobj)
         priv->resource,
         resource,
         0, // filter
-        0
+        0,
+        gobj
     );
     int idx; json_t *yuno;
     json_array_foreach(iter_yunos, idx, yuno) {
@@ -7330,7 +7393,8 @@ PRIVATE json_t *find_last_id_by_name(
         resource,
         "",
         kw_find, // filter,
-        0
+        0,
+        gobj
     );
 
     if(json_array_size(iter_find)>0) {
@@ -7366,7 +7430,8 @@ PRIVATE json_t *find_binary_version(
         "binaries",
         "",
         kw_find, // filter
-        0
+        0,
+        gobj
     );
     int idx; json_t *hs;
     json_array_foreach(iter_find, idx, hs) {
@@ -7413,7 +7478,8 @@ PRIVATE json_t *find_configuration_version(
         "configurations",
         "",
         kw_find, // filter
-        0
+        0,
+        gobj
     );
 
     int idx; json_t *hs=0;
@@ -7477,7 +7543,8 @@ PRIVATE json_t *find_public_service(
         priv->resource,
         resource,
         kw_find, // filter
-        0
+        0,
+        gobj
     );
 
     json_t *hs = json_array_get(iter_find, 0);
@@ -7526,7 +7593,7 @@ PRIVATE int get_new_service_port(hgobj gobj, json_t *hs_realm)
         new_port = json_list_int(jn_port_list, idx);
     }
     SDATA_SET_INT(hs_realm, "last_port", new_port);
-    gobj_save_node(priv->resource, hs_realm);
+    gobj_save_node(priv->resource, hs_realm, gobj);
 
     JSON_DECREF(jn_port_list);
     return new_port;
@@ -7612,7 +7679,8 @@ PRIVATE int register_public_services(hgobj gobj, json_t *yuno)
                     priv->resource,
                     resource,
                     kw_write_service,
-                    0
+                    0,
+                    gobj
                 );
                 if(!hs_service) {
                     log_error(0,
@@ -7652,7 +7720,7 @@ PRIVATE int register_public_services(hgobj gobj, json_t *yuno)
              *  yuno_id will change with each new yuno release
              */
             json_object_set_new(hs_service, "yuno_id", json_string(yuno_id));
-            gobj_save_node(priv->resource, hs_service);
+            gobj_save_node(priv->resource, hs_service, gobj);
         }
     }
 
@@ -7674,7 +7742,8 @@ PRIVATE int restart_nodes(hgobj gobj)
         priv->resource,
         "yunos",
         0, // filter
-        0
+        0,
+        gobj
     );
 
     // Force kill
@@ -7750,7 +7819,8 @@ PRIVATE int ac_edit_config(hgobj gobj, const char *event, json_t *kw, hgobj src)
         resource,
         "",
         kw, // filter
-        0
+        0,
+        src
     );
     int found = json_array_size(iter);
     if(found != 1) {
@@ -7823,7 +7893,8 @@ PRIVATE int ac_view_config(hgobj gobj, const char *event, json_t *kw, hgobj src)
         resource,
         "",
         kw, // filter
-        0
+        0,
+        src
     );
     int found = json_array_size(iter);
     if(found != 1) {
@@ -7881,7 +7952,8 @@ PRIVATE int ac_edit_yuno_config(hgobj gobj, const char *event, json_t *kw, hgobj
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        0
+        0,
+        src
     );
     if(json_array_size(iter)==0) {
         JSON_DECREF(iter);
@@ -7995,7 +8067,8 @@ PRIVATE int ac_view_yuno_config(hgobj gobj, const char *event, json_t *kw, hgobj
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        0
+        0,
+        src
     );
     if(json_array_size(iter)==0) {
         JSON_DECREF(iter);
@@ -8484,7 +8557,8 @@ PRIVATE int ac_read_running_keys(hgobj gobj, const char *event, json_t *kw, hgob
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        0
+        0,
+        src
     );
     if(json_array_size(iter)==0) {
         JSON_DECREF(iter);
@@ -8571,7 +8645,8 @@ PRIVATE int ac_read_running_bin(hgobj gobj, const char *event, json_t *kw, hgobj
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        0
+        0,
+        src
     );
     if(json_array_size(iter)==0) {
         JSON_DECREF(iter);
@@ -8854,7 +8929,8 @@ PRIVATE int ac_on_open(hgobj gobj, const char *event, json_t *kw, hgobj src)
         priv->resource,
         "yunos",
         kw_find, // filter
-        0
+        0,
+        src
     );
     int found = json_array_size(iter_yunos);
     if(found==0) {

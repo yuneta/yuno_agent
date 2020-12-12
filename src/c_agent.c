@@ -56,7 +56,6 @@ PRIVATE void oauth2_log_callback(
 PRIVATE int create_new_user(hgobj gobj, json_t *jwt_payload);
 PRIVATE json_t *get_yuno_realm(hgobj gobj, json_t *yuno);
 PRIVATE char * build_yuno_private_domain(hgobj gobj, json_t *yuno, char *bf, int bfsize);
-PRIVATE char * build_yuno_public_domain(hgobj gobj, json_t *yuno, char *subdomain, char *bf, int bfsize, BOOL create_dir);
 PRIVATE int build_role_plus_name(char *bf, int bf_len, json_t *yuno);
 PRIVATE char * build_yuno_bin_path(hgobj gobj, json_t *yuno, char *bf, int bfsize, BOOL create_dir);
 PRIVATE char * build_yuno_log_path(hgobj gobj, json_t *yuno, char *bf, int bfsize, BOOL create_dir);
@@ -531,7 +530,7 @@ SDATA_END()
 };
 PRIVATE sdata_desc_t pm_logs[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
-SDATAPM (ASN_COUNTER64, "id",           0,              0,          "Yuno Id to get logs"),
+SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id of yuno"),
 SDATA_END()
 };
 PRIVATE sdata_desc_t pm_domain[] = {
@@ -6174,74 +6173,6 @@ PRIVATE char * build_yuno_private_domain(
 }
 
 /***************************************************************************
- *  Build the public domain of yuno (defined by his realm)
- ***************************************************************************/
-PRIVATE char * build_yuno_public_domain(
-    hgobj gobj,
-    json_t *yuno,
-    char *subdomain,
-    char *bf,
-    int bfsize,
-    BOOL create_dir)
-{
-    char *p;
-    *bf = 0;
-
-    json_t *realm = get_yuno_realm(gobj, yuno);
-    if(!realm) {
-        return 0;
-    }
-
-    p = bf + strlen(bf);
-    snprintf(p, bfsize - strlen(bf), "/public/%s/realms", subdomain);
-
-    const char *domain = kw_get_str(realm, "domain", 0, KW_REQUIRED);
-    const char *role = kw_get_str(realm, "role", 0, KW_REQUIRED);
-    const char *name = kw_get_str(realm, "name", 0, KW_REQUIRED);
-    if(!empty_string(domain)) {
-        p = bf + strlen(bf);
-        if(*domain == '/') {
-            snprintf(p, bfsize - strlen(bf), "%s", domain);
-        } else {
-            snprintf(p, bfsize - strlen(bf), "/%s", domain);
-        }
-    }
-    if(!empty_string(role)) {
-        p = bf + strlen(bf);
-        snprintf(p, bfsize - strlen(bf), "/%s", role);
-    }
-    if(!empty_string(name)) {
-        p = bf + strlen(bf);
-        snprintf(p, bfsize - strlen(bf), "/%s", name);
-    }
-    strtolower(bf); // domain in lower case
-
-    char role_plus_name[NAME_MAX];
-    build_role_plus_name(role_plus_name, sizeof(role_plus_name), yuno);
-
-    p = bf + strlen(bf);
-    snprintf(p, bfsize - strlen(bf), "/%s",
-        role_plus_name
-    );
-
-    if(create_dir) {
-        if(mkrdir(bf, 0, yuneta_xpermission())<0) {
-            log_error(LOG_OPT_TRACE_STACK,
-                "gobj",         "%s", gobj_full_name(gobj),
-                "function",     "%s", __FUNCTION__,
-                "msgset",       "%s", MSGSET_SYSTEM_ERROR,
-                "msg",          "%s", "Cannot create directory",
-                "path",         "%s", bf,
-                "errno",        "%d", errno,
-                "serrno",       "%s", strerror(errno),
-                NULL
-            );
-        }
-    }
-    return bf;
-}
-
-/***************************************************************************
  *
  ***************************************************************************/
 PRIVATE int build_role_plus_name(char *bf, int bf_len, json_t *yuno)
@@ -6317,7 +6248,9 @@ PRIVATE char * build_yuno_log_path(hgobj gobj, json_t *yuno, char *bf, int bfsiz
     snprintf(p, bfsize - strlen(bf), "%s", work_dir);
 
     p = bf + strlen(bf);
-    build_yuno_public_domain(gobj, yuno, "logs", p, bfsize - strlen(bf), create_dir);
+    build_yuno_private_domain(gobj, yuno, p, bfsize - strlen(bf));
+    p = bf + strlen(bf);
+    snprintf(p, bfsize - strlen(bf), "/logs");
 
     if(create_dir) {
         if(mkrdir(bf, 0, yuneta_xpermission())<0) {

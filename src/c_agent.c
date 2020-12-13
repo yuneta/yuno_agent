@@ -280,12 +280,13 @@ PRIVATE json_t *cmd_disable_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj 
 PRIVATE json_t *cmd_trace_on_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_trace_off_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 
-PRIVATE json_t *cmd_dir_public(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
+PRIVATE json_t *cmd_dir_yuneta(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_dir_realms(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_dir_logs(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_dir_repos(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_dir_store(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_sumdir(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
+// TODO delete persistent_attrs commands when attrs treedb ready
 PRIVATE json_t *cmd_remove_persistent_attrs(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_list_persistent_attrs(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_launch_scripts(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
@@ -773,7 +774,7 @@ SDATACM2 (ASN_SCHEMA,   "set-ordered-kill", 0,                  0,              
 SDATACM2 (ASN_SCHEMA,   "set-quick-kill",   0,                  0,                  0,              cmd_set_qkill,  "Kill yunos with SIGKILL, quick kill"),
 SDATACM2 (ASN_SCHEMA,   "",                 0,                  0,                  0,              0,              "\nYuneta tree\n-----------"),
 SDATACM2 (ASN_SCHEMA,   "dir-logs",         0,                  0,                  pm_logs,        cmd_dir_logs,   "List log filenames of yuno"),
-SDATACM2 (ASN_SCHEMA,   "dir-public",       0,                  0,                  pm_dir,         cmd_dir_public, "List /yuneta/public directory"),
+SDATACM2 (ASN_SCHEMA,   "dir-yuneta",       0,                  0,                  pm_dir,         cmd_dir_yuneta, "List /yuneta directory"),
 SDATACM2 (ASN_SCHEMA,   "dir-realms",       0,                  0,                  pm_dir,         cmd_dir_realms, "List /yuneta/realms directory"),
 SDATACM2 (ASN_SCHEMA,   "dir-repos",        0,                  0,                  pm_dir,         cmd_dir_repos,  "List /yuneta/repos directory"),
 SDATACM2 (ASN_SCHEMA,   "dir-store",        0,                  0,                  pm_dir,         cmd_dir_store,  "List /yuenta/store directory"),
@@ -1301,22 +1302,15 @@ PRIVATE json_t *cmd_help(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
 /***************************************************************************
  *
  ***************************************************************************/
-PRIVATE json_t *cmd_dir_public(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
+PRIVATE json_t *cmd_dir_yuneta(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
 {
     const char *match = kw_get_str(kw, "match", 0, 0);
     if(!match) {
         match = ".*";
     }
-    const char *subdirectory = kw_get_str(kw, "subdirectory", 0, 0);
-    char directory[NAME_MAX];
-    if(!empty_string(subdirectory)) {
-        if(*subdirectory=='/') {
-            subdirectory++;
-        }
-        snprintf(directory, sizeof(directory), "/yuneta/public/%s", subdirectory);
-    } else {
-        snprintf(directory, sizeof(directory), "/yuneta/public");
-    }
+    const char *subdirectory = kw_get_str(kw, "subdirectory", "", 0);
+    char directory[PATH_MAX];
+    build_path2(directory, sizeof(directory), "/yuneta", subdirectory);
 
     int size;
     char **tree = get_ordered_filename_array(
@@ -1351,16 +1345,9 @@ PRIVATE json_t *cmd_dir_realms(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
     if(!match) {
         match = ".*";
     }
-    const char *subdirectory = kw_get_str(kw, "subdirectory", 0, 0);
-    char directory[NAME_MAX];
-    if(!empty_string(subdirectory)) {
-        if(*subdirectory=='/') {
-            subdirectory++;
-        }
-        snprintf(directory, sizeof(directory), "/yuneta/realms/%s", subdirectory);
-    } else {
-        snprintf(directory, sizeof(directory), "/yuneta/realms");
-    }
+    const char *subdirectory = kw_get_str(kw, "subdirectory", "", 0);
+    char directory[PATH_MAX];
+    build_path2(directory, sizeof(directory), "/yuneta/realms", subdirectory);
 
     int size;
     char **tree = get_ordered_filename_array(
@@ -1395,16 +1382,9 @@ PRIVATE json_t *cmd_dir_repos(hgobj gobj, const char *cmd, json_t *kw, hgobj src
     if(!match) {
         match = ".*";
     }
-    const char *subdirectory = kw_get_str(kw, "subdirectory", 0, 0);
-    char directory[NAME_MAX];
-    if(!empty_string(subdirectory)) {
-        if(*subdirectory=='/') {
-            subdirectory++;
-        }
-        snprintf(directory, sizeof(directory), "/yuneta/repos/%s", subdirectory);
-    } else {
-        snprintf(directory, sizeof(directory), "/yuneta/repos");
-    }
+    const char *subdirectory = kw_get_str(kw, "subdirectory", "", 0);
+    char directory[PATH_MAX];
+    build_path2(directory, sizeof(directory), "/yuneta/repos", subdirectory);
 
     int size;
     char **tree = get_ordered_filename_array(
@@ -1439,16 +1419,10 @@ PRIVATE json_t *cmd_dir_store(hgobj gobj, const char *cmd, json_t *kw, hgobj src
     if(!match) {
         match = ".*";
     }
-    const char *subdirectory = kw_get_str(kw, "subdirectory", 0, 0);
-    char directory[NAME_MAX];
-    if(!empty_string(subdirectory)) {
-        if(*subdirectory=='/') {
-            subdirectory++;
-        }
-        snprintf(directory, sizeof(directory), "/yuneta/store/%s", subdirectory);
-    } else {
-        snprintf(directory, sizeof(directory), "/yuneta/store");
-    }
+
+    const char *subdirectory = kw_get_str(kw, "subdirectory", "", 0);
+    char directory[PATH_MAX];
+    build_path2(directory, sizeof(directory), "/yuneta/store", subdirectory);
 
     int size;
     char **tree = get_ordered_filename_array(
@@ -6120,59 +6094,6 @@ PRIVATE int exec_startup_command(hgobj gobj)
 }
 
 /***************************************************************************
- *  Build the private domain of yuno (defined by his realm)
- ***************************************************************************/
-PRIVATE char * build_yuno_private_domain(
-    hgobj gobj,
-    json_t *yuno,
-    char *bf,
-    int bfsize
-)
-{
-    char *p;
-    *bf = 0;
-
-    json_t *realm = get_yuno_realm(gobj, yuno);
-    if(!realm) {
-        return 0;
-    }
-
-    p = bf + strlen(bf);
-    snprintf(p, bfsize - strlen(bf), "/realms");
-
-    const char *domain = kw_get_str(realm, "domain", 0, KW_REQUIRED);
-    const char *role = kw_get_str(realm, "role", 0, KW_REQUIRED);
-    const char *name = kw_get_str(realm, "name", 0, KW_REQUIRED);
-    if(!empty_string(domain)) {
-        p = bf + strlen(bf);
-        if(*domain == '/') {
-            snprintf(p, bfsize - strlen(bf), "%s", domain);
-        } else {
-            snprintf(p, bfsize - strlen(bf), "/%s", domain);
-        }
-    }
-    if(!empty_string(role)) {
-        p = bf + strlen(bf);
-        snprintf(p, bfsize - strlen(bf), "/%s", role);
-    }
-    if(!empty_string(name)) {
-        p = bf + strlen(bf);
-        snprintf(p, bfsize - strlen(bf), "/%s", name);
-    }
-    strtolower(bf); // domain in lower case
-
-    char role_plus_name[NAME_MAX];
-    build_role_plus_name(role_plus_name, sizeof(role_plus_name), yuno);
-
-    p = bf + strlen(bf);
-    snprintf(p, bfsize - strlen(bf), "/%s",
-        role_plus_name
-    );
-
-    return bf;
-}
-
-/***************************************************************************
  *
  ***************************************************************************/
 PRIVATE int build_role_plus_name(char *bf, int bf_len, json_t *yuno)
@@ -6194,28 +6115,38 @@ PRIVATE int build_role_plus_name(char *bf, int bf_len, json_t *yuno)
 }
 
 /***************************************************************************
+ *  Build the private domain of yuno (defined by his realm)
+ ***************************************************************************/
+PRIVATE char * build_yuno_private_domain(
+    hgobj gobj,
+    json_t *yuno,
+    char *bf,
+    int bfsize
+)
+{
+    json_t *realm = get_yuno_realm(gobj, yuno);
+    if(!realm) {
+        return 0;
+    }
+    const char *realm_domain = kw_get_str(realm, "domain", 0, KW_REQUIRED);
+    const char *realm_name = kw_get_str(realm, "name", 0, KW_REQUIRED);
+    char role_plus_name[NAME_MAX];
+    build_role_plus_name(role_plus_name, sizeof(role_plus_name), yuno);
+
+    return build_path4(bf, bfsize, "realms", realm_domain, realm_name, role_plus_name);
+}
+
+/***************************************************************************
  *
  ***************************************************************************/
 PRIVATE char * build_yuno_bin_path(hgobj gobj, json_t *yuno, char *bf, int bfsize, BOOL create_dir)
 {
-    char *p;
-
-    *bf = 0;
-
     const char *work_dir = yuneta_work_dir();
-    p = bf + strlen(bf);
-    snprintf(p, bfsize - strlen(bf), "%s", work_dir);
 
-    p = bf + strlen(bf);
-    build_yuno_private_domain(gobj, yuno, p, bfsize - strlen(bf));
-    p = bf + strlen(bf);
-    snprintf(p, bfsize - strlen(bf), "/bin");
+    char private_domain[PATH_MAX];
+    build_yuno_private_domain(gobj, yuno, private_domain, sizeof(private_domain));
 
-    const char *yuno_id = SDATA_GET_ID(yuno);
-    p = bf + strlen(bf);
-    snprintf(p, bfsize - strlen(bf), "/%s",
-        yuno_id
-    );
+    build_path3(bf, bfsize, work_dir, private_domain, "bin");
 
     if(create_dir) {
         if(mkrdir(bf, 0, yuneta_xpermission())<0) {
@@ -6239,18 +6170,12 @@ PRIVATE char * build_yuno_bin_path(hgobj gobj, json_t *yuno, char *bf, int bfsiz
  ***************************************************************************/
 PRIVATE char * build_yuno_log_path(hgobj gobj, json_t *yuno, char *bf, int bfsize, BOOL create_dir)
 {
-    char *p;
-
-    *bf = 0;
-
     const char *work_dir = yuneta_work_dir();
-    p = bf + strlen(bf);
-    snprintf(p, bfsize - strlen(bf), "%s", work_dir);
 
-    p = bf + strlen(bf);
-    build_yuno_private_domain(gobj, yuno, p, bfsize - strlen(bf));
-    p = bf + strlen(bf);
-    snprintf(p, bfsize - strlen(bf), "/logs");
+    char private_domain[PATH_MAX];
+    build_yuno_private_domain(gobj, yuno, private_domain, sizeof(private_domain));
+
+    build_path3(bf, bfsize, work_dir, private_domain, "logs");
 
     if(create_dir) {
         if(mkrdir(bf, 0, yuneta_xpermission())<0) {
@@ -6704,15 +6629,16 @@ PRIVATE GBUFFER *build_yuno_running_script(
      */
     json_t *hs_realm = get_yuno_realm(gobj, yuno);
     const char *bind_ip = SDATA_GET_STR(hs_realm, "bind_ip");
+    const char *realm_domain = kw_get_str(hs_realm, "domain", "", KW_REQUIRED);
+    const char *realm_name_ = kw_get_str(hs_realm, "name", "", KW_REQUIRED); // TODO change id of realms by name?
 
     BOOL multiple = kw_get_bool(yuno, "multiple", 0, KW_REQUIRED);
-    const char *realm_name = kw_get_str(yuno, "realm_name", 0, KW_REQUIRED);
-    const char *yuno_role = kw_get_str(yuno, "yuno_role", 0, KW_REQUIRED);
-    const char *yuno_name = kw_get_str(yuno, "yuno_name", 0, KW_REQUIRED);
-    const char *yuno_alias = kw_get_str(yuno, "yuno_alias", 0, KW_REQUIRED);
-    const char *yuno_release = kw_get_str(yuno, "yuno_release", 0, KW_REQUIRED);
+    const char *realm_name = kw_get_str(yuno, "realm_name", "", KW_REQUIRED);
+    const char *yuno_role = kw_get_str(yuno, "yuno_role", "", KW_REQUIRED);
+    const char *yuno_name = kw_get_str(yuno, "yuno_name", "", KW_REQUIRED);
+    const char *yuno_alias = kw_get_str(yuno, "yuno_alias", "", KW_REQUIRED);
+    const char *yuno_release = kw_get_str(yuno, "yuno_release", "", KW_REQUIRED);
     json_int_t launch_id = kw_get_int(yuno, "launch_id", 0, KW_REQUIRED);
-
 
     json_t *binary = get_yuno_binary(gobj, yuno);
     if(!binary) {
@@ -6844,20 +6770,22 @@ PRIVATE GBUFFER *build_yuno_running_script(
             json_object_update(jn_global, jn_node_variables);
         }
 
-        json_t *jn_environment = json_pack("{s:s, s:s}",
+        json_t *jn_environment = json_pack("{s:s, s:s, s:s, s:s}",
             "work_dir", work_dir,
-            "domain_dir", domain_dir
+            "domain_dir", domain_dir,
+            "realm_domain", realm_domain,
+            "realm_name", realm_name_
         );
         json_t *jn_content = json_pack("{s:o, s:o, s:{s:s, s:s, s:s, s:s, s:s, s:s, s:b, s:I}}",
             "global", jn_global,
             "environment", jn_environment,
             "yuno",
-                "realm_name", realm_name?realm_name:"",
-                "yuno_name", yuno_name?yuno_name:"",
-                "yuno_alias", yuno_alias?yuno_alias:"",
-                "yuno_release", yuno_release?yuno_release:"",
+                "realm_name", realm_name,
+                "yuno_name", yuno_name,
+                "yuno_alias", yuno_alias,
+                "yuno_release", yuno_release,
                 "realm_id", SDATA_GET_STR(yuno, "realm_id"),
-                "bind_ip", bind_ip?bind_ip:"",
+                "bind_ip", bind_ip,
                 "multiple", multiple,
                 "launch_id", (json_int_t)launch_id
         );

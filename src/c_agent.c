@@ -288,7 +288,6 @@ PRIVATE json_t *cmd_dir_store(hgobj gobj, const char *cmd, json_t *kw, hgobj src
 // TODO delete persistent_attrs commands when attrs treedb ready
 PRIVATE json_t *cmd_remove_persistent_attrs(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_list_persistent_attrs(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
-PRIVATE json_t *cmd_launch_scripts(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_replicate_node(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_replicate_binaries(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 
@@ -538,15 +537,6 @@ PRIVATE sdata_desc_t pm_domain[] = {
 SDATAPM (ASN_OCTET_STR, "domain",       0,              0,          "Domain wanted"),
 SDATA_END()
 };
-PRIVATE sdata_desc_t pm_launch_scripts[] = {
-/*-PM----type-----------name------------flag------------default-----description---------- */
-SDATAPM (ASN_OCTET_STR, "directory",    0,              0,          "Directory with the scripts"),
-SDATAPM (ASN_OCTET_STR, "filter",       0,              0,          "Fiter the scripts by RE filename"),
-SDATAPM (ASN_OCTET_STR, "arg1",         0,              0,          "Argument 1 for scripts"),
-SDATAPM (ASN_OCTET_STR, "arg2",         0,              0,          "Argument 2 for scripts"),
-SDATAPM (ASN_OCTET_STR, "arg3",         0,              0,          "Argument 3 for scripts"),
-SDATA_END()
-};
 
 PRIVATE sdata_desc_t pm_replicate_node[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
@@ -773,7 +763,6 @@ SDATACM2 (ASN_SCHEMA,   "dir-repos",        0,                  0,              
 SDATACM2 (ASN_SCHEMA,   "dir-store",        0,                  0,                  pm_dir,         cmd_dir_store,  "List /yuneta/store directory"),
 SDATACM2 (ASN_SCHEMA,   "remove-persistent-attrs", 0,           0,                  pm_domain,              cmd_remove_persistent_attrs, "Remove persistent attributes files in domain directory"),
 SDATACM2 (ASN_SCHEMA,   "list-persistent-attrs", 0,             0,                  pm_domain,              cmd_list_persistent_attrs, "List persistent attributes in domain directory"),
-SDATACM2 (ASN_SCHEMA,   "launch-scripts",   0,                  0,                  pm_launch_scripts, cmd_launch_scripts, "Launch scripts found in specified path"),
 SDATACM2 (ASN_SCHEMA,   "read-json",        0,                  a_read_json,        pm_read_json,   0,              "Read json file"),
 SDATACM2 (ASN_SCHEMA,   "read-file",        0,                  a_read_file,        pm_read_file,   0,              "Read a text file"),
 SDATACM2 (ASN_SCHEMA,   "read-binary-file", 0,                  a_read_binary_file, pm_read_binary_file, 0,         "Read a binary file (encoded in base64)"),
@@ -1618,89 +1607,6 @@ PRIVATE json_t* cmd_list_persistent_attrs(hgobj gobj, const char* cmd, json_t* k
         0,
         0,
         jn_dict, // owned
-        kw  // owned
-    );
-}
-
-/***************************************************************************
- *
- ***************************************************************************/
-PRIVATE BOOL launch_sh_cb(
-    void *user_data,
-    wd_found_type type,
-    char *fullpath,
-    const char *directory,
-    char *name,             // dname[255]
-    int level,
-    int index)
-{
-    if(!(type == WD_TYPE_REGULAR_FILE)) {
-        return TRUE; // continue traverse tree
-    }
-    json_t *kw = user_data;
-    char *arg1 = (char *)kw_get_str(kw, "arg1", 0, 0);
-    char *arg2 = (char *)kw_get_str(kw, "arg2", 0, 0);
-    char *arg3 = (char *)kw_get_str(kw, "arg3", 0, 0);
-    size_t response_size = 32*1024;
-    char *response = gbmem_malloc(response_size);
-
-    char command[1024];
-    snprintf(command, sizeof(command), "%s %s %s %s",
-        fullpath,
-        !empty_string(arg1)?arg1:"",
-        !empty_string(arg2)?arg2:"",
-        !empty_string(arg3)?arg3:""
-    );
-    if(run_command(command, response, response_size)<0) {
-        log_error(0,
-            "gobj",         "%s", __FILE__,
-            "function",     "%s", __FUNCTION__,
-            "msgset",       "%s", MSGSET_PARAMETER_ERROR,
-            "msg",          "%s", "run_command() FAILED",
-            "command",      "%s", command,
-            "output",       "%s", response,
-            NULL
-        );
-    }
-    gbmem_free(response);
-
-    return TRUE; // continue traverse tree
-}
-PRIVATE json_t *cmd_launch_scripts(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
-{
-    const char *directory = kw_get_str(kw, "directory", 0, 0);
-    if(empty_string(directory)) {
-        return msg_iev_build_webix(
-            gobj,
-            -199,
-            json_local_sprintf("What directory?"),
-            0,
-            0,
-            kw  // owned
-        );
-    }
-    const char *filter = kw_get_str(kw, "filter", 0, 0);
-    const char *match = ".*\\.sh";
-    char temp[NAME_MAX];
-    if(!empty_string(filter)) {
-        snprintf(temp, sizeof(temp), ".*%s.*\\.sh", filter);
-        match = temp;
-    }
-
-    walk_dir_tree(
-        directory,
-        match,
-        WD_MATCH_REGULAR_FILE,
-        launch_sh_cb,
-        kw
-    );
-
-    return msg_iev_build_webix(
-        gobj,
-        0,
-        json_local_sprintf("Done!"),
-        0,
-        0,
         kw  // owned
     );
 }

@@ -237,6 +237,7 @@ PRIVATE char agent_filter_chain_config[]= "\
         {                                   \n\
             'name': 'agent_client',         \n\
             'gclass': 'IEvent_cli',         \n\
+            'as_unique': true,              \n\
             'autostart': true,              \n\
             'kw': {                         \n\
                 'remote_yuno_name': '',                 \n\
@@ -6079,13 +6080,12 @@ PRIVATE char * build_yuno_private_domain(
     if(!realm) {
         return 0;
     }
-    const char *work_dir = yuneta_work_dir();
     const char *realm_domain = kw_get_str(realm, "domain", 0, KW_REQUIRED);
     const char *realm_name = kw_get_str(realm, "name", 0, KW_REQUIRED);
     char role_plus_name[NAME_MAX];
     build_role_plus_name(role_plus_name, sizeof(role_plus_name), yuno);
 
-    return build_path5(bf, bfsize, work_dir, "realms", realm_domain, realm_name, role_plus_name);
+    return build_path4(bf, bfsize, "realms", realm_domain, realm_name, role_plus_name);
 }
 
 /***************************************************************************
@@ -6093,11 +6093,10 @@ PRIVATE char * build_yuno_private_domain(
  ***************************************************************************/
 PRIVATE char * build_yuno_bin_path(hgobj gobj, json_t *yuno, char *bf, int bfsize, BOOL create_dir)
 {
-    const char *work_dir = yuneta_work_dir();
-
     char private_domain[PATH_MAX];
     build_yuno_private_domain(gobj, yuno, private_domain, sizeof(private_domain));
 
+    const char *work_dir = yuneta_work_dir();
     build_path3(bf, bfsize, work_dir, private_domain, "bin");
 
     if(create_dir) {
@@ -6122,11 +6121,10 @@ PRIVATE char * build_yuno_bin_path(hgobj gobj, json_t *yuno, char *bf, int bfsiz
  ***************************************************************************/
 PRIVATE char * build_yuno_log_path(hgobj gobj, json_t *yuno, char *bf, int bfsize, BOOL create_dir)
 {
-    const char *work_dir = yuneta_work_dir();
-
     char private_domain[PATH_MAX];
     build_yuno_private_domain(gobj, yuno, private_domain, sizeof(private_domain));
 
+    const char *work_dir = yuneta_work_dir();
     build_path3(bf, bfsize, work_dir, private_domain, "logs");
 
     if(create_dir) {
@@ -6570,10 +6568,10 @@ PRIVATE GBUFFER *build_yuno_running_script(
     /*
      *  Build the domain of yuno (defined by his realm)
      */
-    char domain_dir[NAME_MAX];
+    char domain_dir[PATH_MAX];
     build_yuno_private_domain(gobj, yuno, domain_dir, sizeof(domain_dir));
 
-    char yuno_bin_path[NAME_MAX];
+    char yuno_bin_path[PATH_MAX];
     build_yuno_bin_path(gobj, yuno, yuno_bin_path, sizeof(yuno_bin_path), TRUE);
 
     /*
@@ -8916,7 +8914,7 @@ PRIVATE int ac_on_open(hgobj gobj, const char *event, json_t *kw, hgobj src)
      *  Check play
      *---------------*/
     if(!playing) {
-        const char *solicitante = kw_get_str(yuno, "solicitante", "", 0);
+        const char *solicitante = kw_get_str(yuno, "solicitante", "", 0); ?
         BOOL must_play = SDATA_GET_BOOL(yuno, "must_play");
         if(must_play) {
             hgobj gobj_requester = 0;

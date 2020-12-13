@@ -45,6 +45,23 @@
 /***************************************************************************
  *              Prototypes
  ***************************************************************************/
+PRIVATE char *yuneta_repos_yuno_dir(
+    char *bf,
+    int bfsize,
+    json_t *jn_classifiers,  // not owned
+    const char *yuno_role,
+    const char *yuno_version,
+    BOOL create
+);
+PRIVATE char *yuneta_repos_yuno_file(
+    char* bf_,
+    int bfsize,
+    json_t* jn_classifiers, // not owned
+    const char* yuno_role,
+    const char* yuno_version,
+    const char *filename,
+    BOOL create
+);
 PRIVATE void oauth2_log_callback(
     oauth2_log_sink_t *sink,
     const char *filename,
@@ -5953,6 +5970,102 @@ PRIVATE int build_role_plus_name(char *bf, int bf_len, json_t *yuno)
 }
 
 /***************************************************************************
+ *  Convert json list of names into path
+ ***************************************************************************/
+PRIVATE char *multiple_dir(char* bf, int bflen, json_t* jn_l)
+{
+    char *p = bf;
+    int ln;
+
+    *bf = 0;
+
+    /*--------------------------------------------------------*
+     *  Add domain
+     *--------------------------------------------------------*/
+    if(jn_l) {
+        size_t index;
+        json_t *jn_s_domain_name;
+
+        if(!json_is_array(jn_l)) {
+            return 0;
+        }
+        json_array_foreach(jn_l, index, jn_s_domain_name) {
+            if(!json_is_string(jn_s_domain_name)) {
+                return 0;
+            }
+            if(index == 0) {
+                ln = snprintf(p, bflen, "%s", json_string_value(jn_s_domain_name));
+            } else {
+                ln = snprintf(p, bflen, "/%s", json_string_value(jn_s_domain_name));
+            }
+            if(ln<0) {
+                *bf = 0;
+                return 0;
+            }
+
+            p += ln;
+            bflen -= ln;
+        }
+    }
+    return bf;
+}
+
+/***************************************************************************
+ *
+ ***************************************************************************/
+PRIVATE char *yuneta_repos_yuno_dir(
+    char *bf,
+    int bfsize,
+    json_t *jn_classifiers,  // not owned
+    const char *yuno_role,
+    const char *yuno_version,
+    BOOL create)
+{
+    const char *work_dir = yuneta_work_dir();
+    char classifiers[NAME_MAX];
+    multiple_dir(classifiers, sizeof(classifiers), jn_classifiers);
+
+    build_path5(bf, bfsize, work_dir, "repos", classifiers, yuno_role, yuno_version);
+
+    if(create) {
+        if(access(bf, 0)!=0) {
+            mkrdir(bf, 0, yuneta_xpermission());
+            if(access(bf, 0)!=0) {
+                *bf = 0;
+                return 0;
+            }
+        }
+    }
+    return bf;
+}
+
+/***************************************************************************
+ *
+ ***************************************************************************/
+PRIVATE char *yuneta_repos_yuno_file(
+    char * bf,
+    int bfsize,
+    json_t *jn_classifiers, // not owned
+    const char *yuno_role,
+    const char *yuno_version,
+    const char *filename,
+    BOOL create)
+{
+    char repos_dir[PATH_MAX];
+    yuneta_repos_yuno_dir(
+        repos_dir,
+        sizeof(repos_dir),
+        jn_classifiers,
+        yuno_role,
+        yuno_version,
+        create
+    );
+
+    build_path2(bf, bfsize, repos_dir, filename);
+    return bf;
+}
+
+/***************************************************************************
  *  Build the private domain of yuno (defined by his realm)
  ***************************************************************************/
 PRIVATE char * build_yuno_private_domain(
@@ -5966,12 +6079,13 @@ PRIVATE char * build_yuno_private_domain(
     if(!realm) {
         return 0;
     }
+    const char *work_dir = yuneta_work_dir();
     const char *realm_domain = kw_get_str(realm, "domain", 0, KW_REQUIRED);
     const char *realm_name = kw_get_str(realm, "name", 0, KW_REQUIRED);
     char role_plus_name[NAME_MAX];
     build_role_plus_name(role_plus_name, sizeof(role_plus_name), yuno);
 
-    return build_path4(bf, bfsize, "realms", realm_domain, realm_name, role_plus_name);
+    return build_path5(bf, bfsize, work_dir, "realms", realm_domain, realm_name, role_plus_name);
 }
 
 /***************************************************************************

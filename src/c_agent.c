@@ -285,7 +285,6 @@ PRIVATE json_t *cmd_dir_realms(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
 PRIVATE json_t *cmd_dir_logs(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_dir_repos(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_dir_store(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
-PRIVATE json_t *cmd_sumdir(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 // TODO delete persistent_attrs commands when attrs treedb ready
 PRIVATE json_t *cmd_remove_persistent_attrs(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_list_persistent_attrs(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
@@ -539,12 +538,6 @@ PRIVATE sdata_desc_t pm_domain[] = {
 SDATAPM (ASN_OCTET_STR, "domain",       0,              0,          "Domain wanted"),
 SDATA_END()
 };
-PRIVATE sdata_desc_t pm_sumdir[] = {
-/*-PM----type-----------name------------flag------------default-----description---------- */
-SDATAPM (ASN_OCTET_STR, "directory",    0,              0,          "Display files with sizes of 'directory'"),
-SDATAPM (ASN_OCTET_STR, "match",        0,              0,          "Filter files by match"),
-SDATA_END()
-};
 PRIVATE sdata_desc_t pm_launch_scripts[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "directory",    0,              0,          "Directory with the scripts"),
@@ -777,8 +770,7 @@ SDATACM2 (ASN_SCHEMA,   "dir-logs",         0,                  0,              
 SDATACM2 (ASN_SCHEMA,   "dir-yuneta",       0,                  0,                  pm_dir,         cmd_dir_yuneta, "List /yuneta directory"),
 SDATACM2 (ASN_SCHEMA,   "dir-realms",       0,                  0,                  pm_dir,         cmd_dir_realms, "List /yuneta/realms directory"),
 SDATACM2 (ASN_SCHEMA,   "dir-repos",        0,                  0,                  pm_dir,         cmd_dir_repos,  "List /yuneta/repos directory"),
-SDATACM2 (ASN_SCHEMA,   "dir-store",        0,                  0,                  pm_dir,         cmd_dir_store,  "List /yuenta/store directory"),
-SDATACM2 (ASN_SCHEMA,   "sumdir",           0,                  0,                  pm_sumdir,      cmd_sumdir,     "List /yuneta directory with file sizes"),
+SDATACM2 (ASN_SCHEMA,   "dir-store",        0,                  0,                  pm_dir,         cmd_dir_store,  "List /yuneta/store directory"),
 SDATACM2 (ASN_SCHEMA,   "remove-persistent-attrs", 0,           0,                  pm_domain,              cmd_remove_persistent_attrs, "Remove persistent attributes files in domain directory"),
 SDATACM2 (ASN_SCHEMA,   "list-persistent-attrs", 0,             0,                  pm_domain,              cmd_list_persistent_attrs, "List persistent attributes in domain directory"),
 SDATACM2 (ASN_SCHEMA,   "launch-scripts",   0,                  0,                  pm_launch_scripts, cmd_launch_scripts, "Launch scripts found in specified path"),
@@ -1501,66 +1493,6 @@ PRIVATE json_t *cmd_dir_logs(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
         0,
         0,
         jn_array,
-        kw  // owned
-    );
-}
-
-/***************************************************************************
- *
- ***************************************************************************/
-PRIVATE BOOL sumdir_cb(
-    void *user_data,
-    wd_found_type type,
-    char *fullpath,
-    const char *directory,
-    char *name,             // dname[255]
-    int level,
-    int index)
-{
-    if(!(type == WD_TYPE_DIRECTORY || type == WD_TYPE_REGULAR_FILE)) {
-        return TRUE; // continue traverse tree
-    }
-
-    json_t *jn_data = user_data;
-
-    uint64_t size = filesize(fullpath);
-
-    if(kw_has_key(jn_data, directory)) {
-        json_int_t total_size = kw_get_int(jn_data, directory, 0, 0);
-        total_size += size;
-        json_object_set_new(jn_data, directory, json_integer(total_size));
-    } else {
-        json_object_set_new(jn_data, directory, json_integer(size));
-    }
-    // TODO para pintar con puntos "%'d\n", 1123456789
-    return TRUE; // continue traverse tree
-}
-PRIVATE json_t *cmd_sumdir(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
-{
-    const char *directory = kw_get_str(kw, "directory", 0, 0);
-    if(!directory) {
-        directory = "/yuneta";
-    }
-    const char *match = kw_get_str(kw, "match", 0, 0);
-    if(!match) {
-        match = ".*";
-    }
-    json_t *jn_data = json_object();
-
-    walk_dir_tree(
-        directory,
-        match,
-        WD_RECURSIVE|WD_MATCH_DIRECTORY|WD_MATCH_REGULAR_FILE|WD_MATCH_SYMBOLIC_LINK|WD_HIDDENFILES,
-        sumdir_cb,
-        jn_data
-    );
-
-    return msg_iev_build_webix(
-        gobj,
-        0,
-        0,
-        0,
-        jn_data,
         kw  // owned
     );
 }

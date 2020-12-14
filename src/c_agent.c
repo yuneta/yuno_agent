@@ -303,8 +303,6 @@ PRIVATE json_t *cmd_dir_realms(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
 PRIVATE json_t *cmd_dir_logs(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_dir_repos(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_dir_store(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
-// TODO delete persistent_attrs commands when attrs treedb ready
-PRIVATE json_t *cmd_remove_persistent_attrs(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_list_persistent_attrs(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_replicate_node(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_replicate_binaries(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
@@ -779,8 +777,7 @@ SDATACM2 (ASN_SCHEMA,   "dir-yuneta",       0,                  0,              
 SDATACM2 (ASN_SCHEMA,   "dir-realms",       0,                  0,                  pm_dir,         cmd_dir_realms, "List /yuneta/realms directory"),
 SDATACM2 (ASN_SCHEMA,   "dir-repos",        0,                  0,                  pm_dir,         cmd_dir_repos,  "List /yuneta/repos directory"),
 SDATACM2 (ASN_SCHEMA,   "dir-store",        0,                  0,                  pm_dir,         cmd_dir_store,  "List /yuneta/store directory"),
-SDATACM2 (ASN_SCHEMA,   "remove-persistent-attrs", 0,           0,                  pm_domain,              cmd_remove_persistent_attrs, "Remove persistent attributes files in domain directory"),
-SDATACM2 (ASN_SCHEMA,   "list-persistent-attrs", 0,             0,                  pm_domain,              cmd_list_persistent_attrs, "List persistent attributes in domain directory"),
+SDATACM2 (ASN_SCHEMA,   "list-persistent-attrs", 0,             0,                  pm_domain,              cmd_list_persistent_attrs, "OLD List persistent attributes in domain directory"),
 SDATACM2 (ASN_SCHEMA,   "read-json",        0,                  a_read_json,        pm_read_json,   0,              "Read json file"),
 SDATACM2 (ASN_SCHEMA,   "read-file",        0,                  a_read_file,        pm_read_file,   0,              "Read a text file"),
 SDATACM2 (ASN_SCHEMA,   "read-binary-file", 0,                  a_read_binary_file, pm_read_binary_file, 0,         "Read a binary file (encoded in base64)"),
@@ -1500,69 +1497,6 @@ PRIVATE json_t *cmd_dir_logs(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
         0,
         0,
         jn_array,
-        kw  // owned
-    );
-}
-
-/***************************************************************************
- *
- ***************************************************************************/
-PRIVATE BOOL remove_file_cb(
-    void *user_data,
-    wd_found_type type,     // type found
-    char *fullpath,         // directory+filename found
-    const char *directory,  // directory of found filename
-    char *name,             // dname[255]
-    int level,              // level of tree where file found
-    int index               // index of file inside of directory, relative to 0
-)
-{
-    json_t *jn_dict = user_data;
-
-    int ret = unlink(fullpath);
-    json_object_set_new(jn_dict, fullpath, json_integer(ret));
-
-    return TRUE; // to continue
-}
-
-/***************************************************************************
- *
- ***************************************************************************/
-PRIVATE json_t* cmd_remove_persistent_attrs(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
-{
-    const char *domain = kw_get_str(kw, "domain", "", 0);
-    if(empty_string(domain)) {
-        return msg_iev_build_webix(
-            gobj,
-            -1,
-            json_local_sprintf("domain required"),
-            0,
-            0,
-            kw  // owned
-        );
-    }
-
-    char path[PATH_MAX];
-    snprintf(path, sizeof(path), "%s/realms/%s", yuneta_work_dir(), domain);
-
-    json_t *jn_dict = json_object();
-
-    walk_dir_tree(
-        path,
-        ".*persistent-attrs.json",
-        WD_RECURSIVE|WD_MATCH_REGULAR_FILE,
-        remove_file_cb,
-        jn_dict
-    );
-
-    /*
-     *  Inform
-     */
-    return msg_iev_build_webix(gobj,
-        0,
-        0,
-        0,
-        jn_dict, // owned
         kw  // owned
     );
 }

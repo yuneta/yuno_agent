@@ -4760,6 +4760,7 @@ PRIVATE json_t *cmd_play_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
         total_to_preplayed,
         total_to_played
     );
+
     json_t *kw_counter = json_pack("{s:s, s:i, s:i, s:o, s:I, s:I}",
         "info", info,
         "max_count", total_to_played,
@@ -8914,7 +8915,7 @@ PRIVATE int ac_on_open(hgobj gobj, const char *event, json_t *kw, hgobj src)
      *  Check play
      *---------------*/
     if(!playing) {
-        const char *solicitante = kw_get_str(yuno, "solicitante", "", 0); ?
+        const char *solicitante = kw_get_str(yuno, "solicitante", "", 0);
         BOOL must_play = SDATA_GET_BOOL(yuno, "must_play");
         if(must_play) {
             hgobj gobj_requester = 0;

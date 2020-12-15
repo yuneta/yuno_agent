@@ -6016,11 +6016,15 @@ PRIVATE char * build_yuno_private_domain(
         return 0;
     }
     const char *realm_domain = kw_get_str(realm, "domain", 0, KW_REQUIRED);
+    const char *realm_role = kw_get_str(realm, "role", 0, KW_REQUIRED);
+    char realm_role_[NAME_MAX];
+    snprintf(realm_role_, sizeof(realm_role_), "%s", realm_role);
+    strtolower(realm_role_);
     const char *realm_name = kw_get_str(realm, "name", 0, KW_REQUIRED);
     char role_plus_name[NAME_MAX];
     build_role_plus_name(role_plus_name, sizeof(role_plus_name), yuno);
 
-    return build_path4(bf, bfsize, "realms", realm_domain, realm_name, role_plus_name);
+    return build_path5(bf, bfsize, "realms", realm_domain, realm_role_, realm_name, role_plus_name);
 }
 
 /***************************************************************************
@@ -6515,6 +6519,7 @@ PRIVATE GBUFFER *build_yuno_running_script(
     json_t *hs_realm = get_yuno_realm(gobj, yuno);
     const char *bind_ip = SDATA_GET_STR(hs_realm, "bind_ip");
     const char *realm_domain = kw_get_str(hs_realm, "domain", "", KW_REQUIRED);
+    const char *realm_role = kw_get_str(hs_realm, "role", "", KW_REQUIRED);
     const char *realm_name_ = kw_get_str(hs_realm, "name", "", KW_REQUIRED); // TODO change id of realms by name?
 
     BOOL multiple = kw_get_bool(yuno, "multiple", 0, KW_REQUIRED);
@@ -6655,10 +6660,11 @@ PRIVATE GBUFFER *build_yuno_running_script(
             json_object_update(jn_global, jn_node_variables);
         }
 
-        json_t *jn_environment = json_pack("{s:s, s:s, s:s, s:s}",
+        json_t *jn_environment = json_pack("{s:s, s:s, s:s, s:s, s:s}",
             "work_dir", work_dir,
             "domain_dir", domain_dir,
             "realm_domain", realm_domain,
+            "realm_role", realm_role,
             "realm_name", realm_name_
         );
         json_t *jn_content = json_pack("{s:o, s:o, s:{s:s, s:s, s:s, s:s, s:s, s:s, s:b, s:I}}",

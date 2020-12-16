@@ -22,7 +22,7 @@
 /***************************************************************************
  *              Constants
  ***************************************************************************/
-#define NEXT_ERROR 210
+#define NEXT_ERROR 211
 
 #define SDATA_GET_ID(hs)  kw_get_str((hs), "id", "", KW_REQUIRED)
 #define SDATA_GET_STR(hs, field)  kw_get_str((hs), (field), "", KW_REQUIRED)
@@ -3638,7 +3638,17 @@ PRIVATE json_t *cmd_set_multiple(hgobj gobj, const char *cmd, json_t *kw, hgobj 
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
     char *resource = "yunos";
 
+    if(!kw_has_key(kw, "multiple")) {
+        return msg_iev_build_webix(gobj,
+            -210,
+            json_local_sprintf("What multiple?"),
+            0,
+            0,
+            kw  // owned
+        );
+    }
     BOOL multiple = kw_get_bool(kw, "multiple", 0, 0);
+    kw_delete(kw, "multiple");
 
     /*
      *  Get a iter of matched resources.
@@ -3655,7 +3665,7 @@ PRIVATE json_t *cmd_set_multiple(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         JSON_DECREF(iter);
         return msg_iev_build_webix(
             gobj,
-            -158,
+            -210,
             json_local_sprintf("Select some yuno please"),
             0,
             0,
@@ -5279,7 +5289,7 @@ PRIVATE json_t *cmd_command_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         return msg_iev_build_webix(gobj,
             -161,
             json_local_sprintf(
-                "No yuno found or already running"
+                "No yuno found"
             ),
             0,
             0,
@@ -6105,8 +6115,10 @@ PRIVATE char * build_yuno_bin_path(hgobj gobj, json_t *yuno, char *bf, int bfsiz
     char private_domain[PATH_MAX];
     build_yuno_private_domain(gobj, yuno, private_domain, sizeof(private_domain));
 
+    const char *yuno_id = SDATA_GET_ID(yuno);
+
     const char *work_dir = yuneta_work_dir();
-    build_path3(bf, bfsize, work_dir, private_domain, "bin");
+    build_path4(bf, bfsize, work_dir, private_domain, "bin", yuno_id);
 
     if(create_dir) {
         if(mkrdir(bf, 0, yuneta_xpermission())<0) {

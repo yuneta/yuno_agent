@@ -4268,8 +4268,10 @@ json_t* cmd_delete_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
     int result = 0;
     int deleted = 0;
     json_array_foreach(iter, idx, node) {
+        // TODO check
+        json_t *kw_delete = json_pack("{s:s}", "id", SDATA_GET_ID(node));
         if(gobj_delete_node(
-                priv->resource, resource, node, json_pack("{s:b}", "force", force), src)<0) {
+                priv->resource, resource, kw_delete, json_pack("{s:b}", "force", force), src)<0) {
             result += -1;
             log_error(0,
                 "gobj",         "%s", __FILE__,

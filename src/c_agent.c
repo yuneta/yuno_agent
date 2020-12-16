@@ -332,6 +332,7 @@ PRIVATE json_t *cmd_find_new_yunos(hgobj gobj, const char *cmd, json_t *kw, hgob
 PRIVATE json_t *cmd_create_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_delete_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_set_alias(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
+PRIVATE json_t *cmd_set_multiple(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 
 PRIVATE json_t *cmd_command_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_stats_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
@@ -512,6 +513,19 @@ PRIVATE sdata_desc_t pm_set_alias[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id of yuno"),
 SDATAPM (ASN_OCTET_STR, "alias",        0,              0,          "New Yuno alias"),
+SDATAPM (ASN_OCTET_STR, "realm_name",   0,              0,          "Realm Name"),
+SDATAPM (ASN_OCTET_STR, "yuno_role",    0,              0,          "Yuno Role"),
+SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno Name"),
+SDATAPM (ASN_OCTET_STR, "yuno_release", 0,              0,          "Yuno Release"),
+SDATAPM (ASN_OCTET_STR, "yuno_alias",   0,              0,          "Yuno Alias"),
+SDATAPM (ASN_BOOLEAN,   "yuno_running", 0,              0,          "Yuno running"),
+SDATAPM (ASN_BOOLEAN,   "disabled",     0,              0,          "Yuno disabled"),
+SDATA_END()
+};
+PRIVATE sdata_desc_t pm_set_multiple[] = {
+/*-PM----type-----------name------------flag------------default-----description---------- */
+SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id of yuno"),
+SDATAPM (ASN_BOOLEAN,   "multiple",     0,              0,          "New multiple set"),
 SDATAPM (ASN_OCTET_STR, "realm_name",   0,              0,          "Realm Name"),
 SDATAPM (ASN_OCTET_STR, "yuno_role",    0,              0,          "Yuno Role"),
 SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno Name"),
@@ -810,6 +824,7 @@ SDATACM2 (ASN_SCHEMA,   "find-new-yunos",   0,                  0,              
 SDATACM2 (ASN_SCHEMA,   "create-yuno",      0,                  0,                  pm_create_yuno, cmd_create_yuno, "Create yuno"),
 SDATACM2 (ASN_SCHEMA,   "delete-yuno",      0,                  0,                  pm_delete_yuno, cmd_delete_yuno, "Delete yuno"),
 SDATACM2 (ASN_SCHEMA,   "set-alias",        0,                  0,                  pm_set_alias,   cmd_set_alias,  "Set yuno alias"),
+SDATACM2 (ASN_SCHEMA,   "set-multiple",     0,                  0,                  pm_set_multiple,cmd_set_multiple,"Set yuno multiple"),
 SDATACM2 (ASN_SCHEMA,   "edit-yuno-config", 0,                  a_edit_yuno_config, pm_list_yunos,       0,              "Edit yuno configuration"),
 SDATACM2 (ASN_SCHEMA,   "view-yuno-config", 0,                  a_view_yuno_config, pm_list_yunos,       0,              "View yuno configuration"),
 
@@ -3049,7 +3064,7 @@ PRIVATE json_t *cmd_update_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
     json_object_update(node, jn_basic_info);
     JSON_DECREF(jn_basic_info);
 
-    node = gobj_update_node(priv->resource, resource, kw_incref(node), 0, src);
+    node = gobj_update_node(priv->resource, resource, json_incref(node), 0, src);
 
     /*
      *  Convert result in json
@@ -3435,7 +3450,7 @@ PRIVATE json_t *cmd_update_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
     /*
      *  Update config
      */
-    node = gobj_update_node(priv->resource, resource, kw_incref(node), 0, src);
+    node = gobj_update_node(priv->resource, resource, json_incref(node), 0, src);
 
     /*
      *  Inform
@@ -3596,10 +3611,65 @@ PRIVATE json_t *cmd_set_alias(hgobj gobj, const char *cmd, json_t *kw, hgobj src
      */
     int idx; json_t *node;
     json_array_foreach(iter, idx, node) {
-        json_t *update = kw_duplicate(kw);
-        json_object_set(update, "id", kw_get_dict_value(node, "id", 0, KW_REQUIRED));
-        json_object_set_new(update, "yuno_alias", json_string(yuno_alias));
-        gobj_update_node(priv->resource, resource, update, 0, src);
+        json_object_set_new(node, "yuno_alias", json_string(yuno_alias));
+        gobj_update_node(priv->resource, resource, json_incref(node), 0, src);
+    }
+
+    /*
+     *  Inform
+     */
+    json_t *jn_data = iter;
+
+    return msg_iev_build_webix(
+        gobj,
+        0,
+        0,
+        tranger_list_topic_desc(gobj_read_pointer_attr(priv->resource, "tranger"), resource),
+        jn_data, // owned
+        kw  // owned
+    );
+}
+
+/***************************************************************************
+ *
+ ***************************************************************************/
+PRIVATE json_t *cmd_set_multiple(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
+{
+    PRIVATE_DATA *priv = gobj_priv_data(gobj);
+    char *resource = "yunos";
+
+    BOOL multiple = kw_get_bool(kw, "multiple", 0, 0);
+
+    /*
+     *  Get a iter of matched resources.
+     */
+    json_t *iter = gobj_list_nodes(
+        priv->resource,
+        resource,
+        kw_incref(kw),  // filter
+        0,
+        src
+    );
+
+    if(json_array_size(iter)==0) {
+        JSON_DECREF(iter);
+        return msg_iev_build_webix(
+            gobj,
+            -158,
+            json_local_sprintf("Select some yuno please"),
+            0,
+            0,
+            kw  // owned
+        );
+    }
+
+    /*
+     *  Update database
+     */
+    int idx; json_t *node;
+    json_array_foreach(iter, idx, node) {
+        json_object_set_new(node, "multiple", json_boolean(multiple));
+        gobj_update_node(priv->resource, resource, json_incref(node), 0, src);
     }
 
     /*
@@ -4588,7 +4658,7 @@ PRIVATE json_t *cmd_play_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
         return msg_iev_build_webix(gobj,
             -161,
             json_local_sprintf(
-                "No yuno found"
+                "No yuno found or already playing"
             ),
             0,
             0,
@@ -4773,7 +4843,7 @@ PRIVATE json_t *cmd_pause_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
         return msg_iev_build_webix(gobj,
             -161,
             json_local_sprintf(
-                "No yuno found"
+                "No yuno found or already in pause"
             ),
             0,
             0,
@@ -4942,7 +5012,7 @@ PRIVATE json_t* cmd_enable_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj s
         return msg_iev_build_webix(gobj,
             -161,
             json_local_sprintf(
-                "No yuno found"
+                "No yuno found or already enabled"
             ),
             0,
             0,
@@ -4999,7 +5069,7 @@ PRIVATE json_t* cmd_disable_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj 
         return msg_iev_build_webix(gobj,
             -161,
             json_local_sprintf(
-                "No yuno found"
+                "No yuno found or already disabled"
             ),
             0,
             0,
@@ -5061,7 +5131,7 @@ PRIVATE json_t* cmd_trace_on_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj
     /*------------------------------------------------*
      *      Get the yunos
      *------------------------------------------------*/
-    json_object_set_new(kw, "disabled", json_false());
+    json_object_set_new(kw, "traced", json_false());
 
     json_t *iter = gobj_list_nodes(
         priv->resource,
@@ -5075,7 +5145,7 @@ PRIVATE json_t* cmd_trace_on_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj
         return msg_iev_build_webix(gobj,
             -161,
             json_local_sprintf(
-                "No yuno found"
+                "No yuno found or already tracing"
             ),
             0,
             0,
@@ -5120,7 +5190,7 @@ PRIVATE json_t* cmd_trace_off_yuno(hgobj gobj, const char* cmd, json_t* kw, hgob
     /*------------------------------------------------*
      *      Get the yunos
      *------------------------------------------------*/
-    json_object_set_new(kw, "disabled", json_false());
+    json_object_set_new(kw, "traced", json_true());
 
     json_t *iter = gobj_list_nodes(
         priv->resource,
@@ -5134,7 +5204,7 @@ PRIVATE json_t* cmd_trace_off_yuno(hgobj gobj, const char* cmd, json_t* kw, hgob
         return msg_iev_build_webix(gobj,
             -161,
             json_local_sprintf(
-                "No yuno found"
+                "No yuno found or already not tracing"
             ),
             0,
             0,
@@ -5209,7 +5279,7 @@ PRIVATE json_t *cmd_command_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         return msg_iev_build_webix(gobj,
             -161,
             json_local_sprintf(
-                "No yuno found"
+                "No yuno found or already running"
             ),
             0,
             0,

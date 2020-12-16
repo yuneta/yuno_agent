@@ -2188,7 +2188,7 @@ PRIVATE json_t *cmd_update_public_service(hgobj gobj, const char *cmd, json_t *k
         return msg_iev_build_webix(
             gobj,
             -107,
-            json_local_sprintf("Select one public service please"),
+            json_local_sprintf("Select some public service please"),
             0,
             0,
             kw  // owned
@@ -2257,7 +2257,7 @@ PRIVATE json_t *cmd_delete_public_service(hgobj gobj, const char *cmd, json_t *k
         return msg_iev_build_webix(
             gobj,
             -104,
-            json_local_sprintf("Select one public service please"),
+            json_local_sprintf("Select some public service please"),
             0,
             0,
             kw  // owned
@@ -2469,7 +2469,7 @@ PRIVATE json_t *cmd_update_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         return msg_iev_build_webix(
             gobj,
             -112,
-            json_local_sprintf("Select one realm please"),
+            json_local_sprintf("Select some realm please"),
             0,
             0,
             kw  // owned
@@ -2538,7 +2538,7 @@ PRIVATE json_t *cmd_delete_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         return msg_iev_build_webix(
             gobj,
             -113,
-            json_local_sprintf("Select one realm please"),
+            json_local_sprintf("Select some realm please"),
             0,
             0,
             kw  // owned
@@ -3113,7 +3113,7 @@ PRIVATE json_t *cmd_delete_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
         return msg_iev_build_webix(
             gobj,
             -130,
-            json_local_sprintf("Select one binary please"),
+            json_local_sprintf("Select some binary please"),
             0,
             0,
             kw  // owned
@@ -3496,7 +3496,7 @@ PRIVATE json_t *cmd_delete_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
         return msg_iev_build_webix(
             gobj,
             -130,
-            json_local_sprintf("Select one configuration please"),
+            json_local_sprintf("Select some configuration please"),
             0,
             0,
             kw  // owned
@@ -4218,7 +4218,7 @@ json_t* cmd_delete_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
         return msg_iev_build_webix(
             gobj,
             -130,
-            json_local_sprintf("Select one yuno please"),
+            json_local_sprintf("Select some yuno please"),
             0,
             0,
             kw  // owned
@@ -4333,7 +4333,7 @@ PRIVATE json_t *cmd_run_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
         return msg_iev_build_webix(gobj,
             -161,
             json_local_sprintf(
-                "No yuno found"
+                "Yuno not found or already running"
             ),
             0,
             0,
@@ -4394,7 +4394,7 @@ PRIVATE json_t *cmd_run_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
         return msg_iev_build_webix(gobj,
             -162,
             json_local_sprintf(
-                "No yuno found to run"
+                "Yuno not found to run"
             ),
             0,
             0,
@@ -4502,7 +4502,7 @@ PRIVATE json_t *cmd_kill_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
         return msg_iev_build_webix(gobj,
             -161,
             json_local_sprintf(
-                "No yuno found"
+                "Yuno not found or already not running"
             ),
             0,
             0,
@@ -4572,7 +4572,7 @@ PRIVATE json_t *cmd_kill_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
         return msg_iev_build_webix(gobj,
             -166,
             json_local_sprintf(
-                "No yuno found to kill"
+                "Yuno not found to kill"
             ),
             0,
             0,
@@ -4668,7 +4668,7 @@ PRIVATE json_t *cmd_play_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
         return msg_iev_build_webix(gobj,
             -161,
             json_local_sprintf(
-                "No yuno found or already playing"
+                "Yuno not found or already playing"
             ),
             0,
             0,
@@ -4739,7 +4739,7 @@ PRIVATE json_t *cmd_play_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
         return msg_iev_build_webix(gobj,
             0,
             json_local_sprintf(
-                "No yuno found to play"
+                "Yuno not found to play"
             ),
             0,
             0,
@@ -4853,7 +4853,7 @@ PRIVATE json_t *cmd_pause_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
         return msg_iev_build_webix(gobj,
             -161,
             json_local_sprintf(
-                "No yuno found or already in pause"
+                "Yuno not found or already in pause"
             ),
             0,
             0,
@@ -4910,7 +4910,7 @@ PRIVATE json_t *cmd_pause_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
         return msg_iev_build_webix(gobj,
             0,
             json_local_sprintf(
-                "No yuno found to pause"
+                "Yuno not found to pause"
             ),
             0,
             0,
@@ -5022,7 +5022,7 @@ PRIVATE json_t* cmd_enable_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj s
         return msg_iev_build_webix(gobj,
             -161,
             json_local_sprintf(
-                "No yuno found or already enabled"
+                "Yuno not found or already enabled"
             ),
             0,
             0,
@@ -5079,7 +5079,7 @@ PRIVATE json_t* cmd_disable_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj 
         return msg_iev_build_webix(gobj,
             -161,
             json_local_sprintf(
-                "No yuno found or already disabled"
+                "Yuno not found or already disabled"
             ),
             0,
             0,
@@ -5155,7 +5155,7 @@ PRIVATE json_t* cmd_trace_on_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj
         return msg_iev_build_webix(gobj,
             -161,
             json_local_sprintf(
-                "No yuno found or already tracing"
+                "Yuno not found or already tracing"
             ),
             0,
             0,
@@ -5214,7 +5214,7 @@ PRIVATE json_t* cmd_trace_off_yuno(hgobj gobj, const char* cmd, json_t* kw, hgob
         return msg_iev_build_webix(gobj,
             -161,
             json_local_sprintf(
-                "No yuno found or already not tracing"
+                "Yuno not found or already not tracing"
             ),
             0,
             0,
@@ -5289,7 +5289,7 @@ PRIVATE json_t *cmd_command_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         return msg_iev_build_webix(gobj,
             -161,
             json_local_sprintf(
-                "No yuno found"
+                "Yuno not found"
             ),
             0,
             0,
@@ -5343,7 +5343,7 @@ PRIVATE json_t *cmd_stats_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
         return msg_iev_build_webix(gobj,
             -161,
             json_local_sprintf(
-                "No yuno found"
+                "Yuno not found"
             ),
             0,
             0,
@@ -7797,7 +7797,7 @@ PRIVATE int ac_edit_yuno_config(hgobj gobj, const char *event, json_t *kw, hgobj
             msg_iev_build_webix(gobj,
                 -161,
                 json_local_sprintf(
-                    "No yuno found"
+                    "Yuno not found"
                 ),
                 0,
                 0,
@@ -7912,7 +7912,7 @@ PRIVATE int ac_view_yuno_config(hgobj gobj, const char *event, json_t *kw, hgobj
             msg_iev_build_webix(gobj,
                 -161,
                 json_local_sprintf(
-                    "No yuno found"
+                    "Yuno not found"
                 ),
                 0,
                 0,
@@ -8402,7 +8402,7 @@ PRIVATE int ac_read_running_keys(hgobj gobj, const char *event, json_t *kw, hgob
             msg_iev_build_webix(gobj,
                 -161,
                 json_local_sprintf(
-                    "No yuno found"
+                    "Yuno not found"
                 ),
                 0,
                 0,
@@ -8490,7 +8490,7 @@ PRIVATE int ac_read_running_bin(hgobj gobj, const char *event, json_t *kw, hgobj
             msg_iev_build_webix(gobj,
                 -161,
                 json_local_sprintf(
-                    "No yuno found"
+                    "Yuno not found"
                 ),
                 0,
                 0,

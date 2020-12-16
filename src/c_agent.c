@@ -3944,14 +3944,15 @@ PRIVATE json_t *cmd_find_new_yunos(hgobj gobj, const char *cmd, json_t *kw, hgob
             jn_data,
             json_sprintf(
                 "create-yuno id=%s realm_name=%s yuno_role=%s role_version=%s "
-                "yuno_name=%s name_version=%s yuno_alias=%s",
+                "yuno_name=%s name_version=%s yuno_alias=%s multiple=%d",
                 id,
                 realm_name,
                 yuno_role,
                 new_role_version,
                 yuno_name,
                 new_name_version,
-                SDATA_GET_STR(yuno, "yuno_alias")
+                SDATA_GET_STR(yuno, "yuno_alias"),
+                SDATA_GET_BOOL(yuno, "multiple")
             )
         );
     }
@@ -4268,7 +4269,6 @@ json_t* cmd_delete_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
     int result = 0;
     int deleted = 0;
     json_array_foreach(iter, idx, node) {
-        // TODO check
         json_t *kw_delete = json_pack("{s:s}", "id", SDATA_GET_ID(node));
         if(gobj_delete_node(
                 priv->resource, resource, kw_delete, json_pack("{s:b}", "force", force), src)<0) {

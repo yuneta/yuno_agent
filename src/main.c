@@ -292,7 +292,7 @@ int main(int argc, char *argv[])
         authz_checker,
         authz_allow,
         authz_deny,
-        authz_parser
+        authzs_list
     );
     return yuneta_entry_point(
         argc, argv,

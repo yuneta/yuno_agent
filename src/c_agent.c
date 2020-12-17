@@ -88,6 +88,9 @@ PRIVATE int command_to_yuno(
 PRIVATE int stats_to_yuno(
     hgobj gobj, json_t *yuno, const char* stats, json_t* kw, hgobj src
 );
+PRIVATE int authzs_to_yuno(
+    hgobj gobj, json_t *yuno, const char *level, json_t* kw, hgobj src
+);
 PRIVATE int audit_command_cb(const char *command, json_t *kw, void *user_data);
 
 PRIVATE json_t *find_last_id_by_name(
@@ -336,8 +339,10 @@ PRIVATE json_t *cmd_set_multiple(hgobj gobj, const char *cmd, json_t *kw, hgobj 
 
 PRIVATE json_t *cmd_command_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_stats_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
+PRIVATE json_t *cmd_authzs_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_command_agent(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_stats_agent(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
+PRIVATE json_t *cmd_authzs_agent(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_set_okill(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_set_qkill(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_check_json(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
@@ -371,6 +376,12 @@ PRIVATE sdata_desc_t pm_stats_agent[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "stats",        0,              0,          "Statistic to be executed in agent"),
 SDATAPM (ASN_OCTET_STR, "service",      0,              0,          "Service of agent where execute the statistic"),
+SDATA_END()
+};
+PRIVATE sdata_desc_t pm_authzs_agent[] = {
+/*-PM----type-----------name------------flag------------default-----description---------- */
+SDATAPM (ASN_UNSIGNED,  "permission",   0,              0,          "permission to search"),
+SDATAPM (ASN_OCTET_STR, "service",      0,              0,          "Service of agent where list the permissions"),
 SDATA_END()
 };
 PRIVATE sdata_desc_t pm_running_keys[] = {
@@ -506,6 +517,18 @@ SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno Name")
 SDATAPM (ASN_OCTET_STR, "yuno_release", 0,              0,          "Yuno Release"),
 SDATAPM (ASN_OCTET_STR, "yuno_alias",   0,              0,          "Yuno Alias"),
 SDATAPM (ASN_OCTET_STR, "stats",        0,              0,          "Statistic to be executed in matched yunos"),
+SDATAPM (ASN_OCTET_STR, "service",      0,              0,          "Service of yuno where execute the statistic"),
+SDATA_END()
+};
+PRIVATE sdata_desc_t pm_authzs_yuno[] = {
+/*-PM----type-----------name------------flag------------default-----description---------- */
+SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id of yuno"),
+SDATAPM (ASN_OCTET_STR, "realm_name",   0,              0,          "Realm Name"),
+SDATAPM (ASN_OCTET_STR, "yuno_role",    0,              0,          "Yuno Role"),
+SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno Name"),
+SDATAPM (ASN_OCTET_STR, "yuno_release", 0,              0,          "Yuno Release"),
+SDATAPM (ASN_OCTET_STR, "yuno_alias",   0,              0,          "Yuno Alias"),
+SDATAPM (ASN_UNSIGNED,  "permission",   0,              0,          "permission to search"),
 SDATAPM (ASN_OCTET_STR, "service",      0,              0,          "Service of yuno where execute the statistic"),
 SDATA_END()
 };
@@ -783,6 +806,7 @@ SDATACM2 (ASN_SCHEMA,   "help",             0,                  a_help,         
 SDATACM2 (ASN_SCHEMA,   "",                 0,                  0,                  0,              0,              "\nAgent\n-----------"),
 SDATACM2 (ASN_SCHEMA,   "command-agent",    SDF_WILD_CMD,       0,                  pm_command_agent,cmd_command_agent,"Command to agent. WARNING: parameter's keys are not checked"),
 SDATACM2 (ASN_SCHEMA,   "stats-agent",      SDF_WILD_CMD,       0,                  pm_stats_agent, cmd_stats_agent, "Get statistics of agent"),
+SDATACM2 (ASN_SCHEMA,   "authzs-agent",     SDF_WILD_CMD,       0,                  pm_authzs_agent, cmd_authzs_agent, "Get authzs of agent"),
 SDATACM2 (ASN_SCHEMA,   "set-ordered-kill", 0,                  0,                  0,              cmd_set_okill,  "Kill yunos with SIGQUIT, ordered kill"),
 SDATACM2 (ASN_SCHEMA,   "set-quick-kill",   0,                  0,                  0,              cmd_set_qkill,  "Kill yunos with SIGKILL, quick kill"),
 SDATACM2 (ASN_SCHEMA,   "",                 0,                  0,                  0,              0,              "\nYuneta tree\n-----------"),
@@ -859,6 +883,7 @@ SDATACM2 (ASN_SCHEMA,   "trace-on-yuno",    SDF_WILD_CMD,       0,              
 SDATACM2 (ASN_SCHEMA,   "trace-off-yuno",   SDF_WILD_CMD,       0,                  pm_trace_off_yuno,cmd_trace_off_yuno,"Trace off yuno"),
 SDATACM2 (ASN_SCHEMA,   "command-yuno",     SDF_WILD_CMD,       0,                  pm_command_yuno,cmd_command_yuno,"Command to yuno. WARNING: parameter's keys are not checked"),
 SDATACM2 (ASN_SCHEMA,   "stats-yuno",       SDF_WILD_CMD,       0,                  pm_stats_yuno,  cmd_stats_yuno, "Get statistics of yuno"),
+SDATACM2 (ASN_SCHEMA,   "authzs-yuno",      SDF_WILD_CMD,       0,                  pm_authzs_yuno,  cmd_authzs_yuno, "Get permissions of yuno"),
 
 SDATA_END()
 };
@@ -5373,6 +5398,59 @@ PRIVATE json_t *cmd_stats_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
 /***************************************************************************
  *
  ***************************************************************************/
+PRIVATE json_t *cmd_authzs_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
+{
+    PRIVATE_DATA *priv = gobj_priv_data(gobj);
+    char *resource = "yunos";
+
+    const char *permission = kw_get_str(kw, "permission", "", 0);
+
+    /*------------------------------------------------*
+     *      Get the yunos
+     *------------------------------------------------*/
+    json_object_set_new(kw, "disabled", json_false());
+    json_object_set_new(kw, "yuno_running", json_true());
+
+    json_t *iter = gobj_list_nodes(
+        priv->resource,
+        resource,
+        kw_incref(kw), // filter
+        0,
+        src
+    );
+    if(json_array_size(iter)==0) {
+        JSON_DECREF(iter);
+        return msg_iev_build_webix(gobj,
+            -161,
+            json_local_sprintf(
+                "Yuno not found"
+            ),
+            0,
+            0,
+            kw  // owned
+        );
+    }
+
+    /*------------------------------------------------*
+     *      Send authzs
+     *------------------------------------------------*/
+    int idx; json_t *yuno;
+    json_array_foreach(iter, idx, yuno) {
+        /*
+         *  Command to yuno
+         */
+        json_t *kw_yuno = json_deep_copy(kw);
+        authzs_to_yuno(gobj, yuno, permission, kw_yuno, src);
+    }
+    JSON_DECREF(iter);
+
+    KW_DECREF(kw);
+    return 0;   /* Asynchronous response */
+}
+
+/***************************************************************************
+ *
+ ***************************************************************************/
 PRIVATE json_t *cmd_command_agent(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
 {
     const char *command = kw_get_str(kw, "command", 0, 0);
@@ -5442,6 +5520,39 @@ PRIVATE json_t *cmd_stats_agent(hgobj gobj, const char *cmd, json_t *kw, hgobj s
     json_t *webix = gobj_stats(
         service_gobj,
         stats,
+        kw, // owned
+        src
+    );
+    return webix;
+}
+
+/***************************************************************************
+ *
+ ***************************************************************************/
+PRIVATE json_t *cmd_authzs_agent(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
+{
+    const char *permission = kw_get_str(kw, "permission", "", 0);
+    const char *service = kw_get_str(kw, "service", "", 0);
+
+    hgobj service_gobj;
+    if(empty_string(service)) {
+        service_gobj = gobj_default_service();
+    } else {
+        service_gobj = gobj_find_service(service, FALSE);
+        if(!service_gobj) {
+            return msg_iev_build_webix(gobj,
+                -178,
+                json_local_sprintf("Service '%s' not found", service),
+                0,
+                0,
+                kw  // owned
+            );
+        }
+    }
+
+    json_t *webix = gobj_authzs(
+        service_gobj,
+        permission,
         kw, // owned
         src
     );
@@ -7123,6 +7234,26 @@ PRIVATE int stats_to_yuno(hgobj gobj, json_t *yuno, const char* stats, json_t* k
     json_t *webix =  gobj_stats(  // debe retornar siempre 0.
         channel_gobj,
         stats,
+        kw,
+        src // gobj
+    );
+    JSON_DECREF(webix);
+    return 0;
+}
+
+/***************************************************************************
+ *
+ ***************************************************************************/
+PRIVATE int authzs_to_yuno(hgobj gobj, json_t *yuno, const char *permission, json_t* kw, hgobj src)
+{
+    hgobj channel_gobj = (hgobj)(size_t)kw_get_int(yuno, "_channel_gobj", 0, KW_REQUIRED);
+    if(!channel_gobj) {
+        KW_DECREF(kw);
+        return -1;
+    }
+    json_t *webix =  gobj_authzs(  // debe retornar siempre 0.
+        channel_gobj,
+        permission,
         kw,
         src // gobj
     );
@@ -9263,7 +9394,7 @@ PRIVATE GCLASS _gclass = {
         0, //mt_publication_pre_filter,
         0, //mt_publication_filter,
         0, //mt_future38,
-        0, //mt_future39,
+        0, //mt_authzs,
         0, //mt_create_node,
         0, //mt_update_node,
         0, //mt_delete_node,

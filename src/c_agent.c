@@ -89,7 +89,7 @@ PRIVATE int stats_to_yuno(
     hgobj gobj, json_t *yuno, const char* stats, json_t* kw, hgobj src
 );
 PRIVATE int authzs_to_yuno(
-    hgobj gobj, json_t *yuno, const char *level, json_t* kw, hgobj src
+    json_t *yuno, json_t* kw, hgobj src
 );
 PRIVATE int audit_command_cb(const char *command, json_t *kw, void *user_data);
 
@@ -380,7 +380,7 @@ SDATA_END()
 };
 PRIVATE sdata_desc_t pm_authzs_agent[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
-SDATAPM (ASN_UNSIGNED,  "permission",   0,              0,          "permission to search"),
+SDATAPM (ASN_UNSIGNED,  "authz",        0,              0,          "permission to search"),
 SDATAPM (ASN_OCTET_STR, "service",      0,              0,          "Service of agent where list the permissions"),
 SDATA_END()
 };
@@ -523,7 +523,7 @@ SDATA_END()
 PRIVATE sdata_desc_t pm_authzs_yuno[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id of yuno"),
-SDATAPM (ASN_OCTET_STR, "permission",   0,              0,          "permission to search"),
+SDATAPM (ASN_OCTET_STR, "authz",        0,              0,          "permission to search"),
 SDATAPM (ASN_OCTET_STR, "service",      0,              0,          "Service of yuno where search the permission"),
 SDATAPM (ASN_OCTET_STR, "realm_name",   0,              0,          "Realm Name"),
 SDATAPM (ASN_OCTET_STR, "yuno_role",    0,              0,          "Yuno Role"),
@@ -5403,8 +5403,6 @@ PRIVATE json_t *cmd_authzs_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj s
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
     char *resource = "yunos";
 
-    const char *permission = kw_get_str(kw, "permission", "", 0);
-
     /*------------------------------------------------*
      *      Get the yunos
      *------------------------------------------------*/
@@ -5440,7 +5438,7 @@ PRIVATE json_t *cmd_authzs_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj s
          *  Command to yuno
          */
         json_t *kw_yuno = json_deep_copy(kw);
-        authzs_to_yuno(gobj, yuno, permission, kw_yuno, src);
+        authzs_to_yuno(yuno, kw_yuno, src);
     }
     JSON_DECREF(iter);
 
@@ -5520,39 +5518,6 @@ PRIVATE json_t *cmd_stats_agent(hgobj gobj, const char *cmd, json_t *kw, hgobj s
     json_t *webix = gobj_stats(
         service_gobj,
         stats,
-        kw, // owned
-        src
-    );
-    return webix;
-}
-
-/***************************************************************************
- *
- ***************************************************************************/
-PRIVATE json_t *cmd_authzs_agent(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
-{
-    const char *permission = kw_get_str(kw, "permission", "", 0);
-    const char *service = kw_get_str(kw, "service", "", 0);
-
-    hgobj service_gobj;
-    if(empty_string(service)) {
-        service_gobj = gobj_default_service();
-    } else {
-        service_gobj = gobj_find_service(service, FALSE);
-        if(!service_gobj) {
-            return msg_iev_build_webix(gobj,
-                -178,
-                json_local_sprintf("Service '%s' not found", service),
-                0,
-                0,
-                kw  // owned
-            );
-        }
-    }
-
-    json_t *webix = gobj_authzs(
-        service_gobj,
-        permission,
         kw, // owned
         src
     );
@@ -7244,18 +7209,54 @@ PRIVATE int stats_to_yuno(hgobj gobj, json_t *yuno, const char* stats, json_t* k
 /***************************************************************************
  *
  ***************************************************************************/
-PRIVATE int authzs_to_yuno(hgobj gobj, json_t *yuno, const char *permission, json_t* kw, hgobj src)
+PRIVATE json_t *cmd_authzs_agent(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
+{
+    const char *authz = kw_get_str(kw, "authz", "", 0);
+    const char *service = kw_get_str(kw, "service", "", 0);
+
+    hgobj service_gobj = 0;
+
+    if(!empty_string(service)) {
+        service_gobj = gobj_find_service(service, FALSE);
+        if(!service_gobj) {
+            return msg_iev_build_webix(gobj,
+                -1,
+                json_local_sprintf("Service not found: '%s'", service),
+                0,
+                0,
+                kw  // owned
+            );
+        }
+    }
+
+    json_t *webix = gobj_authzs(
+        service_gobj, // Can be null
+        authz,
+        kw, // owned
+        src
+    );
+    return webix;
+}
+
+/***************************************************************************
+ *
+ ***************************************************************************/
+PRIVATE int authzs_to_yuno(
+    json_t *yuno,
+    json_t* kw,
+    hgobj src
+)
 {
     hgobj channel_gobj = (hgobj)(size_t)kw_get_int(yuno, "_channel_gobj", 0, KW_REQUIRED);
     if(!channel_gobj) {
         KW_DECREF(kw);
         return -1;
     }
-    json_t *webix =  gobj_authzs(  // debe retornar siempre 0.
+    json_t *webix = gobj_command( // debe retornar siempre 0.
         channel_gobj,
-        permission,
+        "authzs_list",
         kw,
-        src // gobj
+        src //gobj
     );
     JSON_DECREF(webix);
     return 0;
@@ -8851,52 +8852,6 @@ PRIVATE int ac_command_yuno_answer(hgobj gobj, const char *event, json_t *kw, hg
 }
 
 /***************************************************************************
- *  HACK nodo intermedio
- ***************************************************************************/
-PRIVATE int ac_authz_yuno_answer(hgobj gobj, const char *event, json_t *kw, hgobj src)
-{
-    json_t *jn_ievent_id = msg_iev_pop_stack(kw, IEVENT_MESSAGE_AREA_ID);
-
-    const char *dst_service = kw_get_str(jn_ievent_id, "dst_service", "", 0);
-    if(strcmp(dst_service, gobj_name(gobj))==0) {
-        // Comando directo del agente
-        JSON_DECREF(jn_ievent_id);
-        KW_DECREF(kw);
-        return 0;
-    }
-
-    hgobj gobj_requester = gobj_child_by_name(
-        gobj_child_by_name(gobj, "__input_side__", 0),
-        dst_service,
-        0
-    );
-    if(!gobj_requester) {
-        log_error(0,
-            "gobj",         "%s", gobj_full_name(gobj),
-            "function",     "%s", __FUNCTION__,
-            "msgset",       "%s", MSGSET_INTERNAL_ERROR,
-            "msg",          "%s", "child not found",
-            "child",        "%s", dst_service,
-            NULL
-        );
-        JSON_DECREF(jn_ievent_id);
-        KW_DECREF(kw);
-        return 0;
-    }
-    JSON_DECREF(jn_ievent_id);
-
-    KW_INCREF(kw);
-    json_t *kw_redirect = msg_iev_answer(gobj, kw, kw, 0);
-
-    return gobj_send_event(
-        gobj_requester,
-        event,
-        kw_redirect,
-        gobj
-    );
-}
-
-/***************************************************************************
  *
  ***************************************************************************/
 PRIVATE int ac_on_open(hgobj gobj, const char *event, json_t *kw, hgobj src)
@@ -9324,7 +9279,6 @@ PRIVATE const EVENT input_events[] = {
     {"EV_PAUSE_YUNO_ACK",       EVF_PUBLIC_EVENT,  0,  0},
     {"EV_MT_STATS_ANSWER",      EVF_PUBLIC_EVENT,  0,  0},
     {"EV_MT_COMMAND_ANSWER",    EVF_PUBLIC_EVENT,  0,  0},
-    {"EV_MT_AUTHZS_ANSWER",     EVF_PUBLIC_EVENT,  0,  0},
     {"EV_ON_COMMAND",           EVF_PUBLIC_EVENT,  0,  0},
 
     // bottom input
@@ -9341,7 +9295,6 @@ PRIVATE const EVENT output_events[] = {
     {"EV_PAUSE_YUNO_ACK",       EVF_NO_WARN_SUBS,  0,  0},
     {"EV_MT_STATS_ANSWER",      0,  0,  0},
     {"EV_MT_COMMAND_ANSWER",    0,  0,  0},
-    {"EV_MT_AUTHZS_ANSWER",     0,  0,  0},
     {NULL, 0, 0, 0}
 };
 PRIVATE const char *state_names[] = {
@@ -9364,7 +9317,6 @@ PRIVATE EV_ACTION ST_IDLE[] = {
     {"EV_PAUSE_YUNO_ACK",       ac_pause_yuno_ack,      0},
     {"EV_MT_STATS_ANSWER",      ac_stats_yuno_answer,   0},
     {"EV_MT_COMMAND_ANSWER",    ac_command_yuno_answer, 0},
-    {"EV_MT_AUTHZS_ANSWER",     ac_authz_yuno_answer,   0},
     {"EV_ON_COMMAND",           ac_command_yuno_answer, 0},
 
     {"EV_ON_OPEN",              ac_on_open,             0},

@@ -291,6 +291,7 @@ PRIVATE char agent_filter_chain_config[]= "\
 ";
 
 PRIVATE json_t *cmd_help(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
+PRIVATE json_t *cmd_authzs(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 
 PRIVATE json_t *cmd_run_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_kill_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
@@ -363,6 +364,11 @@ PRIVATE sdata_desc_t pm_help[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "cmd",          0,              0,          "command about you want help"),
 SDATAPM (ASN_UNSIGNED,  "level",        0,              0,          "command search level in childs"),
+SDATA_END()
+};
+PRIVATE sdata_desc_t pm_authzs[] = {
+/*-PM----type-----------name------------flag------------default-----description---------- */
+SDATAPM (ASN_OCTET_STR, "authz",        0,              0,          "authz about you want help"),
 SDATA_END()
 };
 
@@ -802,6 +808,7 @@ PRIVATE const char *a_list_snaps[] = {"6", "snaps", 0};
 PRIVATE sdata_desc_t command_table[] = {
 /*-CMD2--type-----------name----------------flag----------------alias---------------items-----------json_fn---------description---------- */
 SDATACM2 (ASN_SCHEMA,   "help",             0,                  a_help,             pm_help,        cmd_help,       "Command's help"),
+SDATACM2 (ASN_SCHEMA,   "authzs",           0,                  0,                  pm_authzs,      cmd_authzs,     "Authorization's help"),
 
 SDATACM2 (ASN_SCHEMA,   "",                 0,                  0,                  0,              0,              "\nAgent\n-----------"),
 SDATACM2 (ASN_SCHEMA,   "command-agent",    SDF_WILD_CMD,       0,                  pm_command_agent,cmd_command_agent,"Command to agent. WARNING: parameter's keys are not checked"),
@@ -1015,7 +1022,7 @@ PRIVATE void mt_create(hgobj gobj)
         "on_critical_error", (int)(LOG_OPT_EXIT_ZERO)
     );
     priv->gobj_tranger = gobj_create_service(
-        "tranger_agent",
+        "tranger",
         GCLASS_TRANGER,
         kw_tranger,
         gobj
@@ -1333,6 +1340,14 @@ PRIVATE json_t *cmd_help(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
         0,
         kw  // owned
     );
+}
+
+/***************************************************************************
+ *
+ ***************************************************************************/
+PRIVATE json_t *cmd_authzs(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
+{
+    return gobj_build_authzs_doc(gobj, cmd, kw, src);
 }
 
 /***************************************************************************
@@ -7231,9 +7246,7 @@ PRIVATE json_t *cmd_authzs_agent(hgobj gobj, const char *cmd, json_t *kw, hgobj 
 
     json_t *webix = gobj_authzs(
         service_gobj, // Can be null
-        authz,
-        kw, // owned
-        src
+        authz
     );
     return webix;
 }
@@ -7254,7 +7267,7 @@ PRIVATE int authzs_to_yuno(
     }
     json_t *webix = gobj_command( // debe retornar siempre 0.
         channel_gobj,
-        "authzs_list",
+        "authzs",
         kw,
         src //gobj
     );

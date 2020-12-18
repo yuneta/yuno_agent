@@ -29,6 +29,7 @@
 PRIVATE char fixed_config[]= "\
 {                                                                   \n\
     'environment': {                                                \n\
+        'realm_domain': 'agent',                                    \n\
         'work_dir': '/yuneta',                                      \n\
         'domain_dir': 'realms/agent/agent'                          \n\
     },                                                              \n\
@@ -78,7 +79,6 @@ PRIVATE char variable_config[]= "\
     },                                                              \n\
     'yuno': {                                                       \n\
         'yuno_name': '(^^__hostname__^^)',                          \n\
-        'realm_domain': 'agent',                                    \n\
         'trace_levels': {                                           \n\
             'Tcp0': ['connections'],                                \n\
             'TcpS0': ['listen', 'not-accepted', 'accepted'],        \n\
@@ -96,6 +96,7 @@ PRIVATE char variable_config[]= "\
             'autostart': true,                          \n\
             'autoplay': false,                          \n\
             'kw': {                                     \n\
+                'jwt_public_key': '-----BEGIN PUBLIC KEY-----\\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAj0ZkOtmWlsDLJiJWXTEJ\\ntyXxlVY7iLseG982eaFgDaAdtE3Z5J+WDvzni7v4MPR55oMyi/oeAvTKIsVOv3aw\\nobRJ/Mr45Qh6I0j4Hn+rFfPW4wbmxRmFeyRrfMzYAZZoibZ3m7EFlj2RINvJFIgE\\npIoTf4UneXmlSDbUU9MTZe1mULfCfEZVa5V9W86BluAAib1mYJU7aJ20KPkbQAvW\\nXqC82AE9ga66HnQ2n56mv1kPyvNGKvvM6vD2IXQeLIYgudYT2KlGKd8isrOEkrno\\nXtPKMSaRhVccO73Wbo7krhjGV5MTpMvvOM+wDprslFkODm0MORsHORVxfcVGWSpU\\ngQIDAQAB\\n-----END PUBLIC KEY-----\\n' \n\
             },                                          \n\
             'zchilds': [                                 \n\
                 {                                               \n\
@@ -186,7 +187,6 @@ PRIVATE char variable_config[]= "\
             'autostart': true,                                      \n\
             'autoplay': true,                                       \n\
             'kw': {                                                 \n\
-                'jwt_public_key': '-----BEGIN PUBLIC KEY-----\\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAj0ZkOtmWlsDLJiJWXTEJ\\ntyXxlVY7iLseG982eaFgDaAdtE3Z5J+WDvzni7v4MPR55oMyi/oeAvTKIsVOv3aw\\nobRJ/Mr45Qh6I0j4Hn+rFfPW4wbmxRmFeyRrfMzYAZZoibZ3m7EFlj2RINvJFIgE\\npIoTf4UneXmlSDbUU9MTZe1mULfCfEZVa5V9W86BluAAib1mYJU7aJ20KPkbQAvW\\nXqC82AE9ga66HnQ2n56mv1kPyvNGKvvM6vD2IXQeLIYgudYT2KlGKd8isrOEkrno\\nXtPKMSaRhVccO73Wbo7krhjGV5MTpMvvOM+wDprslFkODm0MORsHORVxfcVGWSpU\\ngQIDAQAB\\n-----END PUBLIC KEY-----\\n', \n\
                 'initial_load': [                                       \n\
                     {                                                   \n\
                         'id': 'yuneta',             #^^ user            \n\

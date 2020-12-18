@@ -6834,17 +6834,17 @@ PRIVATE GBUFFER *build_yuno_running_script(
             json_object_update(jn_global, jn_node_variables);
         }
 
-        json_t *jn_environment = json_pack("{s:s, s:s}",
+        json_t *jn_environment = json_pack("{s:s, s:s, s:s, s:s, s:s}",
             "work_dir", work_dir,
-            "domain_dir", domain_dir
+            "domain_dir", domain_dir,
+            "realm_domain", realm_domain,
+            "realm_role", realm_role,
+            "realm_name", realm_name
         );
-        json_t *jn_content = json_pack("{s:o, s:o, s:{s:s, s:s, s:s, s:s, s:s, s:s, s:s, s:s, s:b, s:I}}",
+        json_t *jn_content = json_pack("{s:o, s:o, s:{s:s, s:s, s:s, s:s, s:s, s:b, s:I}}",
             "global", jn_global,
             "environment", jn_environment,
             "yuno",
-                "realm_domain", realm_domain,
-                "realm_role", realm_role,
-                "realm_name", realm_name,
                 "yuno_name", yuno_name,
                 "yuno_alias", yuno_alias,
                 "yuno_release", yuno_release,

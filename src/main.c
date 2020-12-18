@@ -77,6 +77,7 @@ PRIVATE char variable_config[]= "\
         }                                                           \n\
     },                                                              \n\
     'yuno': {                                                       \n\
+        'yuno_name': '(^^__hostname__^^)',                          \n\
         'realm_domain': 'agent',                                    \n\
         'trace_levels': {                                           \n\
             'Tcp0': ['connections'],                                \n\

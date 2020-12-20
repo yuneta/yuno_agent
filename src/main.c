@@ -187,38 +187,13 @@ PRIVATE char variable_config[]= "\
             'autostart': true,                                      \n\
             'autoplay': true,                                       \n\
             'kw': {                                                 \n\
-                'initial_load': [                                       \n\
-                    {                                                   \n\
-                        'id': 'yuneta',             #^^ user            \n\
-                        'system_user': true,                            \n\
-                        'permissions': [                                \n\
-                            {                                           \n\
-                                'id': '*',          #^^ gclass/service  \n\
-                                'allow': true,                          \n\
-                                'constraints': {}                       \n\
-                            }                                           \n\
-                        ]                                               \n\
-                    },                                                  \n\
-                    {                                                   \n\
-                        'id': 'ginsmar@mulesol.es', #^^ user            \n\
-                        'system_user': false,                           \n\
-                        'permissions': [                                \n\
-                            {                                           \n\
-                                'id': '*',          #^^ gclass/service  \n\
-                                'allow': true,                          \n\
-                                'constraints': {}                       \n\
-                            }                                           \n\
-                        ]                                               \n\
-                    }                                                   \n\
-                ]                                                       \n\
             },                                                      \n\
             'zchilds': [                                            \n\
             ]                                                       \n\
         }                                                           \n\
-    ]                                                   \n\
-}                                                       \n\
+    ]                                                               \n\
+}                                                                   \n\
 ";
-
 
 /***************************************************************************
  *                      Register
@@ -326,8 +301,6 @@ int main(int argc, char *argv[])
         command_parser,
         stats_parser,
         authz_checker,
-        authz_allow,
-        authz_deny,
         authzs_list
     );
     return yuneta_entry_point(

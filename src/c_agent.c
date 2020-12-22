@@ -1256,21 +1256,21 @@ PRIVATE json_t *mt_authenticate(hgobj gobj, const char *service, json_t *kw, hgo
         );
     }
 
-    // HACK guarda jwt_payload (user y session) en channel_gobj
-    gobj_write_user_data(src, "jwt_payload", jwt_payload);
+    /*
+     *  WARNING "preferred_username" is used in keycloak! In others Oauth???
+     */
+    const char *username = kw_get_str(jwt_payload, "preferred_username", 0, KW_REQUIRED);
 
-    //json_t *access_roles = get_access_roles(
-    //    gobj,
-    //    kw_get_list(jwt_payload, "resource_access`fichador`roles", 0, KW_REQUIRED)
-    //);
-    //json_object_set_new(jwt_payload, "access_roles", access_roles);
-    //log_debug_json(0, jwt_payload, "jwt_payload");
+    /*
+     *  HACK guarda jwt_payload (user y session) en channel_gobj
+     */
+    gobj_write_user_data(src, "jwt_payload", jwt_payload);
+    gobj_write_user_data(src, "username", json_string(username));
 
     /*
      *  User autentificado, crea su registro si es nuevo
      *  e informa de su estado en el ack.
      */
-    const char *username = kw_get_str(jwt_payload, "preferred_username", 0, KW_REQUIRED);
     if(priv->users_accesses) {
         json_t *user = trmsg_get_active_message(priv->users_accesses, username);
         if(!user) {

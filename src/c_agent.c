@@ -13,10 +13,6 @@
 #include <errno.h>
 #include <regex.h>
 #include <unistd.h>
-#include <cjose/cjose.h>
-#include <oauth2/oauth2.h>
-#include <oauth2/mem.h>
-#include <uuid/uuid.h>
 #include "c_agent.h"
 
 /***************************************************************************
@@ -62,15 +58,6 @@ PRIVATE char *yuneta_repos_yuno_file(
     const char *filename,
     BOOL create
 );
-PRIVATE void oauth2_log_callback(
-    oauth2_log_sink_t *sink,
-    const char *filename,
-    unsigned long line,
-    const char *function,
-    oauth2_log_level_t level,
-    const char *msg
-);
-PRIVATE int create_new_user(hgobj gobj, json_t *jwt_payload);
 PRIVATE json_t *get_yuno_realm(hgobj gobj, json_t *yuno);
 PRIVATE char * build_yuno_private_domain(hgobj gobj, json_t *yuno, char *bf, int bfsize);
 PRIVATE int build_role_plus_name(char *bf, int bf_len, json_t *yuno);
@@ -118,11 +105,6 @@ PRIVATE int restart_nodes(hgobj gobj);
 /***************************************************************************
  *              Resources
  ***************************************************************************/
-PRIVATE topic_desc_t db_messages_desc[] = {
-    // Topic Name,          Pkey            System Flag     Tkey        Topic Json Desc
-    {"users_accesses",      "username",     sf_string_key,  "tm",       0},
-    {0}
-};
 #include "treedb_schema_yuneta_agent.c"
 
 PRIVATE sdata_desc_t tb_binaries[] = {
@@ -901,7 +883,6 @@ SDATA_END()
 PRIVATE sdata_desc_t tattr_desc[] = {
 /*-ATTR-type------------name----------------flag----------------default---------description---------- */
 SDATA (ASN_OCTET_STR,   "tranger_path",     SDF_RD,             "/yuneta/store/agent/yuneta_agent.trdb", "tranger path"),
-SDATA (ASN_OCTET_STR,   "jwt_public_key",   SDF_RD,             0,              "JWT public key"),
 SDATA (ASN_OCTET_STR,   "startup_command",  SDF_RD,             0,              "Command to execute at startup"),
 SDATA (ASN_JSON,        "agent_environment",SDF_RD,             0,              "Agent environment. Override the yuno environment"),
 SDATA (ASN_JSON,        "node_variables",   SDF_RD,             0,              "Global to Node json config variables"),
@@ -934,10 +915,6 @@ typedef struct _PRIVATE_DATA {
 
     hgobj gobj_tranger;
     json_t *tranger;
-    oauth2_log_t *oath2_log;
-    oauth2_log_sink_t *oath2_sink;
-    oauth2_cfg_token_verify_t *verify;
-    json_t *users_accesses;      // dict with users opened
 
     hgobj resource;
     hgobj timer;
@@ -980,36 +957,6 @@ PRIVATE void mt_create(hgobj gobj)
         fclose(file);
     }
 
-    if(1) {
-        /*---------------------------*
-         *      Oauth
-         *---------------------------*/
-        #define MY_CACHE_OPTIONS "options=max_entries%3D10"
-        int level = OAUTH2_LOG_WARN;
-        priv->oath2_sink = oauth2_log_sink_create(
-            level,                  // oauth2_log_level_t level,
-            oauth2_log_callback,    // oauth2_log_function_t callback,
-            gobj                    // void *ctx
-        );
-        priv->oath2_log = oauth2_log_init(level, priv->oath2_sink);
-
-        const char *pubkey = gobj_read_str_attr(gobj, "jwt_public_key");
-        if(pubkey) {
-            const char *rv = oauth2_cfg_token_verify_add_options(
-                priv->oath2_log, &priv->verify, "pubkey", pubkey,
-                "verify.exp=skip&verify.cache." MY_CACHE_OPTIONS);
-            if(rv != NULL) {
-                log_error(0,
-                    "gobj",         "%s", gobj_full_name(gobj),
-                    "function",     "%s", __FUNCTION__,
-                    "msgset",       "%s", MSGSET_OAUTH_ERROR,
-                    "msg",          "%s", "oauth2_cfg_token_verify_add_options() FAILED",
-                    NULL
-                );
-            }
-        }
-    }
-
     /*---------------------------*
      *      Timeranger
      *---------------------------*/
@@ -1035,27 +982,6 @@ PRIVATE void mt_create(hgobj gobj)
      *  TODO elimina cuando c_tranger esté completa
      */
     gobj_2key_register("tranger", "agent", priv->tranger);
-
-    if(1) {
-        /*---------------------------*
-         *  Open topics as messages
-         *---------------------------*/
-        trmsg_open_topics(
-            priv->tranger,
-            db_messages_desc
-        );
-
-        /*
-         *  To open users accesses
-         */
-        priv->users_accesses = trmsg_open_list(
-            priv->tranger,
-            "users_accesses",     // topic
-            json_pack("{s:i}",  // filter
-                "max_key_instances", 1
-            )
-        );
-    }
 
     if(1) {
         /*-----------------------------*
@@ -1139,11 +1065,6 @@ PRIVATE void mt_destroy(hgobj gobj)
         rotatory_close(priv->audit_file);
         priv->audit_file = 0;
     }
-    if(priv->verify) {
-        oauth2_cfg_token_verify_free(priv->oath2_log, priv->verify);
-        priv->verify = 0;
-    }
-    EXEC_AND_RESET(oauth2_log_free, priv->oath2_log);
 }
 
 /***************************************************************************
@@ -1175,122 +1096,6 @@ PRIVATE int mt_stop(hgobj gobj)
     gobj_stop(priv->timer);
     gobj_stop_childs(gobj);
     return 0;
-}
-
-/***************************************************************************
- *      Framework Method mt_authenticate
- ***************************************************************************/
-PRIVATE json_t *mt_authenticate(hgobj gobj, const char *service, json_t *kw, hgobj src)
-{
-    PRIVATE_DATA *priv = gobj_priv_data(gobj);
-    const char *peername = gobj_read_str_attr(src, "peername");
-
-    if(is_ip_denied(peername)) {
-        /*
-         *  IP autorizada sin user/passw, informa
-         */
-        return msg_iev_build_webix(
-            gobj,
-            -1,
-            json_local_sprintf("Ip denied"),
-            0,
-            0,
-            kw  // owned
-        );
-    }
-
-    if(is_ip_allowed(peername)) {
-        /*
-         *  IP autorizada sin user/passw, informa
-         */
-        return msg_iev_build_webix(
-            gobj,
-            0,
-            json_local_sprintf("Ip allowed"),
-            0,
-            0,
-            kw  // owned
-        );
-    }
-
-    const char *localhost = "127.0.0.";
-    if(strncmp(peername, localhost, strlen(localhost))==0) {
-        /*
-         *  LOCALHOST Autorizado, informa
-         */
-        return msg_iev_build_webix(
-            gobj,
-            0,
-            json_local_sprintf("Ip local allowed"),
-            0,
-            0,
-            kw  // owned
-        );
-    }
-
-    const char *jwt= kw_get_str(kw, "jwt", "", 0);
-    if(empty_string(jwt)) {
-        /*
-         *  Need auth
-         */
-        return msg_iev_build_webix(
-            gobj,
-            -1,
-            json_local_sprintf("Needed jwt to auth"),
-            0,
-            0,
-            kw  // owned
-        );
-    }
-
-    json_t *jwt_payload = NULL;
-    if(!oauth2_token_verify(priv->oath2_log, priv->verify, jwt, &jwt_payload)) {
-        JSON_DECREF(jwt_payload);
-        return msg_iev_build_webix(
-            gobj,
-            -1,
-            json_local_sprintf("Authentication rejected"),
-            0,
-            0,
-            kw  // owned
-        );
-    }
-
-    /*
-     *  WARNING "preferred_username" is used in keycloak! In others Oauth???
-     */
-    const char *username = kw_get_str(jwt_payload, "preferred_username", 0, KW_REQUIRED);
-
-    /*
-     *  HACK guarda jwt_payload (user y session) en channel_gobj
-     */
-    gobj_write_user_data(src, "jwt_payload", jwt_payload);
-    gobj_write_user_data(src, "username", json_string(username));
-
-    /*
-     *  User autentificado, crea su registro si es nuevo
-     *  e informa de su estado en el ack.
-     */
-    if(priv->users_accesses) {
-        json_t *user = trmsg_get_active_message(priv->users_accesses, username);
-        if(!user) {
-            create_new_user(gobj, jwt_payload);
-            user = trmsg_get_active_message(priv->users_accesses, username);
-        }
-        kw_get_dict(user, "_sessions", json_object(), KW_CREATE);
-    }
-
-    /*
-     *  Autorizado, informa
-     */
-    return msg_iev_build_webix(
-        gobj,
-        0,
-        json_local_sprintf("JWT User authenticated: %s", username),
-        0,
-        0,
-        kw  // owned
-    );
 }
 
 /***************************************************************************
@@ -5957,76 +5762,6 @@ PRIVATE json_t *cmd_public_services_instances(hgobj gobj, const char *cmd, json_
 
 
 /***************************************************************************
- *
- ***************************************************************************/
-PRIVATE void oauth2_log_callback(
-    oauth2_log_sink_t *sink,
-    const char *filename,
-    unsigned long line,
-    const char *function,
-    oauth2_log_level_t level,
-    const char *msg
-)
-{
-    hgobj gobj = oauth2_log_sink_ctx_get(sink);
-
-    void (*log_fn)(log_opt_t opt, ...) = 0;
-    const char *msgset = MSGSET_OAUTH_ERROR;
-
-    if(level == OAUTH2_LOG_ERROR) {
-        log_fn = log_error;
-    } else if(level == OAUTH2_LOG_WARN) {
-        log_fn = log_warning;
-    } else if(level == OAUTH2_LOG_NOTICE || level == OAUTH2_LOG_INFO) {
-        log_fn = log_warning;
-        msgset = MSGSET_INFO;
-    } else if(level >= OAUTH2_LOG_DEBUG) {
-        log_fn = log_debug;
-        msgset = MSGSET_INFO;
-    }
-
-    log_fn(0,
-        "gobj",             "%s", gobj_full_name(gobj),
-        "function",         "%s", function,
-        "msgset",           "%s", msgset,
-        "msg",              "%s", msg,
-        NULL
-    );
-}
-
-/***************************************************************************
- *
- ***************************************************************************/
-PRIVATE int create_new_user(hgobj gobj, json_t *jwt_payload)
-{
-    PRIVATE_DATA *priv = gobj_priv_data(gobj);
-
-    const char *username = kw_get_str(jwt_payload, "preferred_username", 0, KW_REQUIRED); // User id
-
-    /*
-     *  Crea user en users_accesses
-     */
-    json_t *user = json_pack("{s:s, s:s, s:I, s:O}",
-        "ev", "new_user",
-        "username", username,
-        "tm", (json_int_t)time_in_seconds(),
-        "jwt_payload", jwt_payload
-    );
-
-    trmsg_add_instance(
-        priv->tranger,
-        "users_accesses",
-        user, // owned
-        0,
-        0
-    );
-
-    user = trmsg_get_active_message(priv->users_accesses, username);
-
-    return 0;
-}
-
-/***************************************************************************
  *      Execute command
  ***************************************************************************/
 PRIVATE int exec_startup_command(hgobj gobj)
@@ -9394,7 +9129,7 @@ PRIVATE GCLASS _gclass = {
         0, //mt_delete_child_resource_link
         0, //mt_get_resource
         0, //mt_authorization_parser,
-        mt_authenticate,
+        0, //mt_authenticate,
         0, //mt_list_childs,
         0, //mt_stats_updated,
         0, //mt_disable,
@@ -9408,7 +9143,7 @@ PRIVATE GCLASS _gclass = {
         0, //mt_publication_pre_filter,
         0, //mt_publication_filter,
         0, //mt_authz_checker,
-        0, //mt_authzs,
+        0, //mt_future39,
         0, //mt_create_node,
         0, //mt_update_node,
         0, //mt_delete_node,

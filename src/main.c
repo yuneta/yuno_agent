@@ -87,6 +87,7 @@ PRIVATE char variable_config[]= "\
         }                                                           \n\
     },                                                              \n\
     'global': {                                                     \n\
+        'Authz.jwt_public_key': '-----BEGIN PUBLIC KEY-----\\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAj0ZkOtmWlsDLJiJWXTEJ\\ntyXxlVY7iLseG982eaFgDaAdtE3Z5J+WDvzni7v4MPR55oMyi/oeAvTKIsVOv3aw\\nobRJ/Mr45Qh6I0j4Hn+rFfPW4wbmxRmFeyRrfMzYAZZoibZ3m7EFlj2RINvJFIgE\\npIoTf4UneXmlSDbUU9MTZe1mULfCfEZVa5V9W86BluAAib1mYJU7aJ20KPkbQAvW\\nXqC82AE9ga66HnQ2n56mv1kPyvNGKvvM6vD2IXQeLIYgudYT2KlGKd8isrOEkrno\\nXtPKMSaRhVccO73Wbo7krhjGV5MTpMvvOM+wDprslFkODm0MORsHORVxfcVGWSpU\\ngQIDAQAB\\n-----END PUBLIC KEY-----\\n' \n\
     },                                                              \n\
     'services': [                                                   \n\
         {                                               \n\
@@ -96,9 +97,8 @@ PRIVATE char variable_config[]= "\
             'autostart': true,                          \n\
             'autoplay': false,                          \n\
             'kw': {                                     \n\
-                'jwt_public_key': '-----BEGIN PUBLIC KEY-----\\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAj0ZkOtmWlsDLJiJWXTEJ\\ntyXxlVY7iLseG982eaFgDaAdtE3Z5J+WDvzni7v4MPR55oMyi/oeAvTKIsVOv3aw\\nobRJ/Mr45Qh6I0j4Hn+rFfPW4wbmxRmFeyRrfMzYAZZoibZ3m7EFlj2RINvJFIgE\\npIoTf4UneXmlSDbUU9MTZe1mULfCfEZVa5V9W86BluAAib1mYJU7aJ20KPkbQAvW\\nXqC82AE9ga66HnQ2n56mv1kPyvNGKvvM6vD2IXQeLIYgudYT2KlGKd8isrOEkrno\\nXtPKMSaRhVccO73Wbo7krhjGV5MTpMvvOM+wDprslFkODm0MORsHORVxfcVGWSpU\\ngQIDAQAB\\n-----END PUBLIC KEY-----\\n' \n\
             },                                          \n\
-            'zchilds': [                                 \n\
+            'zchilds': [                                \n\
                 {                                               \n\
                     'name': '__input_side__',                   \n\
                     'gclass': 'IOGate',                         \n\
@@ -292,16 +292,16 @@ int main(int argc, char *argv[])
     helper_quote2doublequote(fixed_config);
     helper_quote2doublequote(variable_config);
     yuneta_setup(
-        dbattrs_startup,
-        dbattrs_end,
-        dbattrs_load_persistent,
-        dbattrs_save_persistent,
-        dbattrs_remove_persistent,
-        dbattrs_list_persistent,
+        dbattrs_startup,            // dbsimple2
+        dbattrs_end,                // dbsimple2
+        dbattrs_load_persistent,    // dbsimple2
+        dbattrs_save_persistent,    // dbsimple2
+        dbattrs_remove_persistent,  // dbsimple2
+        dbattrs_list_persistent,    // dbsimple2
         command_parser,
         stats_parser,
-        authz_checker,
-        authzs_list
+        authz_checker,              // Monoclass Authz
+        authenticate_parser         // Monoclass Authz
     );
     return yuneta_entry_point(
         argc, argv,

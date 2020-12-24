@@ -88,7 +88,34 @@ PRIVATE char variable_config[]= "\
     },                                                              \n\
     'global': {                                                     \n\
         'Authz.max_sessions_per_user': 4,                           \n\
-        'Authz.jwt_public_key': '-----BEGIN PUBLIC KEY-----\\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAj0ZkOtmWlsDLJiJWXTEJ\\ntyXxlVY7iLseG982eaFgDaAdtE3Z5J+WDvzni7v4MPR55oMyi/oeAvTKIsVOv3aw\\nobRJ/Mr45Qh6I0j4Hn+rFfPW4wbmxRmFeyRrfMzYAZZoibZ3m7EFlj2RINvJFIgE\\npIoTf4UneXmlSDbUU9MTZe1mULfCfEZVa5V9W86BluAAib1mYJU7aJ20KPkbQAvW\\nXqC82AE9ga66HnQ2n56mv1kPyvNGKvvM6vD2IXQeLIYgudYT2KlGKd8isrOEkrno\\nXtPKMSaRhVccO73Wbo7krhjGV5MTpMvvOM+wDprslFkODm0MORsHORVxfcVGWSpU\\ngQIDAQAB\\n-----END PUBLIC KEY-----\\n' \n\
+        'Authz.initial_load': {                                     \n\
+            'roles': [                                              \n\
+                {                                                   \n\
+                    'id': 'owner',                                  \n\
+                    'disabled': false,                              \n\
+                    'description': 'Owner of system'                \n\
+                }                                                   \n\
+            ],                                                      \n\
+            'users': [                                              \n\
+                {                                                   \n\
+                    'id': 'yuneta',                                 \n\
+                    'role_id': ['roles^owner^users']                \n\
+                }                                                   \n\
+            ],                                                      \n\
+            'authorizations': [                                     \n\
+                {                                                   \n\
+                    'id': '__allow_all__',                          \n\
+                    'role_id': ['roles^owner^authorizations'],      \n\
+                    'realm_domain': '*',                            \n\
+                    'yuno_role': '*',                               \n\
+                    'yuno_name': '*',                               \n\
+                    'service': '*',                                 \n\
+                    'allow': true,                                  \n\
+                    'constraints': {}                               \n\
+                }                                                   \n\
+            ]                                                       \n\
+        },                                                          \n\
+        'Authz.jwt_public_key': '-----BEGIN PUBLIC KEY-----\\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAj0ZkOtmWlsDLJiJWXTEJ\\ntyXxlVY7iLseG982eaFgDaAdtE3Z5J+WDvzni7v4MPR55oMyi/oeAvTKIsVOv3aw\\nobRJ/Mr45Qh6I0j4Hn+rFfPW4wbmxRmFeyRrfMzYAZZoibZ3m7EFlj2RINvJFIgE\\npIoTf4UneXmlSDbUU9MTZe1mULfCfEZVa5V9W86BluAAib1mYJU7aJ20KPkbQAvW\\nXqC82AE9ga66HnQ2n56mv1kPyvNGKvvM6vD2IXQeLIYgudYT2KlGKd8isrOEkrno\\nXtPKMSaRhVccO73Wbo7krhjGV5MTpMvvOM+wDprslFkODm0MORsHORVxfcVGWSpU\\ngQIDAQAB\\n-----END PUBLIC KEY-----\\n'  \n\
     },                                                              \n\
     'services': [                                                   \n\
         {                                               \n\

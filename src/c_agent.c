@@ -121,7 +121,6 @@ SDATADF (ASN_JSON,      "required_services",SDF_PERSIST,                0,      
 SDATADF (ASN_JSON,      "public_services",  SDF_PERSIST,                0,              "Public Services",22,   "Public services offered"),
 SDATADF (ASN_JSON,      "service_descriptor",SDF_PERSIST,               0,              "Service Descriptor",22,"Public service descriptor"),
 SDATADF (ASN_OCTET_STR, "binary",           SDF_PERSIST|SDF_REQUIRED,   0,              "Binary",       22,     "Path to the binary in the file system"),
-SDATADF (ASN_JSON,      "source",           SDF_PERSIST|SDF_WR,         0,              "Source",       0,      "Optional auto-update from external source. FUTURE"),
 SDATA_END()
 };
 
@@ -136,7 +135,6 @@ SDATADF (ASN_OCTET_STR, "type",             SDF_PERSIST|SDF_WR,         0,      
 SDATADF (ASN_OCTET_STR, "destination",      SDF_PERSIST|SDF_WR,         0,              "Destination",  30,     "Directory to install. Default or empty: json in running dir"),
 SDATADF (ASN_OCTET_STR, "date",             SDF_PERSIST,                0,              "Date",         21,     "Date last modification"),
 SDATADF (ASN_JSON,      "zcontent",         SDF_PERSIST|SDF_WR,         0,              "Content",      35,     "Content configuration"),
-SDATADF (ASN_JSON,      "source",           SDF_PERSIST|SDF_WR,         0,              "Source",       0,      "Optional auto-update from external source. FUTURE"),
 SDATA_END()
 };
 
@@ -3089,8 +3087,6 @@ PRIVATE json_t *cmd_create_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
     const char *name = kw_get_str(kw, "name", "", 0);
     const char *version = kw_get_str(kw, "version", "", 0);
     const char *description = kw_get_str(kw, "description", "", 0);
-    const char *source= kw_get_str(kw, "source", "", 0);
-    const char *autoupdate= kw_get_str(kw, "autoupdate", "", 0);
 
     /*------------------------------------------------*
      *  Firstly get content in base64 and decode
@@ -3173,12 +3169,10 @@ PRIVATE json_t *cmd_create_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
     /*------------------------------------------------*
      *      Create record
      *------------------------------------------------*/
-    json_t *kw_configuration = json_pack("{s:s, s:s, s:s, s:s, s:s}",
+    json_t *kw_configuration = json_pack("{s:s, s:s, s:s}",
         "name", name,
         "version", version,
-        "description", description,
-        "source", source,
-        "autoupdate", autoupdate
+        "description", description
     );
 
     char current_date[22];

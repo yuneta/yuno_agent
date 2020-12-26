@@ -91,27 +91,36 @@ PRIVATE char variable_config[]= "\
         'Authz.initial_load': {                                     \n\
             'roles': [                                              \n\
                 {                                                   \n\
-                    'id': 'owner',                                  \n\
+                    'id': 'root',                                   \n\
                     'disabled': false,                              \n\
-                    'description': 'Owner of system'                \n\
+                    'description': 'Super-Owner of system',         \n\
+                    'realm_domain': '==*',                          \n\
+                    'realm_role': '==*',                            \n\
+                    'realm_name': '==*',                            \n\
+                    'yuno_role': '==*',                             \n\
+                    'yuno_name': '==*',                             \n\
+                    'service': '==*'                                \n\
                 }                                                   \n\
             ],                                                      \n\
             'users': [                                              \n\
                 {                                                   \n\
                     'id': 'yuneta',                                 \n\
-                    'role_id': ['roles^owner^users']                \n\
+                    'role_id': ['roles^root^users']                 \n\
                 }                                                   \n\
             ],                                                      \n\
             'authorizations': [                                     \n\
                 {                                                   \n\
                     'id': '__allow_all__',                          \n\
-                    'role_id': ['roles^owner^authorizations'],      \n\
-                    'realm_domain': '*',                            \n\
-                    'yuno_role': '*',                               \n\
-                    'yuno_name': '*',                               \n\
-                    'service': '*',                                 \n\
-                    'allow': true,                                  \n\
-                    'constraints': {}                               \n\
+                    'role_id': [                                    \n\
+                        'roles^root^authorizations'                 \n\
+                    ],                                              \n\
+                    'constraints': {                                \n\
+                        'authz': [],                                \n\
+                        'event': [],                                \n\
+                        'allow': true,                              \n\
+                        'topic_name': '==.*',                       \n\
+                        'topic_id': '==.*'                          \n\
+                    }                                               \n\
                 }                                                   \n\
             ]                                                       \n\
         },                                                          \n\

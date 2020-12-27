@@ -44,7 +44,7 @@
 PRIVATE char *yuneta_repos_yuno_dir(
     char *bf,
     int bfsize,
-    json_t *jn_classifiers,  // not owned
+    json_t *jn_tags,  // not owned
     const char *yuno_role,
     const char *yuno_version,
     BOOL create
@@ -52,7 +52,7 @@ PRIVATE char *yuneta_repos_yuno_dir(
 PRIVATE char *yuneta_repos_yuno_file(
     char* bf_,
     int bfsize,
-    json_t* jn_classifiers, // not owned
+    json_t* jn_tags, // not owned
     const char* yuno_role,
     const char* yuno_version,
     const char *filename,
@@ -116,7 +116,7 @@ SDATADF (ASN_OCTET_STR, "version",          SDF_PERSIST|SDF_REQUIRED,   0,      
 SDATADF (ASN_UNSIGNED,  "size",             SDF_PERSIST,                0,              "Size",         10,     "Size of binary file"),
 SDATADF (ASN_OCTET_STR, "date",             SDF_PERSIST,                0,              "Date",         22,     "Compilation date extracted from binary"),
 SDATADF (ASN_OCTET_STR, "description",      SDF_PERSIST,                0,              "Description",  22,     "Description extracted from binary"),
-SDATADF (ASN_JSON,      "classifiers",      SDF_PERSIST,                0,              "Classifiers",  22,     "Domain of the binary"),
+SDATADF (ASN_JSON,      "tags",      SDF_PERSIST,                0,              "Classifiers",  22,     "Domain of the binary"),
 SDATADF (ASN_JSON,      "required_services",SDF_PERSIST,                0,              "Required Services",22, "Services required"),
 SDATADF (ASN_JSON,      "public_services",  SDF_PERSIST,                0,              "Public Services",22,   "Public services offered"),
 SDATADF (ASN_JSON,      "service_descriptor",SDF_PERSIST,               0,              "Service Descriptor",22,"Public service descriptor"),
@@ -2584,7 +2584,7 @@ PRIVATE json_t *cmd_install_binary(hgobj gobj, const char *cmd, json_t *kw, hgob
      *------------------------------------------------*/
     const char *binary_role = kw_get_str(jn_basic_info, "role", 0, 0);
     const char *binary_version = kw_get_str(jn_basic_info, "version", "", 0);
-    json_t *jn_classifiers = kw_get_dict_value(jn_basic_info, "classifiers", 0, 0);
+    json_t *jn_tags = kw_get_dict_value(jn_basic_info, "tags", 0, 0);
 
     /*------------------------------------------------*
      *      Check if already exists
@@ -2626,13 +2626,13 @@ PRIVATE json_t *cmd_install_binary(hgobj gobj, const char *cmd, json_t *kw, hgob
      *------------------------------------------------*/
     /*
      *  Destination: inside of /yuneta/repos
-     *      {{classifiers}}/{{role}}/{{version}}/binary.exe
+     *      {{tags}}/{{role}}/{{version}}/binary.exe
      */
     char destination[NAME_MAX];
     yuneta_repos_yuno_dir(
         destination,
         sizeof(destination),
-        jn_classifiers,
+        jn_tags,
         binary_role,
         binary_version,
         TRUE
@@ -2654,7 +2654,7 @@ PRIVATE json_t *cmd_install_binary(hgobj gobj, const char *cmd, json_t *kw, hgob
     yuneta_repos_yuno_file(
         destination,
         sizeof(destination),
-        jn_classifiers,
+        jn_tags,
         binary_role,
         binary_version,
         binary_role,
@@ -2819,20 +2819,20 @@ PRIVATE json_t *cmd_update_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
      *------------------------------------------------*/
     const char *binary_role = kw_get_str(jn_basic_info, "role", 0, 0);
     const char *binary_version = kw_get_str(jn_basic_info, "version", "", 0);
-    json_t *jn_classifiers = kw_get_dict_value(jn_basic_info, "classifiers", 0, 0);
+    json_t *jn_tags = kw_get_dict_value(jn_basic_info, "tags", 0, 0);
 
     /*------------------------------------------------*
      *      Store in filesystem
      *------------------------------------------------*/
     /*
      *  Destination: inside of /yuneta/repos
-     *      {{classifiers}}/{{role}/{{version}}/binary.exe
+     *      {{tags}}/{{role}/{{version}}/binary.exe
      */
     char destination[NAME_MAX];
     yuneta_repos_yuno_dir(
         destination,
         sizeof(destination),
-        jn_classifiers,
+        jn_tags,
         binary_role,
         binary_version,
         TRUE
@@ -2854,7 +2854,7 @@ PRIVATE json_t *cmd_update_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
     yuneta_repos_yuno_file(
         destination,
         sizeof(destination),
-        jn_classifiers,
+        jn_tags,
         binary_role,
         binary_version,
         binary_role,
@@ -2903,7 +2903,7 @@ PRIVATE json_t *cmd_update_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
         "binary",
         json_string(destination)
     );
-    //"classifiers"
+    //"tags"
     json_object_update(node, jn_basic_info);
     JSON_DECREF(jn_basic_info);
 
@@ -2995,14 +2995,14 @@ PRIVATE json_t *cmd_delete_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
     int result = 0;
     json_t *jn_data = json_array();
     json_array_foreach(iter, idx, node) {
-        json_t *jn_classifiers = kw_get_dict_value(node, "classifiers", 0, KW_REQUIRED);
+        json_t *jn_tags = kw_get_dict_value(node, "tags", 0, KW_REQUIRED);
         const char *role = kw_get_str(node, "role", "", KW_REQUIRED);
         const char *version = kw_get_str(node, "version", "", KW_REQUIRED);
         char destination[NAME_MAX];
         yuneta_repos_yuno_dir(
             destination,
             sizeof(destination),
-            jn_classifiers,
+            jn_tags,
             role,
             version,
             FALSE
@@ -5854,16 +5854,16 @@ PRIVATE char *multiple_dir(char* bf, int bflen, json_t* jn_l)
 PRIVATE char *yuneta_repos_yuno_dir(
     char *bf,
     int bfsize,
-    json_t *jn_classifiers,  // not owned
+    json_t *jn_tags,  // not owned
     const char *yuno_role,
     const char *yuno_version,
     BOOL create)
 {
     const char *work_dir = yuneta_work_dir();
-    char classifiers[NAME_MAX];
-    multiple_dir(classifiers, sizeof(classifiers), jn_classifiers);
+    char tags[NAME_MAX];
+    multiple_dir(tags, sizeof(tags), jn_tags);
 
-    build_path5(bf, bfsize, work_dir, "repos", classifiers, yuno_role, yuno_version);
+    build_path5(bf, bfsize, work_dir, "repos", tags, yuno_role, yuno_version);
 
     if(create) {
         if(access(bf, 0)!=0) {
@@ -5883,7 +5883,7 @@ PRIVATE char *yuneta_repos_yuno_dir(
 PRIVATE char *yuneta_repos_yuno_file(
     char * bf,
     int bfsize,
-    json_t *jn_classifiers, // not owned
+    json_t *jn_tags, // not owned
     const char *yuno_role,
     const char *yuno_version,
     const char *filename,
@@ -5893,7 +5893,7 @@ PRIVATE char *yuneta_repos_yuno_file(
     yuneta_repos_yuno_dir(
         repos_dir,
         sizeof(repos_dir),
-        jn_classifiers,
+        jn_tags,
         yuno_role,
         yuno_version,
         create

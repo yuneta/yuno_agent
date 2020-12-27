@@ -72,7 +72,7 @@
             │  size                     │           │
             │* date                     │           │
             │  description              │           │
-            │  classifiers              │           │
+            │  tags              │           │
             │  required_services        │           │
             │  public_services          │           │
             │  service_descriptor       │           │
@@ -484,8 +484,8 @@ static char treedb_schema_yuneta_agent[]= "\
                         'persistent'                                \n\
                     ]                                               \n\
                 },                                                  \n\
-                'classifiers': {                                    \n\
-                    'header': 'classifiers',                        \n\
+                'tags': {                                           \n\
+                    'header': 'tags',                               \n\
                     'fillspace': 22,                                \n\
                     'type': 'blob',                                 \n\
                     'flag': [                                       \n\

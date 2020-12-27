@@ -589,20 +589,14 @@ SDATA_END()
 
 PRIVATE sdata_desc_t pm_create_config[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
-SDATAPM (ASN_OCTET_STR, "name",         SDF_REQUIRED,   0,          "Configuration name"),
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id"),
-SDATAPM (ASN_OCTET_STR, "version",      0,              0,          "Configuration version"),
-SDATAPM (ASN_OCTET_STR, "description",  0,              0,          "Description"),
 SDATAPM (ASN_OCTET_STR, "content64",    0,              0,          "Content in base64"),
-SDATAPM (ASN_OCTET_STR, "type",         0,              0,          "Type of file: .json, .tar.gz, etc. Default or empty: json"),
-SDATAPM (ASN_OCTET_STR, "destination",  0,              0,          "Directory to install. Default or empty: json in running dir"),
 SDATA_END()
 };
 
 PRIVATE sdata_desc_t pm_edit_config[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id"),
-SDATAPM (ASN_OCTET_STR, "name",         0,              0,          "configuration name"),
 SDATAPM (ASN_OCTET_STR, "version",      0,              0,          "configuration version"),
 SDATA_END()
 };
@@ -610,17 +604,14 @@ SDATA_END()
 PRIVATE sdata_desc_t pm_view_config[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id"),
-SDATAPM (ASN_OCTET_STR, "name",         0,              0,          "configuration name"),
 SDATAPM (ASN_OCTET_STR, "version",      0,              0,          "configuration version"),
 SDATA_END()
 };
 
 PRIVATE sdata_desc_t pm_update_config[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
-SDATAPM (ASN_JSON,      "__filter__",   0,              0,          "Filter to match records"),
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id"),
 SDATAPM (ASN_OCTET_STR, "version",      0,              0,          "configuration version"),
-SDATAPM (ASN_OCTET_STR, "description",  0,              0,          "description"),
 SDATAPM (ASN_OCTET_STR, "content64",    0,              0,          "content in base64"),
 SDATA_END()
 };
@@ -3039,10 +3030,17 @@ PRIVATE json_t *cmd_create_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
     char *resource = "configurations";
 
-    const char *id = kw_get_str(kw, "id", 0, 0);
-    const char *name = kw_get_str(kw, "name", "", 0);
-    const char *version = kw_get_str(kw, "version", "", 0);
-    const char *description = kw_get_str(kw, "description", "", 0);
+    const char *id = kw_get_str(kw, "id", "", 0);
+    if(empty_string(id)) {
+        return msg_iev_build_webix(
+            gobj,
+            -134,
+            json_local_sprintf("Configuration Id is required"),
+            0,
+            0,
+            kw  // owned
+        );
+    }
 
     /*------------------------------------------------*
      *  Firstly get content in base64 and decode
@@ -3072,12 +3070,8 @@ PRIVATE json_t *cmd_create_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
     /*
      *  NEW: get version and description from config file
      */
-    if(kw_has_key(jn_config, "__version__")) {
-        version = kw_get_str(jn_config, "__version__", "", 0);
-    }
-    if(kw_has_key(jn_config, "__description__")) {
-        description = kw_get_str(jn_config, "__description__", "", 0);
-    }
+    const char *version = kw_get_str(jn_config, "__version__", "", 0);
+    const char *description = kw_get_str(jn_config, "__description__", "", 0);
     if(empty_string(version)) {
         JSON_DECREF(jn_config);
         return msg_iev_build_webix(
@@ -3094,7 +3088,7 @@ PRIVATE json_t *cmd_create_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
      *      Check if already exists
      *------------------------------------------------*/
     json_t *kw_find = json_pack("{s:s, s:s}",
-        "name", name,
+        "id", id,
         "version", version
     );
     json_t *iter = gobj_list_nodes(
@@ -3113,7 +3107,7 @@ PRIVATE json_t *cmd_create_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
             gobj,
             -133,
             json_local_sprintf(
-                "Configuration already exists: %s", version
+                "Configuration already exists"
             ),
             tranger_list_topic_desc(gobj_read_pointer_attr(priv->resource, "tranger"), resource),
             iter,
@@ -3126,7 +3120,7 @@ PRIVATE json_t *cmd_create_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
      *      Create record
      *------------------------------------------------*/
     json_t *kw_configuration = json_pack("{s:s, s:s, s:s}",
-        "name", name,
+        "id", id,
         "version", version,
         "description", description
     );
@@ -3206,20 +3200,8 @@ PRIVATE json_t *cmd_update_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
         );
     }
 
-    json_t *node = gobj_get_node(priv->resource, resource, id, 0, src);
-    if(!node) {
-        return msg_iev_build_webix(
-            gobj,
-            -137,
-            json_local_sprintf("Configuration not found"),
-            0,
-            0,
-            kw  // owned
-        );
-    }
-
     /*
-     *  Get new config (or not)
+     *  Get new config
      */
     const char *content64 = kw_get_str(kw, "content64", "", 0);
     json_t *jn_config = 0;
@@ -3240,7 +3222,47 @@ PRIVATE json_t *cmd_update_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
             kw  // owned
         );
     }
+
+    const char *version = kw_get_str(jn_config, "__version__", "", 0);
+
+    json_t *kw_find = json_pack("{s:s, s:s}",
+        "id", id,
+        "version", version
+    );
+    json_t *iter = gobj_list_nodes(
+        priv->resource,
+        resource,
+        kw_find, // filter
+        0,
+        src
+    );
+    if(json_array_size(iter)!=1) {
+        JSON_DECREF(jn_config);
+        JSON_DECREF(iter);
+        return msg_iev_build_webix(
+            gobj,
+            -133,
+            json_local_sprintf(
+                "Configuration not found"
+            ),
+            tranger_list_topic_desc(gobj_read_pointer_attr(priv->resource, "tranger"), resource),
+            iter,
+            kw  // owned
+        );
+    }
+
+    json_t *node = json_array_get(iter, 0);
     json_object_set_new(node, "zcontent", jn_config);
+
+    char current_date[22];
+    current_timestamp(current_date, sizeof(current_date));  // "CCYY/MM/DD hh:mm:ss"
+    json_object_set_new(
+        node,
+        "date",
+        json_string(current_date)
+    );
+
+    JSON_DECREF(iter);
 
     /*
      *  Update config
@@ -3329,7 +3351,7 @@ PRIVATE json_t *cmd_delete_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
      */
     json_t *jn_data = json_array();
     json_array_foreach(iter, idx, node) {
-        const char *name = kw_get_str(node, "name", "", KW_REQUIRED);
+        const char *id = kw_get_str(node, "id", "", KW_REQUIRED);
         const char *version = kw_get_str(node, "version", "", KW_REQUIRED);
 
         if(gobj_delete_node(
@@ -3338,13 +3360,13 @@ PRIVATE json_t *cmd_delete_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
             return msg_iev_build_webix(
                 gobj,
                 -142,
-                json_local_sprintf("Cannot delete the configuration: %s %s", name, version),
+                json_local_sprintf("Cannot delete the configuration: %s %s", id, version),
                 0,
                 0,
                 kw  // owned
             );
         }
-        json_array_append_new(jn_data, json_string(name));
+        json_array_append_new(jn_data, json_string(id));
     }
 
     JSON_DECREF(iter);
@@ -6374,9 +6396,6 @@ PRIVATE GBUFFER *build_yuno_running_script(
     char yuno_bin_path[PATH_MAX];
     build_yuno_bin_path(gobj, yuno, yuno_bin_path, sizeof(yuno_bin_path), TRUE);
 
-    /*
-     *  Get the binary
-     */
     json_t *hs_realm = get_yuno_realm(gobj, yuno);
     const char *bind_ip = SDATA_GET_STR(hs_realm, "bind_ip");
     const char *realm_owner = kw_get_str(hs_realm, "realm_owner", "", KW_REQUIRED);
@@ -6520,12 +6539,13 @@ PRIVATE GBUFFER *build_yuno_running_script(
             json_object_update(jn_global, jn_node_variables);
         }
 
-        json_t *jn_environment = json_pack("{s:s, s:s, s:s, s:s, s:s}",
+        json_t *jn_environment = json_pack("{s:s, s:s, s:s, s:s, s:s, s:s}",
             "work_dir", work_dir,
             "domain_dir", domain_dir,
             "realm_owner", realm_owner,
             "realm_role", realm_role,
-            "realm_name", realm_name
+            "realm_name", realm_name,
+            "realm_env", realm_env
         );
         json_t *jn_content = json_pack("{s:o, s:o, s:{s:s, s:s, s:s, s:s, s:s, s:b, s:I}}",
             "global", jn_global,

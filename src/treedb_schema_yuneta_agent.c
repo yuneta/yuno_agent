@@ -86,7 +86,6 @@
             │                           │           │
             │                 yunos [↖] │ ──────────┘n
             │                           │
-            │* name                     │
             │* version                  │
             │* date                     │
             │  description              │
@@ -150,8 +149,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
                         'persistent',                               \n\
-                        'required',                                 \n\
-                        'rowid'                                     \n\
+                        'required'                                  \n\
                     ]                                               \n\
                 },                                                  \n\
                 'realm_owner': {                                    \n\
@@ -446,8 +444,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
                         'persistent',                               \n\
-                        'required',                                 \n\
-                        'rowid'                                     \n\
+                        'required'                                  \n\
                     ]                                               \n\
                 },                                                  \n\
                 'version': {                                        \n\
@@ -550,15 +547,6 @@ static char treedb_schema_yuneta_agent[]= "\
                         'persistent',                               \n\
                         'required',                                 \n\
                         'rowid'                                     \n\
-                    ]                                               \n\
-                },                                                  \n\
-                'name': {                                           \n\
-                    'header': 'name',                               \n\
-                    'fillspace': 30,                                \n\
-                    'type': 'string',                               \n\
-                    'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
                     ]                                               \n\
                 },                                                  \n\
                 'version': {                                        \n\

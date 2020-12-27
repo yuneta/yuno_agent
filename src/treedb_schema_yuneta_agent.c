@@ -18,9 +18,10 @@
             ┌───────────────────────────┐
             │* id (url)                 │
             │                           │
-            │* realm_domain             │
+            │* realm_owner              │
             │* realm_role               │
             │* realm_name               │
+            │* realm_env                │
             │* range_ports              │
             │* bind_ip                  │
             │  last_port                │
@@ -146,7 +147,7 @@ static char treedb_schema_yuneta_agent[]= "\
             'cols': {                                               \n\
                 'id': {                                             \n\
                     'header': 'id',                                 \n\
-                    'fillspace': 10,                                \n\
+                    'fillspace': 30,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
                         'persistent',                               \n\
@@ -154,9 +155,9 @@ static char treedb_schema_yuneta_agent[]= "\
                         'rowid'                                     \n\
                     ]                                               \n\
                 },                                                  \n\
-                'realm_domain': {                                   \n\
-                    'header': 'realm_domain',                       \n\
-                    'fillspace': 22,                                \n\
+                'realm_owner': {                                    \n\
+                    'header': 'realm_owner',                        \n\
+                    'fillspace': 15,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
                         'persistent',                               \n\
@@ -165,7 +166,7 @@ static char treedb_schema_yuneta_agent[]= "\
                 },                                                  \n\
                 'realm_role': {                                     \n\
                     'header': 'realm_role',                         \n\
-                    'fillspace': 22,                                \n\
+                    'fillspace': 15,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
                         'persistent',                               \n\
@@ -174,7 +175,16 @@ static char treedb_schema_yuneta_agent[]= "\
                 },                                                  \n\
                 'realm_name': {                                     \n\
                     'header': 'realm_name',                         \n\
-                    'fillspace': 22,                                \n\
+                    'fillspace': 15,                                \n\
+                    'type': 'string',                               \n\
+                    'flag': [                                       \n\
+                        'persistent',                               \n\
+                        'required'                                  \n\
+                    ]                                               \n\
+                },                                                  \n\
+                'realm_env': {                                      \n\
+                    'header': 'realm_env',                          \n\
+                    'fillspace': 9,                                 \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
                         'persistent',                               \n\
@@ -183,7 +193,7 @@ static char treedb_schema_yuneta_agent[]= "\
                 },                                                  \n\
                 'range_ports': {                                    \n\
                     'header': 'range_ports',                        \n\
-                    'fillspace': 22,                                \n\
+                    'fillspace': 15,                                \n\
                     'type': 'blob',                                 \n\
                     'flag': [                                       \n\
                         'persistent',                               \n\
@@ -192,7 +202,7 @@ static char treedb_schema_yuneta_agent[]= "\
                 },                                                  \n\
                 'bind_ip': {                                        \n\
                     'header': 'bind_ip',                            \n\
-                    'fillspace': 22,                                \n\
+                    'fillspace': 15,                                \n\
                     'type': 'string',                               \n\
                     'default': '127.0.0.1',                         \n\
                     'flag': [                                       \n\
@@ -202,7 +212,7 @@ static char treedb_schema_yuneta_agent[]= "\
                 },                                                  \n\
                 'last_port': {                                      \n\
                     'header': 'last_port',                          \n\
-                    'fillspace': 10,                                \n\
+                    'fillspace': 6,                                 \n\
                     'type': 'integer',                              \n\
                     'flag': [                                       \n\
                         'persistent'                                \n\

@@ -29,7 +29,7 @@
 PRIVATE char fixed_config[]= "\
 {                                                                   \n\
     'environment': {                                                \n\
-        'realm_domain': 'agent',                                    \n\
+        'realm_owner': 'agent',                                     \n\
         'work_dir': '/yuneta',                                      \n\
         'domain_dir': 'realms/agent/agent'                          \n\
     },                                                              \n\
@@ -94,9 +94,10 @@ PRIVATE char variable_config[]= "\
                     'id': 'root',                                   \n\
                     'disabled': false,                              \n\
                     'description': 'Super-Owner of system',         \n\
-                    'realm_domain': '==*',                          \n\
+                    'realm_owner': '==*',                           \n\
                     'realm_role': '==*',                            \n\
                     'realm_name': '==*',                            \n\
+                    'realm_env': '==*',                             \n\
                     'yuno_role': '==*',                             \n\
                     'yuno_name': '==*',                             \n\
                     'service': '==*'                                \n\

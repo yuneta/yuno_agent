@@ -39,7 +39,7 @@
             │* yuno_role                │
             │* yuno_name                │
             │* yuno_release             │
-            │* yuno_alias               │
+            │  yuno_alias               │
             │  yuno_running             │
             │  yuno_playing             │
             │  yuno_pid                 │
@@ -247,7 +247,7 @@ static char treedb_schema_yuneta_agent[]= "\
                 },                                                  \n\
                 'realm_id': {                                       \n\
                     'header': 'realm_id',                           \n\
-                    'fillspace': 8,                                 \n\
+                    'fillspace': 30,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
                         'fkey'                                      \n\
@@ -285,8 +285,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     'fillspace': 16,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
+                        'persistent'                                \n\
                     ]                                               \n\
                 },                                                  \n\
                 'yuno_running': {                                   \n\

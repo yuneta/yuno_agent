@@ -80,12 +80,6 @@ PRIVATE int authzs_to_yuno(
 );
 PRIVATE int audit_command_cb(const char *command, json_t *kw, void *user_data);
 
-PRIVATE json_t *find_last_id_by_name(
-    hgobj gobj,
-    const char *resource,
-    const char *key,
-    const char *value
-);
 PRIVATE json_t *find_binary_version(
     hgobj gobj,
     const char *role,
@@ -633,7 +627,7 @@ PRIVATE sdata_desc_t pm_create_yuno[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id"),
 
-SDATAPM (ASN_OCTET_STR, "realm_name",   0,              0,          "Yuno realm"),
+SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm id"),
 SDATAPM (ASN_OCTET_STR, "yuno_role",    0,              0,          "Yuno role"),
 SDATAPM (ASN_OCTET_STR, "role_version", 0,              0,          "Role version"),
 SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno name"),
@@ -3821,7 +3815,7 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
     /*-----------------------------*
      *      Parameter's filter
      *-----------------------------*/
-    const char *realm_name = kw_get_str(kw, "realm_name", "", 0);
+    const char *realm_id = kw_get_str(kw, "realm_id", "", 0);
     const char *yuno_role = kw_get_str(kw, "yuno_role", "", 0);
     const char *yuno_name = kw_get_str(kw, "yuno_name", "", 0);
     const char *role_version = kw_get_str(kw, "role_version", "", 0);
@@ -3830,12 +3824,12 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
     /*---------------------------------------------*
      *      Check Realm
      *---------------------------------------------*/
-    json_t *hs_realm = find_last_id_by_name(gobj, "realms", "name", realm_name);
+    json_t *hs_realm = gobj_get_node(priv->resource, "realms", realm_id, 0, gobj);
     if(!hs_realm) {
         return msg_iev_build_webix(gobj,
             -146,
             json_local_sprintf(
-                "Realm not found: '%s' ", realm_name
+                "Realm not found: '%s' ", realm_id
             ),
             0,
             0,
@@ -3917,19 +3911,17 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
         /*
          *  Check if already exists
          */
-        json_t *kw_find = json_pack("{s:s, s:s, s:s, s:s, s:s, s:s}",
-            "realm_name", realm_name,
+        json_t *kw_find = json_pack("{s:s, s:s, s:s, s:s}",
+            "realm_id", realm_id,
             "yuno_role", yuno_role,
             "yuno_name", yuno_name,
-            "role_version", role_version,
-            "name_version", name_version,
             "yuno_release", yuno_release
         );
         json_t *iter_find = gobj_list_nodes(
             priv->resource,
             resource,
             kw_find, // filter
-            json_pack("{s:b}", "collapsed", 1),  // jn_options, owned "collapsed"
+            0, //json_pack("{s:b}", "collapsed", 1),  // jn_options, owned "collapsed"
             src
         );
         if(json_array_size(iter_find)) {
@@ -7056,43 +7048,6 @@ PRIVATE int audit_command_cb(const char *command, json_t *kw, void *user_data)
         }
     }
     return 0;
-}
-
-/***************************************************************************
- *  Comprueba si existe al menos un recurso con ese nombre
- ***************************************************************************/
-PRIVATE json_t *find_last_id_by_name(
-    hgobj gobj,
-    const char *resource,
-    const char *key,
-    const char *value)
-{
-    PRIVATE_DATA *priv = gobj_priv_data(gobj);
-
-    json_t *kw_find = json_pack("{s:s}",
-        key, value
-    );
-
-    json_t *iter_find = gobj_node_instances(
-        priv->resource,
-        resource,
-        "",
-        kw_find, // filter,
-        0,
-        gobj
-    );
-
-    if(json_array_size(iter_find)>0) {
-        /*
-         *  1 o more records
-         */
-        json_t *node = json_array_get(iter_find, 0); // The first is the last
-        JSON_DECREF(iter_find);
-        return node;
-    } else {
-        JSON_DECREF(iter_find);
-        return 0;
-    }
 }
 
 /***************************************************************************

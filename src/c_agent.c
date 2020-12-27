@@ -246,7 +246,6 @@ SDATA_END()
 PRIVATE sdata_desc_t pm_list_binaries[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id"),
-SDATAPM (ASN_OCTET_STR, "role",         0,              0,          "Role"),
 SDATAPM (ASN_OCTET_STR, "version",      0,              0,          "Version"),
 SDATAPM (ASN_OCTET_STR, "tags",         0,              0,          "tags"),
 SDATA_END()
@@ -528,8 +527,7 @@ SDATA_END()
 
 PRIVATE sdata_desc_t pm_replicate_binaries[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
-SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id"),
-SDATAPM (ASN_OCTET_STR, "role",         0,              0,          "Binary role you want replicate"),
+SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Binary role you want replicate"),
 SDATAPM (ASN_OCTET_STR, "url",          0,              0,          "Url of node where replicate binaries"),
 SDATAPM (ASN_OCTET_STR, "filename",     0,              0,          "Filename where save the replicate"),
 SDATA_END()
@@ -570,7 +568,6 @@ SDATA_END()
 
 PRIVATE sdata_desc_t pm_install_binary[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
-SDATAPM (ASN_OCTET_STR, "role",         SDF_REQUIRED,   0,          "role to install"),
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id"),
 SDATAPM (ASN_OCTET_STR, "content64",    0,              0,          "yuno binary content in base64. Use content64=$$(role) or content64=full-path"),
 SDATA_END()
@@ -2502,7 +2499,6 @@ PRIVATE json_t *cmd_install_binary(hgobj gobj, const char *cmd, json_t *kw, hgob
     char *resource = "binaries";
 
     const char *id = kw_get_str(kw, "id", 0, 0);
-    const char *role = kw_get_str(kw, "role", "", 0);
 
     const char *content64 = kw_get_str(kw, "content64", "", 0);
     if(empty_string(content64)) {
@@ -2517,7 +2513,7 @@ PRIVATE json_t *cmd_install_binary(hgobj gobj, const char *cmd, json_t *kw, hgob
     }
     GBUFFER *gbuf_content = gbuf_decodebase64string(content64);
     char path[NAME_MAX];
-    yuneta_realm_file(path, sizeof(path), "temp", role, TRUE);
+    yuneta_realm_file(path, sizeof(path), "temp", id, TRUE);
     gbuf2file(
         gbuf_content, // owned
         path,
@@ -2550,7 +2546,7 @@ PRIVATE json_t *cmd_install_binary(hgobj gobj, const char *cmd, json_t *kw, hgob
      *      Check if already exists
      *------------------------------------------------*/
     json_t *kw_find = json_pack("{s:s, s:s}",
-        "role", binary_role,
+        "id", binary_role,
         "version", binary_version
     );
 
@@ -2737,7 +2733,7 @@ PRIVATE json_t *cmd_update_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
             kw  // owned
         );
     }
-    const char *role = kw_get_str(node, "role", "", KW_REQUIRED);
+    const char *role = kw_get_str(node, "id", "", KW_REQUIRED);
 
     const char *content64 = kw_get_str(kw, "content64", "", 0);
     if(empty_string(content64)) {
@@ -2956,7 +2952,7 @@ PRIVATE json_t *cmd_delete_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
     json_t *jn_data = json_array();
     json_array_foreach(iter, idx, node) {
         json_t *jn_tags = kw_get_dict_value(node, "tags", 0, KW_REQUIRED);
-        const char *role = kw_get_str(node, "role", "", KW_REQUIRED);
+        const char *role = kw_get_str(node, "id", "", KW_REQUIRED);
         const char *version = kw_get_str(node, "version", "", KW_REQUIRED);
         char destination[NAME_MAX];
         yuneta_repos_yuno_dir(
@@ -3708,7 +3704,7 @@ PRIVATE json_t *cmd_find_new_yunos(hgobj gobj, const char *cmd, json_t *kw, hgob
             priv->resource,
             "binaries",
             "",
-            json_pack("{s:s}", "role", yuno_role),
+            json_pack("{s:s}", "id", yuno_role),
             0,
             src
         );
@@ -3849,7 +3845,7 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
      *---------------------------------------------*/
     json_t *hs_configuration = find_configuration_version(
         gobj,
-        SDATA_GET_STR(hs_binary, "role"),
+        SDATA_GET_STR(hs_binary, "id"),
         yuno_name,
         name_version
     );
@@ -5877,16 +5873,17 @@ PRIVATE char * build_yuno_private_domain(
     if(!realm) {
         return 0;
     }
-    const char *realm_owner = kw_get_str(realm, "domain", 0, KW_REQUIRED);
-    const char *realm_role = kw_get_str(realm, "role", 0, KW_REQUIRED);
-    char realm_role_[NAME_MAX];
-    snprintf(realm_role_, sizeof(realm_role_), "%s", realm_role);
-    strtolower(realm_role_);
-    const char *realm_name = kw_get_str(realm, "name", 0, KW_REQUIRED);
+    char path[PATH_MAX];
+    const char *realm_owner = kw_get_str(realm, "realm_owner", 0, KW_REQUIRED);
+    const char *realm_role = kw_get_str(realm, "realm_role", 0, KW_REQUIRED);
+    const char *realm_name = kw_get_str(realm, "realm_name", 0, KW_REQUIRED);
+    const char *realm_env = kw_get_str(realm, "realm_env", 0, KW_REQUIRED);
+    build_path4(path, sizeof(path), realm_owner, realm_env, realm_role, realm_name);
+
     char role_plus_name[NAME_MAX];
     build_role_plus_name(role_plus_name, sizeof(role_plus_name), yuno);
 
-    return build_path5(bf, bfsize, "realms", realm_owner, realm_role_, realm_name, role_plus_name);
+    return build_path3(bf, bfsize, "realms", path, role_plus_name);
 }
 
 /***************************************************************************
@@ -6020,7 +6017,7 @@ PRIVATE json_t *get_yuno_binary(hgobj gobj, json_t *yuno)
     JSON_DECREF(snaps);
 
     json_t *kw_find = json_pack("{s:s, s:s}",
-        "role", SDATA_GET_STR(yuno, "yuno_role"),
+        "id", SDATA_GET_STR(yuno, "yuno_role"),
         "version", SDATA_GET_STR(yuno, "role_version")
     );
     json_t *binaries = gobj_list_nodes(
@@ -6382,9 +6379,10 @@ PRIVATE GBUFFER *build_yuno_running_script(
      */
     json_t *hs_realm = get_yuno_realm(gobj, yuno);
     const char *bind_ip = SDATA_GET_STR(hs_realm, "bind_ip");
-    const char *realm_owner = kw_get_str(hs_realm, "domain", "", KW_REQUIRED);
-    const char *realm_role = kw_get_str(hs_realm, "role", "", KW_REQUIRED);
-    const char *realm_name = kw_get_str(hs_realm, "name", "", KW_REQUIRED);
+    const char *realm_owner = kw_get_str(hs_realm, "realm_owner", "", KW_REQUIRED);
+    const char *realm_role = kw_get_str(hs_realm, "realm_role", "", KW_REQUIRED);
+    const char *realm_name = kw_get_str(hs_realm, "realm_name", "", KW_REQUIRED);
+    const char *realm_env = kw_get_str(hs_realm, "realm_env", "", KW_REQUIRED);
 
     BOOL multiple = kw_get_bool(yuno, "multiple", 0, KW_REQUIRED);
     const char *yuno_role = kw_get_str(yuno, "yuno_role", "", KW_REQUIRED);
@@ -7089,7 +7087,7 @@ PRIVATE json_t *find_binary_version(
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
 
     json_t *kw_find = json_pack("{s:s}",
-        "role", role
+        "id", role
     );
 
     json_t *iter_find = gobj_node_instances(

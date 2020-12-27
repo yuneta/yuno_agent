@@ -68,12 +68,11 @@
             │                           │   │       │
             │                 yunos [↖] │ ──┘n      │
             │                           │           │
-            │* role                     │           │
             │* version                  │           │
             │  size                     │           │
             │* date                     │           │
             │  description              │           │
-            │  tags              │           │
+            │  tags                     │           │
             │  required_services        │           │
             │  public_services          │           │
             │  service_descriptor       │           │
@@ -443,21 +442,12 @@ static char treedb_schema_yuneta_agent[]= "\
             'cols': {                                               \n\
                 'id': {                                             \n\
                     'header': 'id',                                 \n\
-                    'fillspace': 10,                                \n\
+                    'fillspace': 18,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
                         'persistent',                               \n\
                         'required',                                 \n\
                         'rowid'                                     \n\
-                    ]                                               \n\
-                },                                                  \n\
-                'role': {                                           \n\
-                    'header': 'role',                               \n\
-                    'fillspace': 18,                                \n\
-                    'type': 'string',                               \n\
-                    'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
                     ]                                               \n\
                 },                                                  \n\
                 'version': {                                        \n\
@@ -554,7 +544,7 @@ static char treedb_schema_yuneta_agent[]= "\
             'cols': {                                               \n\
                 'id': {                                             \n\
                     'header': 'id',                                 \n\
-                    'fillspace': 10,                                \n\
+                    'fillspace': 30,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
                         'persistent',                               \n\

@@ -3921,7 +3921,7 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
             priv->resource,
             resource,
             kw_find, // filter
-            0, //json_pack("{s:b}", "collapsed", 1),  // jn_options, owned "collapsed"
+            json_pack("{s:b}", "collapsed", 1),  // jn_options, owned "collapsed"
             src
         );
         if(json_array_size(iter_find)) {

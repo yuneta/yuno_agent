@@ -3611,7 +3611,9 @@ PRIVATE json_t *cmd_list_yunos(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        json_pack("{s:b}", "collapsed", 1),  // jn_options, owned "collapsed"
+        json_pack("{s:b}", // jn_options, owned "collapsed"
+            "collapsed", 1
+        ),
         src
     );
 
@@ -5992,26 +5994,21 @@ PRIVATE json_t *get_yuno_realm(hgobj gobj, json_t *yuno)
 {
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
 
-    json_t *realms = treedb_list_parents(
-        gobj_read_pointer_attr(priv->resource, "tranger"),
-        "realm_id",
-        yuno, // not owned
-        0
-    );
-    if(json_array_size(realms)==0) {
+    // TODO habra que pasar el id limpio, no la fkey ref,
+    // o que gobj_get_node sace el id, (uso options?)
+    const char *realm_id = kw_get_str(yuno, "realm_id", "", KW_REQUIRED);
+    json_t *hs_realm = gobj_get_node(priv->resource, "realms", realm_id, 0, gobj);
+    if(!hs_realm) {
         log_error(0,
             "gobj",         "%s", gobj_full_name(gobj),
             "function",     "%s", __FUNCTION__,
             "msgset",       "%s", MSGSET_INTERNAL_ERROR,
             "msg",          "%s", "no realm found",
+            "realm_id",     "%s", realm_id,
             NULL
         );
-        log_debug_json(0, realms, "no realm found");
-        JSON_DECREF(realms);
         return 0;
     }
-    json_t *hs_realm = json_array_get(realms, 0);
-    JSON_DECREF(realms);
     return hs_realm;
 }
 

@@ -2335,11 +2335,12 @@ PRIVATE json_t *cmd_delete_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
      */
     int idx; json_t *node;
     json_array_foreach(iter, idx, node) {
-        int use = treedb_childs_size(
-            gobj_read_pointer_attr(priv->resource, "tranger"),
-            "yunos",
-            node
-        );
+        int use;
+//         int use = treedb_childs_size(
+//             gobj_read_pointer_attr(priv->resource, "tranger"),
+//             "yunos",
+//             node
+//         );
 
         if(use > 0) {
             JSON_DECREF(iter);
@@ -2909,11 +2910,12 @@ PRIVATE json_t *cmd_delete_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
      */
     int idx; json_t *node;
     json_array_foreach(iter, idx, node) {
-        int use = treedb_parents_size(
-            gobj_read_pointer_attr(priv->resource, "tranger"),
-            "yunos",
-            node
-        );
+        int use;
+//         int use = treedb_parents_size(
+//             gobj_read_pointer_attr(priv->resource, "tranger"),
+//             "yunos",
+//             node
+//         );
         if(use > 0) {
             JSON_DECREF(iter);
             return msg_iev_build_webix(
@@ -3319,11 +3321,12 @@ PRIVATE json_t *cmd_delete_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
      */
     int idx; json_t *node;
     json_array_foreach(iter, idx, node) {
-        int use = treedb_parents_size(
-            gobj_read_pointer_attr(priv->resource, "tranger"),
-            "yunos",
-            node
-        );
+        int use;
+//         int use = treedb_parents_size(
+//             gobj_read_pointer_attr(priv->resource, "tranger"),
+//             "yunos",
+//             node
+//         );
         if(use > 0) {
             JSON_DECREF(iter);
             return msg_iev_build_webix(

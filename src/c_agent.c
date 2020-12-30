@@ -3981,9 +3981,9 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
     /*-----------------------------*
      *  Link
      *-----------------------------*/
-    gobj_link_nodes(priv->resource, "yunos", hs_realm, yuno, 0, src);
-    gobj_link_nodes(priv->resource, "binary", yuno, hs_binary, 0, src);
-    gobj_link_nodes(priv->resource, "configurations", yuno, hs_configuration, 0, src);
+    gobj_link_nodes(priv->resource, "yunos", hs_realm, yuno, src);
+    gobj_link_nodes(priv->resource, "binary", yuno, hs_binary, src);
+    gobj_link_nodes(priv->resource, "configurations", yuno, hs_configuration, src);
 
     /*-----------------------------*
      *  Register public services

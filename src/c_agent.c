@@ -18,8 +18,6 @@
 /***************************************************************************
  *              Constants
  ***************************************************************************/
-#define NEXT_ERROR 211
-
 #define SDATA_GET_ID(hs)  kw_get_str((hs), "id", "", KW_REQUIRED)
 #define SDATA_GET_STR(hs, field)  kw_get_str((hs), (field), "", KW_REQUIRED)
 #define SDATA_GET_INT(hs, field)  kw_get_int((hs), (field), 0, KW_REQUIRED)
@@ -1232,7 +1230,7 @@ PRIVATE json_t *cmd_dir_logs(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
     if(!id) {
         return msg_iev_build_webix(
             gobj,
-            -197,
+            -1,
             json_local_sprintf("'id' required"),
             0,
             0,
@@ -1243,7 +1241,7 @@ PRIVATE json_t *cmd_dir_logs(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
     json_t *node = gobj_get_node(priv->resource, "yunos", id, 0, src);
     if(!node) {
         return msg_iev_build_webix(gobj,
-            -198,
+            -1,
             json_local_sprintf("Yuno not found: %s", id),
             0,
             0,
@@ -1949,7 +1947,7 @@ PRIVATE json_t *cmd_update_public_service(hgobj gobj, const char *cmd, json_t *k
         JSON_DECREF(iter);
         return msg_iev_build_webix(
             gobj,
-            -107,
+            -1,
             json_local_sprintf("Select some public service please"),
             0,
             0,
@@ -2018,7 +2016,7 @@ PRIVATE json_t *cmd_delete_public_service(hgobj gobj, const char *cmd, json_t *k
         JSON_DECREF(iter);
         return msg_iev_build_webix(
             gobj,
-            -104,
+            -1,
             json_local_sprintf("Select some public service please"),
             0,
             0,
@@ -2181,7 +2179,7 @@ PRIVATE json_t *cmd_create_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
          */
         return msg_iev_build_webix(
             gobj,
-            -109,
+            -1,
             json_local_sprintf(
                 "Realm already exists"
             ),
@@ -2200,7 +2198,7 @@ PRIVATE json_t *cmd_create_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
     if(!node) {
         return msg_iev_build_webix(
             gobj,
-            -110,
+            -1,
             json_local_sprintf("Cannot create realm: %s", log_last_message()),
             0,
             0,
@@ -2253,7 +2251,7 @@ PRIVATE json_t *cmd_update_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         JSON_DECREF(iter);
         return msg_iev_build_webix(
             gobj,
-            -112,
+            -1,
             json_local_sprintf("Select some realm please"),
             0,
             0,
@@ -2319,7 +2317,7 @@ PRIVATE json_t *cmd_delete_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         JSON_DECREF(iter);
         return msg_iev_build_webix(
             gobj,
-            -113,
+            -1,
             json_local_sprintf("Select some realm please"),
             0,
             0,
@@ -2339,7 +2337,7 @@ PRIVATE json_t *cmd_delete_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
             JSON_DECREF(iter);
             return msg_iev_build_webix(
                 gobj,
-                -115,
+                -1,
                 json_local_sprintf("Cannot delete realm '%s'. Using in %d yunos",
                     kw_get_str(node, "id", "", KW_REQUIRED),
                     use
@@ -2483,7 +2481,7 @@ PRIVATE json_t *cmd_install_binary(hgobj gobj, const char *cmd, json_t *kw, hgob
     if(empty_string(content64)) {
         return msg_iev_build_webix(
             gobj,
-            -117,
+            -1,
             json_local_sprintf("No data in content64"),
             0,
             0,
@@ -2504,7 +2502,7 @@ PRIVATE json_t *cmd_install_binary(hgobj gobj, const char *cmd, json_t *kw, hgob
     if(!jn_basic_info) {
         return msg_iev_build_webix(
             gobj,
-            -118,
+            -1,
             json_local_sprintf(
                 "It seems a wrong yuno binary"
             ),
@@ -2543,7 +2541,7 @@ PRIVATE json_t *cmd_install_binary(hgobj gobj, const char *cmd, json_t *kw, hgob
         JSON_DECREF(iter);
         json_t *msg_webix = msg_iev_build_webix(
             gobj,
-            -119,
+            -1,
             json_local_sprintf(
                 "Binary already exists: role %s, version %s", binary_role, binary_version
             ),
@@ -2576,7 +2574,7 @@ PRIVATE json_t *cmd_install_binary(hgobj gobj, const char *cmd, json_t *kw, hgob
         JSON_DECREF(jn_basic_info);
         return msg_iev_build_webix(
             gobj,
-            -120,
+            -1,
             json_local_sprintf(
                 "Cannot create '%s' directory",
                 destination
@@ -2611,7 +2609,7 @@ PRIVATE json_t *cmd_install_binary(hgobj gobj, const char *cmd, json_t *kw, hgob
         JSON_DECREF(jn_basic_info);
         return msg_iev_build_webix(
             gobj,
-            -121,
+            -1,
             json_local_sprintf(
                 "Cannot copy '%s' to '%s'",
                 path,
@@ -2653,7 +2651,7 @@ PRIVATE json_t *cmd_install_binary(hgobj gobj, const char *cmd, json_t *kw, hgob
     if(!node) {
         return msg_iev_build_webix(
             gobj,
-            -122,
+            -1,
             json_local_sprintf("Cannot create binary: %s", log_last_message()),
             0,
             0,
@@ -2693,7 +2691,7 @@ PRIVATE json_t *cmd_update_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
     if(!id) {
         return msg_iev_build_webix(
             gobj,
-            -123,
+            -1,
             json_local_sprintf("'id' required"),
             0,
             0,
@@ -2705,7 +2703,7 @@ PRIVATE json_t *cmd_update_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
     if(!node) {
         return msg_iev_build_webix(
             gobj,
-            -124,
+            -1,
             json_local_sprintf("Binary not found"),
             0,
             0,
@@ -2718,7 +2716,7 @@ PRIVATE json_t *cmd_update_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
     if(empty_string(content64)) {
         return msg_iev_build_webix(
             gobj,
-            -125,
+            -1,
             json_local_sprintf("No data in content64"),
             0,
             0,
@@ -2739,7 +2737,7 @@ PRIVATE json_t *cmd_update_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
     if(!jn_basic_info) {
         return msg_iev_build_webix(
             gobj,
-            -126,
+            -1,
             json_local_sprintf(
                 "It seems a wrong yuno binary: %s", path
             ),
@@ -2776,7 +2774,7 @@ PRIVATE json_t *cmd_update_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
         JSON_DECREF(jn_basic_info);
         return msg_iev_build_webix(
             gobj,
-            -127,
+            -1,
             json_local_sprintf(
                 "Cannot create '%s' directory",
                 destination
@@ -2811,7 +2809,7 @@ PRIVATE json_t *cmd_update_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
         JSON_DECREF(jn_basic_info);
         return msg_iev_build_webix(
             gobj,
-            -128,
+            -1,
             json_local_sprintf(
                 "Cannot copy '%s' to '%s'",
                 path,
@@ -2890,7 +2888,7 @@ PRIVATE json_t *cmd_delete_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
         JSON_DECREF(iter);
         return msg_iev_build_webix(
             gobj,
-            -130,
+            -1,
             json_local_sprintf("Select some binary please"),
             0,
             0,

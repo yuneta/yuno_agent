@@ -91,7 +91,7 @@ PRIVATE char variable_config[]= "\
         'Authz.initial_load': {                                     \n\
             'roles': [                                              \n\
                 {                                                   \n\
-                    'id': 'root',                                   \n\
+                    'id': 'owner',                                  \n\
                     'disabled': false,                              \n\
                     'description': 'Super-Owner of system',         \n\
                     'realm_owner': '==*',                           \n\
@@ -106,14 +106,14 @@ PRIVATE char variable_config[]= "\
             'users': [                                              \n\
                 {                                                   \n\
                     'id': 'yuneta',                                 \n\
-                    'role_id': ['roles^root^users']                 \n\
+                    'role_id': ['roles^owner^users']                \n\
                 }                                                   \n\
             ],                                                      \n\
             'authorizations': [                                     \n\
                 {                                                   \n\
                     'id': '__allow_all__',                          \n\
                     'role_id': [                                    \n\
-                        'roles^root^authorizations'                 \n\
+                        'roles^owner^authorizations'                \n\
                     ],                                              \n\
                     'constraints': {                                \n\
                         'authz': [],                                \n\

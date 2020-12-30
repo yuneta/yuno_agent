@@ -1906,7 +1906,7 @@ PRIVATE json_t *cmd_list_public_services(hgobj gobj, const char *cmd, json_t *kw
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        json_pack("{s:b}", "collapsed", 1),  // jn_options, owned "collapsed"
+        0,
         src
     );
 
@@ -2076,7 +2076,7 @@ PRIVATE json_t *cmd_list_realms(hgobj gobj, const char *cmd, json_t *kw, hgobj s
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        json_pack("{s:b}", "collapsed", 1),  // jn_options, owned "collapsed"
+        0,
         src
     );
 
@@ -2212,7 +2212,7 @@ PRIVATE json_t *cmd_create_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
      *  Convert result in json
      */
     json_t *jn_data = json_array();
-    json_array_append(jn_data, node);
+    json_array_append_new(jn_data, node);
 
     /*
      *  Inform
@@ -2264,28 +2264,25 @@ PRIVATE json_t *cmd_update_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
     /*
      *  Update database
      */
+    json_t *jn_data = json_array();
+
     int result = 0;
     int idx; json_t *node;
     json_array_foreach(iter, idx, node) {
         json_t *update = kw_duplicate(kw);
         json_object_set(update, "id", kw_get_dict_value(node, "id", 0, KW_REQUIRED));
-        if(gobj_update_node(priv->resource, resource, update, 0, src)<0) {
+        json_t *realm = gobj_update_node(priv->resource, resource, update, 0, src);
+        if(realm) {
+            json_array_append_new(jn_data, realm);
+        } else {
             result += -1;
-            log_error(0,
-                "gobj",         "%s", gobj_full_name(gobj),
-                "function",     "%s", __FUNCTION__,
-                "msgset",       "%s", MSGSET_INTERNAL_ERROR,
-                "msg",          "%s", "gobj_update_node() FAILED",
-                "node",         "%j", node,
-                NULL
-            );
         }
     }
+    json_decref(iter);
 
     /*
      *  Inform
      */
-    json_t *jn_data = iter;
 
     return msg_iev_build_webix(
         gobj,
@@ -2335,12 +2332,8 @@ PRIVATE json_t *cmd_delete_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
      */
     int idx; json_t *node;
     json_array_foreach(iter, idx, node) {
-        int use;
-//         int use = treedb_childs_size(
-//             gobj_read_pointer_attr(priv->resource, "tranger"),
-//             "yunos",
-//             node
-//         );
+        json_t *yunos = kw_get_list(node, "yunos", 0, KW_REQUIRED);
+        int use = json_array_size(yunos);
 
         if(use > 0) {
             JSON_DECREF(iter);
@@ -2364,7 +2357,7 @@ PRIVATE json_t *cmd_delete_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
     int result = 0;
     json_t *jn_data = json_array();
     json_array_foreach(iter, idx, node) {
-        json_array_append_new(jn_data, json_string(kw_get_str(node, "name", "", 0)));
+        json_array_append_new(jn_data, json_string(kw_get_str(node, "id", "", 0)));
         if(gobj_delete_node(
                 priv->resource, resource, node, json_pack("{s:b}", "force", force), src)<0) {
             result += -1;
@@ -2407,7 +2400,7 @@ PRIVATE json_t *cmd_list_binaries(hgobj gobj, const char *cmd, json_t *kw, hgobj
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        json_pack("{s:b}", "collapsed", 1),  // jn_options, owned "collapsed"
+        0,
         src
     );
 
@@ -3001,7 +2994,7 @@ PRIVATE json_t *cmd_list_configs(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        json_pack("{s:b}", "collapsed", 1),  // jn_options, owned "collapsed"
+        0,
         src
     );
 
@@ -3550,7 +3543,7 @@ PRIVATE json_t *cmd_top_yunos(hgobj gobj, const char *cmd, json_t *kw, hgobj src
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        json_pack("{s:b}", "collapsed", 1),  // jn_options, owned "collapsed"
+        0,
         src
     );
 
@@ -3614,9 +3607,7 @@ PRIVATE json_t *cmd_list_yunos(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        json_pack("{s:b}", // jn_options, owned "collapsed"
-            "collapsed", 1
-        ),
+        0,
         src
     );
 
@@ -3926,7 +3917,7 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
             priv->resource,
             resource,
             kw_find, // filter
-            json_pack("{s:b}", "collapsed", 1),  // jn_options, owned "collapsed"
+            0,
             src
         );
         if(json_array_size(iter_find)) {
@@ -5569,7 +5560,7 @@ PRIVATE json_t *cmd_realms_instances(hgobj gobj, const char *cmd, json_t *kw, hg
         resource,
         "",
         kw_incref(kw), // filter
-        json_pack("{s:b}", "collapsed", 1),  // jn_options, owned "collapsed"
+        0,
         src
     );
 
@@ -5602,7 +5593,7 @@ PRIVATE json_t *cmd_yunos_instances(hgobj gobj, const char *cmd, json_t *kw, hgo
         resource,
         "",
         kw_incref(kw), // filter
-        json_pack("{s:b}", "collapsed", 1),  // jn_options, owned "collapsed"
+        0,
         src
     );
 
@@ -5637,7 +5628,7 @@ PRIVATE json_t *cmd_binaries_instances(hgobj gobj, const char *cmd, json_t *kw, 
         resource,
         "",
         kw_incref(kw), // filter
-        json_pack("{s:b}", "collapsed", 1),  // jn_options, owned "collapsed"
+        0,
         src
     );
 
@@ -5670,7 +5661,7 @@ PRIVATE json_t *cmd_configs_instances(hgobj gobj, const char *cmd, json_t *kw, h
         resource,
         "",
         kw_incref(kw), // filter
-        json_pack("{s:b}", "collapsed", 1),  // jn_options, owned "collapsed"
+        0,
         src
     );
 
@@ -5703,7 +5694,7 @@ PRIVATE json_t *cmd_public_services_instances(hgobj gobj, const char *cmd, json_
         resource,
         "",
         kw_incref(kw), // filter
-        json_pack("{s:b}", "collapsed", 1),  // jn_options, owned "collapsed"
+        0,
         src
     );
 

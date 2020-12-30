@@ -2663,7 +2663,7 @@ PRIVATE json_t *cmd_install_binary(hgobj gobj, const char *cmd, json_t *kw, hgob
      *  Convert result in json
      */
     json_t *jn_data = json_array();
-    json_array_append(jn_data, node);
+    json_array_append_new(jn_data, node);
 
     /*
      *  Inform
@@ -2840,13 +2840,13 @@ PRIVATE json_t *cmd_update_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
     json_object_update(node, jn_basic_info);
     JSON_DECREF(jn_basic_info);
 
-    node = gobj_update_node(priv->resource, resource, json_incref(node), 0, src);
+    node = gobj_update_node(priv->resource, resource, node, 0, src);
 
     /*
      *  Convert result in json
      */
     json_t *jn_data = json_array();
-    json_array_append(jn_data, node);
+    json_array_append_new(jn_data, node);
 
     /*
      *  Inform
@@ -2901,12 +2901,8 @@ PRIVATE json_t *cmd_delete_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
      */
     int idx; json_t *node;
     json_array_foreach(iter, idx, node) {
-        int use;
-//         int use = treedb_parents_size(
-//             gobj_read_pointer_attr(priv->resource, "tranger"),
-//             "yunos",
-//             node
-//         );
+        json_t *yunos = kw_get_list(node, "yunos", 0, KW_REQUIRED);
+        int use = json_array_size(yunos);
         if(use > 0) {
             JSON_DECREF(iter);
             return msg_iev_build_webix(

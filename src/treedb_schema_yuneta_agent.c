@@ -38,7 +38,7 @@
             │                           │
             │* yuno_role                │
             │* yuno_name                │
-            │* yuno_release             │
+            │* yuno_release (2)         │
             │  yuno_alias               │
             │  yuno_running             │
             │  yuno_playing             │
@@ -68,7 +68,7 @@
             │                           │   │       │
             │                 yunos [↖] │ ──┘n      │
             │                           │           │
-            │* version                  │           │
+            │* version  (2)             │           │
             │  size                     │           │
             │* date                     │           │
             │  description              │           │
@@ -86,7 +86,7 @@
             │                           │           │
             │                 yunos [↖] │ ──────────┘n
             │                           │
-            │* version                  │
+            │* version  (2)             │
             │* date                     │
             │  description              │
             │  zcontent                 │
@@ -141,7 +141,7 @@ static char treedb_schema_yuneta_agent[]= "\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
             'topic_version': '1',                                   \n\
-            'topic_pkey2s': 'version',                              \n\
+            'topic_pkey2s': '',                                     \n\
             'cols': {                                               \n\
                 'id': {                                             \n\
                     'header': 'id',                                 \n\

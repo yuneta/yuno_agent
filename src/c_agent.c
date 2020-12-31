@@ -4186,7 +4186,7 @@ PRIVATE json_t *cmd_run_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
                 json_t *jn_EvChkItem = json_pack("{s:s, s:{s:s, s:s, s:I}}",
                     "event", "EV_ON_OPEN",
                     "filters",
-                        "identity_card`realm_id", kw_get_str(yuno, "realm_id", "", KW_REQUIRED),
+                        "identity_card`realm_id", kw_get_str(yuno, "realm_id`0", "", KW_REQUIRED),
                         "identity_card`yuno_id", id,
                         "identity_card`launch_id", kw_get_int(yuno, "launch_id", 0, KW_REQUIRED)
                 );
@@ -6452,7 +6452,7 @@ PRIVATE GBUFFER *build_yuno_running_script(
         gbuf_printf(
             gbuf_config,
             client_agent_config,
-            SDATA_GET_STR(yuno, "realm_id"),
+            SDATA_GET_STR(yuno, "realm_id`0"),
             yuno_id
         );
 
@@ -6562,7 +6562,7 @@ PRIVATE GBUFFER *build_yuno_running_script(
                 "yuno_name", yuno_name,
                 "yuno_alias", yuno_alias,
                 "yuno_release", yuno_release,
-                "realm_id", SDATA_GET_STR(yuno, "realm_id"),
+                "realm_id", SDATA_GET_STR(yuno, "realm_id`0"),
                 "bind_ip", bind_ip,
                 "multiple", multiple,
                 "launch_id", (json_int_t)launch_id
@@ -6615,9 +6615,8 @@ PRIVATE int run_yuno(hgobj gobj, json_t *yuno, hgobj src)
     GBUFFER *gbuf_sh = gbuf_create(4*1024, 32*1024, 0, 0);
     build_yuno_running_script(gobj, gbuf_sh, yuno, bfbinary, sizeof(bfbinary));
 
-    const char *realm_id = kw_get_str(yuno, "realm_id", "", KW_REQUIRED);
+    const char *realm_id = kw_get_str(yuno, "realm_id`0", "", KW_REQUIRED);
     const char *yuno_id = kw_get_str(yuno, "id", "", KW_REQUIRED);
-    const char *realm_name = kw_get_str(yuno, "realm_name", "", KW_REQUIRED);
     const char *yuno_role = kw_get_str(yuno, "yuno_role", "", KW_REQUIRED);
     const char *role_version = kw_get_str(yuno, "role_version", "", KW_REQUIRED);
     const char *yuno_name = kw_get_str(yuno, "yuno_name", "", KW_REQUIRED);
@@ -6642,9 +6641,8 @@ PRIVATE int run_yuno(hgobj gobj, json_t *yuno, hgobj src)
         "function",     "%s", __FUNCTION__,
         "msgset",       "%s", MSGSET_STARTUP,
         "msg",          "%s", "running yuno",
-        "realm_id",    "%s", realm_id,
+        "realm_id",     "%s", realm_id,
         "yuno_id",      "%s", yuno_id,
-        "realm_name",   "%s", realm_name,
         "yuno_role",    "%s", yuno_role,
         "role_version", "%s", role_version,
         "yuno_name",    "%s", yuno_name,
@@ -8723,13 +8721,13 @@ PRIVATE int ac_on_open(hgobj gobj, const char *event, json_t *kw, hgobj src)
         JSON_DECREF(iter_yunos);
         return -1;
     }
-    if(strcmp(realm_id, SDATA_GET_STR(yuno, "realm_id"))!=0) {
+    if(strcmp(realm_id, SDATA_GET_STR(yuno, "realm_id`0"))!=0) {
         log_error(0,
             "gobj",         "%s", gobj_full_name(gobj),
             "function",     "%s", __FUNCTION__,
             "msgset",       "%s", MSGSET_INTERNAL_ERROR,
             "msg",          "%s", "realm_id not match",
-            "realm_id registered", "%s", SDATA_GET_STR(yuno, "realm_id"),
+            "realm_id registered", "%s", SDATA_GET_STR(yuno, "realm_id`0"),
             "realm_id incoming","%s", realm_id,
             "yuno_role",    "%s", yuno_role,
             "yuno_name",    "%s", yuno_name,

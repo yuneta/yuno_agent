@@ -2026,7 +2026,7 @@ PRIVATE json_t *cmd_delete_public_service(hgobj gobj, const char *cmd, json_t *k
     json_t *jn_data = json_array();
     int idx; json_t *node;
     json_array_foreach(iter, idx, node) {
-        json_array_append_new(jn_data, json_string(kw_get_str(node, "name", "", 0)));
+        json_array_append_new(jn_data, json_string(kw_get_str(node, "id", "", 0)));
         if(gobj_delete_node(
                 priv->resource, resource, node, json_pack("{s:b}", "force", force), src)<0) {
             result += -1;
@@ -3677,7 +3677,7 @@ PRIVATE json_t *cmd_find_new_yunos(hgobj gobj, const char *cmd, json_t *kw, hgob
             priv->resource,
             "configurations",
             "",
-            json_pack("{s:s}", "name", config_name),
+            json_pack("{s:s}", "id", config_name),
             0,
             src
         );
@@ -6003,7 +6003,7 @@ PRIVATE json_t *get_yuno_realm(hgobj gobj, json_t *yuno)
 {
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
 
-    const char *realm_id = json_string_value(kw_find_path(yuno, "realm_id`0", 0));
+    const char *realm_id = kw_get_str(yuno, "realm_id`0", "", KW_REQUIRED);
     json_t *hs_realm = gobj_get_node(
         priv->resource,
         "realms",
@@ -6089,8 +6089,9 @@ PRIVATE json_t *get_yuno_binary(hgobj gobj, json_t *yuno)
     }
 
     json_t *hs_binary = json_array_get(binaries, 0);
-    JSON_DECREF(kw_find);
-    JSON_DECREF(binaries);
+    json_incref(hs_binary);
+    json_decref(kw_find);
+    json_decref(binaries);
     return hs_binary;
 
 }
@@ -6117,7 +6118,7 @@ PRIVATE json_t *get_yuno_config(hgobj gobj, json_t *yuno)
     );
 
     json_t *kw_find = json_pack("{s:s, s:s}",
-        "name", config_name,
+        "id", config_name,
         "version", SDATA_GET_STR(yuno, "name_version")
     );
     json_t *configurations = gobj_list_nodes(
@@ -6166,8 +6167,9 @@ PRIVATE json_t *get_yuno_config(hgobj gobj, json_t *yuno)
     }
 
     json_t *hs_configuration = json_array_get(configurations, 0);
-    JSON_DECREF(kw_find);
-    JSON_DECREF(configurations);
+    json_incref(hs_configuration);
+    json_decref(kw_find);
+    json_decref(configurations);
     return hs_configuration;
 }
 
@@ -6202,7 +6204,8 @@ PRIVATE json_t *find_service_for_client(hgobj gobj, const char *service_, json_t
     );
 
     json_t *hs = json_array_get(iter_find, 0);
-    JSON_DECREF(iter_find);
+    json_incref(hs);
+    json_decref(iter_find);
     gbmem_free(service);
 
     return hs;
@@ -7126,7 +7129,7 @@ PRIVATE json_t *find_configuration_version(
     char with_prefix[120];
     snprintf(with_prefix, sizeof(with_prefix), "%s.%s", role, name);
     json_t *kw_find = json_pack("{s:s}",
-        "name", with_prefix
+        "id", with_prefix
     );
     json_t *iter_find = gobj_node_instances(
         priv->resource,
@@ -7476,15 +7479,14 @@ PRIVATE int ac_edit_config(hgobj gobj, const char *event, json_t *kw, hgobj src)
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
     char *resource = "configurations";
 
-    const char *name = kw_get_str(kw, "name", 0, 0);
     const char *id = kw_get_str(kw, "id", 0, 0);
-    if(!name && id==0) {
+    if(id==0) {
         return gobj_send_event(
             src,
             event,
             msg_iev_build_webix(gobj,
                 -1,
-                json_local_sprintf("'name' or 'id' required"),
+                json_local_sprintf("'id' required"),
                 0,
                 0,
                 kw  // owned
@@ -7550,15 +7552,14 @@ PRIVATE int ac_view_config(hgobj gobj, const char *event, json_t *kw, hgobj src)
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
     char *resource = "configurations";
 
-    const char *name = kw_get_str(kw, "name", 0, 0);
     const char *id = kw_get_str(kw, "id", 0, 0);
-    if(!name && id==0) {
+    if(id==0) {
         return gobj_send_event(
             src,
             event,
             msg_iev_build_webix(gobj,
                 -1,
-                json_local_sprintf("'name' or 'id' required"),
+                json_local_sprintf("'id' required"),
                 0,
                 0,
                 kw  // owned

@@ -5908,6 +5908,8 @@ PRIVATE char * build_yuno_private_domain(
     char role_plus_name[NAME_MAX];
     build_role_plus_name(role_plus_name, sizeof(role_plus_name), yuno);
 
+    json_decref(realm);
+
     return build_path3(bf, bfsize, "realms", path, role_plus_name);
 }
 
@@ -6420,6 +6422,7 @@ PRIVATE GBUFFER *build_yuno_running_script(
 
     json_t *binary = get_yuno_binary(gobj, yuno);
     if(!binary) {
+        json_decref(hs_realm);
         return 0;
     }
     const char *binary_path = kw_get_str(binary, "binary", "", KW_REQUIRED);
@@ -6591,6 +6594,9 @@ PRIVATE GBUFFER *build_yuno_running_script(
         n_config++;
     }
     gbuf_printf(gbuf_script, "]");
+
+    json_decref(hs_realm);
+    json_decref(binary);
 
     return gbuf_script;
 }
@@ -8398,8 +8404,7 @@ PRIVATE int ac_read_running_bin(hgobj gobj, const char *event, json_t *kw, hgobj
  ***************************************************************************/
 PRIVATE int ac_play_yuno_ack(hgobj gobj, const char *event, json_t *kw, hgobj src)
 {
-//     PRIVATE_DATA *priv = gobj_priv_data(gobj);
-//     char *resource = "yunos";
+    PRIVATE_DATA *priv = gobj_priv_data(gobj);
 
     int action_return = kw_get_int(kw, "result", -1, 0);
     if(action_return == 0) {
@@ -8426,7 +8431,8 @@ PRIVATE int ac_play_yuno_ack(hgobj gobj, const char *event, json_t *kw, hgobj sr
             return 0;
         }
         json_object_set_new(yuno, "yuno_playing", json_true());
-        // Volatil, no salves //gobj_update_node(priv->resource, resource, kw_incref(yuno), "");
+        json_decref(gobj_update_node(priv->resource, "yunos", yuno, 0, src)); // Volatil
+
         gobj_publish_event(
             gobj,
             event,
@@ -8443,8 +8449,7 @@ PRIVATE int ac_play_yuno_ack(hgobj gobj, const char *event, json_t *kw, hgobj sr
  ***************************************************************************/
 PRIVATE int ac_pause_yuno_ack(hgobj gobj, const char *event, json_t *kw, hgobj src)
 {
-//     PRIVATE_DATA *priv = gobj_priv_data(gobj);
-//     char *resource = "yunos";
+    PRIVATE_DATA *priv = gobj_priv_data(gobj);
 
     int action_return = kw_get_int(kw, "result", -1, 0);
     if(action_return == 0) {
@@ -8465,7 +8470,8 @@ PRIVATE int ac_pause_yuno_ack(hgobj gobj, const char *event, json_t *kw, hgobj s
             return 0;
         }
         json_object_set_new(yuno, "yuno_playing", json_false());
-        // Volatil, no salves //gobj_update_node(priv->resource, resource, kw_incref(yuno), "");
+        json_decref(gobj_update_node(priv->resource, "yunos", yuno, 0, src)); // Volatil
+
         gobj_publish_event(
             gobj,
             event,
@@ -8744,7 +8750,6 @@ PRIVATE int ac_on_open(hgobj gobj, const char *event, json_t *kw, hgobj src)
         return -1;
     }
 
-
     json_object_set_new(yuno, "yuno_startdate", json_string(yuno_startdate));
     json_object_set_new(yuno, "yuno_running", json_true());
     json_object_set_new(yuno, "yuno_playing", playing?json_true():json_false());
@@ -8753,7 +8758,12 @@ PRIVATE int ac_on_open(hgobj gobj, const char *event, json_t *kw, hgobj src)
 
     json_object_set_new(yuno, "_channel_gobj", json_integer((json_int_t)(size_t)channel_gobj));
     if(channel_gobj) {
-        gobj_write_pointer_attr(channel_gobj, "user_data", yuno);
+        gobj_write_user_data(
+            channel_gobj,
+            "__yuno__",
+            json_string(SDATA_GET_ID(yuno))
+        );
+        //gobj_write_pointer_attr(channel_gobj, "user_data", json_incref(yuno));
     } else {
         log_error(0,
             "gobj",         "%s", gobj_full_name(gobj),
@@ -8804,7 +8814,8 @@ PRIVATE int ac_on_open(hgobj gobj, const char *event, json_t *kw, hgobj src)
         json_object_set_new(yuno, "solicitante", json_string(""));
     }
 
-    // Volatil, no salves //gobj_update_node(priv->resource, "yunos", kw_incref(yuno), "");
+    json_t *x = gobj_update_node(priv->resource, "yunos", json_incref(yuno), 0, src); // Volatil
+    json_decref(x);
 
     JSON_DECREF(iter_yunos);
     KW_DECREF(kw);
@@ -8816,7 +8827,7 @@ PRIVATE int ac_on_open(hgobj gobj, const char *event, json_t *kw, hgobj src)
  ***************************************************************************/
 PRIVATE int ac_on_close(hgobj gobj, const char *event, json_t *kw, hgobj src)
 {
-//     PRIVATE_DATA *priv = gobj_priv_data(gobj);
+    PRIVATE_DATA *priv = gobj_priv_data(gobj);
 
     if(gobj_is_shutdowning()) {
         KW_DECREF(kw);
@@ -8835,18 +8846,28 @@ PRIVATE int ac_on_close(hgobj gobj, const char *event, json_t *kw, hgobj src)
         return 0;
     }
 
-    json_t *yuno = gobj_read_pointer_attr(channel_gobj, "user_data");
+    const char *__yuno__ = json_string_value(gobj_read_user_data(channel_gobj, "__yuno__"));
+    json_t *yuno = gobj_get_node(
+        priv->resource,
+        "yunos",
+        json_pack("{s:s}", "id", __yuno__),
+        0,
+        src
+    );
+
     if(!yuno) {
         // Must be yuneta_cli or a yuno refused!.
         KW_DECREF(kw);
         return 0;
     }
-    gobj_write_pointer_attr(channel_gobj, "user_data", 0); // HACK release yuno info connection
 
-    const char *realm_name = SDATA_GET_STR(yuno, "realm_name");
-    if(!realm_name) {
-        realm_name = "";
-    }
+    gobj_write_user_data( // HACK release yuno info connection
+        channel_gobj,
+        "__yuno__",
+        json_string("")
+    );
+
+    const char *realm_id = SDATA_GET_STR(yuno, "realm_id`0");
     const char *yuno_role = SDATA_GET_STR(yuno, "yuno_role");
     const char *yuno_name = SDATA_GET_STR(yuno, "yuno_name");
     const char *yuno_release = SDATA_GET_STR(yuno, "yuno_release");
@@ -8855,6 +8876,7 @@ PRIVATE int ac_on_close(hgobj gobj, const char *event, json_t *kw, hgobj src)
         "function",     "%s", __FUNCTION__,
         "msgset",       "%s", MSGSET_STARTUP,
         "msg",          "%s", "yuno down",
+        "realm_id",     "%s", realm_id,
         "yuno_id",      "%s", SDATA_GET_STR(yuno, "id"),
         "pid",          "%d", (int)SDATA_GET_INT(yuno, "yuno_pid"),
         "yuno_role",    "%s", yuno_role,
@@ -8868,7 +8890,7 @@ PRIVATE int ac_on_close(hgobj gobj, const char *event, json_t *kw, hgobj src)
     json_object_set_new(yuno, "yuno_pid", json_integer(0));
     json_object_set_new(yuno, "_channel_gobj", json_integer(0));
 
-    // Volatil, no salves //gobj_update_node(priv->resource, "yunos", kw_incref(yuno), "");
+    json_decref(gobj_update_node(priv->resource, "yunos", yuno, 0, src)); // Volatil
 
     KW_DECREF(kw);
     return 0;

@@ -2329,14 +2329,16 @@ PRIVATE json_t *cmd_delete_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         int use = json_array_size(yunos);
 
         if(use > 0) {
+            json_t *comment = json_local_sprintf(
+                "Cannot delete realm '%s'. Using in %d yunos",
+                kw_get_str(node, "id", "", KW_REQUIRED),
+                use
+            );
             JSON_DECREF(iter);
             return msg_iev_build_webix(
                 gobj,
                 -1,
-                json_local_sprintf("Cannot delete realm '%s'. Using in %d yunos",
-                    kw_get_str(node, "id", "", KW_REQUIRED),
-                    use
-                ),
+                comment,
                 0,
                 0,
                 kw  // owned
@@ -2533,13 +2535,15 @@ PRIVATE json_t *cmd_install_binary(hgobj gobj, const char *cmd, json_t *kw, hgob
         /*
          *  1 o more records, yuno already stored and without overwrite.
          */
+        json_t *comment = json_local_sprintf(
+            "Binary already exists: role %s, version %s",
+            binary_role, binary_version
+        );
         JSON_DECREF(iter);
         json_t *msg_webix = msg_iev_build_webix(
             gobj,
             -1,
-            json_local_sprintf(
-                "Binary already exists: role %s, version %s", binary_role, binary_version
-            ),
+            comment,
             tranger_list_topic_desc(gobj_read_pointer_attr(priv->resource, "tranger"), resource),
             iter,
             kw  // owned
@@ -2903,14 +2907,16 @@ PRIVATE json_t *cmd_delete_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
         json_t *yunos = kw_get_list(node, "yunos", 0, KW_REQUIRED);
         int use = json_array_size(yunos);
         if(use > 0) {
+            json_t *comment = json_local_sprintf(
+                "Cannot delete binary '%s'. Using in %d yunos",
+                kw_get_str(node, "id", "", KW_REQUIRED),
+                use
+            );
             JSON_DECREF(iter);
             return msg_iev_build_webix(
                 gobj,
                 -1,
-                json_local_sprintf("Cannot delete binary '%s'. Using in %d yunos",
-                    kw_get_str(node, "id", "", KW_REQUIRED),
-                    use
-                ),
+                comment,
                 0,
                 0,
                 kw  // owned
@@ -3309,14 +3315,16 @@ PRIVATE json_t *cmd_delete_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
         json_t *yunos = kw_get_list(node, "yunos", 0, KW_REQUIRED);
         int use = json_array_size(yunos);
         if(use > 0) {
+            json_t *comment = json_local_sprintf(
+                "Cannot delete configuration '%s'. Using in %d yunos",
+                kw_get_str(node, "id", "", KW_REQUIRED),
+                use
+            );
             JSON_DECREF(iter);
             return msg_iev_build_webix(
                 gobj,
                 -1,
-                json_local_sprintf("Cannot delete configuration '%s'. Using in %d yunos",
-                    kw_get_str(node, "id", "", KW_REQUIRED),
-                    use
-                ),
+                comment,
                 0,
                 0,
                 kw  // owned
@@ -3334,11 +3342,15 @@ PRIVATE json_t *cmd_delete_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
 
         if(gobj_delete_node(
                 priv->resource, resource, node, json_pack("{s:b}", "force", force), src)<0) {
+            json_t *comment = json_local_sprintf(
+                "Cannot delete the configuration: %s %s",
+                id, version
+            );
             JSON_DECREF(iter);
             return msg_iev_build_webix(
                 gobj,
                 -1,
-                json_local_sprintf("Cannot delete the configuration: %s %s", id, version),
+                comment,
                 0,
                 0,
                 kw  // owned
@@ -3832,15 +3844,16 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
      *---------------------------------------------*/
     json_t *hs_binary = find_binary_version(gobj, yuno_role, role_version);
     if(!hs_binary) {
+        json_t *comment = json_local_sprintf(
+            "Binary '%s%s%s' not found",
+            yuno_role,
+            empty_string(role_version)?"":"-",
+            empty_string(role_version)?"":role_version
+        );
         json_decref(hs_realm);
         return msg_iev_build_webix(gobj,
             -1,
-            json_local_sprintf(
-                "Binary '%s%s%s' not found",
-                yuno_role,
-                empty_string(role_version)?"":"-",
-                empty_string(role_version)?"":role_version
-            ),
+            comment,
             0,
             0,
             kw  // owned
@@ -3857,17 +3870,18 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
         name_version
     );
     if(!hs_configuration) {
+        json_t *comment = json_local_sprintf(
+            "Yuno '%s.%s': configuration '%s%s%s' not found",
+            yuno_role, yuno_name,
+            yuno_name,
+            empty_string(name_version)?"":"-",
+            empty_string(name_version)?"":name_version
+        );
         json_decref(hs_realm);
         json_decref(hs_binary);
         return msg_iev_build_webix(gobj,
             -1,
-            json_local_sprintf(
-                "Yuno '%s.%s': configuration '%s%s%s' not found",
-                yuno_role, yuno_name,
-                yuno_name,
-                empty_string(name_version)?"":"-",
-                empty_string(name_version)?"":name_version
-            ),
+            comment,
             0,
             0,
             kw  // owned
@@ -4049,13 +4063,15 @@ json_t* cmd_delete_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
     json_array_foreach(iter, idx, node) {
         BOOL yuno_running = kw_get_bool(node, "yuno_running", 0, KW_REQUIRED);
         if(yuno_running > 0) {
+            json_t *comment = json_local_sprintf(
+                "Cannot delete yuno '%s', it's running",
+                kw_get_str(node, "id", "", KW_REQUIRED)
+            );
             JSON_DECREF(iter);
             return msg_iev_build_webix(
                 gobj,
                 -1,
-                json_local_sprintf("Cannot delete yuno '%s', it's running",
-                    kw_get_str(node, "id", "", KW_REQUIRED)
-                ),
+                comment,
                 0,
                 0,
                 kw  // owned
@@ -4063,14 +4079,16 @@ json_t* cmd_delete_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
         }
         json_int_t __tag__ = kw_get_int(node, "__md_treedb__`__tag__", 0, KW_REQUIRED);
         if(__tag__) {
+            json_t *comment = json_local_sprintf(
+                "Cannot delete yuno '%s', it's tagged (%d)",
+                kw_get_str(node, "id", "", KW_REQUIRED),
+                (int)__tag__
+            );
             JSON_DECREF(iter);
             return msg_iev_build_webix(
                 gobj,
                 -1,
-                json_local_sprintf("Cannot delete yuno '%s', it's tagged (%d)",
-                    kw_get_str(node, "id", "", KW_REQUIRED),
-                    (int)__tag__
-                ),
+                comment,
                 0,
                 0,
                 kw  // owned
@@ -7539,7 +7557,11 @@ PRIVATE int ac_edit_config(hgobj gobj, const char *event, json_t *kw, hgobj src)
             event,
             msg_iev_build_webix(gobj,
                 -1,
-                found==0?json_local_sprintf("Configuration not found"):json_local_sprintf("Too many configurations. Select only one"),
+                json_sprintf("%s",
+                    found==0?
+                        "Configuration not found":
+                        "Too many configurations. Select only one"
+                ),
                 0,
                 0,
                 kw  // owned
@@ -7612,7 +7634,11 @@ PRIVATE int ac_view_config(hgobj gobj, const char *event, json_t *kw, hgobj src)
             event,
             msg_iev_build_webix(gobj,
                 -1,
-                found==0?json_local_sprintf("Configuration not found"):json_local_sprintf("Too many configurations. Select only one"),
+                json_sprintf("%s",
+                    found==0?
+                        "Configuration not found":
+                        "Too many configurations. Select only one"
+                ),
                 0,
                 0,
                 kw  // owned
@@ -9028,8 +9054,8 @@ PRIVATE int ac_timeout(hgobj gobj, const char *event, json_t *kw, hgobj src)
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
     if(!priv->enabled_yunos_running) {
         priv->enabled_yunos_running = 1;
-        run_enabled_yunos(gobj);
-        exec_startup_command(gobj);
+// TODO TEST        run_enabled_yunos(gobj);
+//         exec_startup_command(gobj);
     }
 
     KW_DECREF(kw);

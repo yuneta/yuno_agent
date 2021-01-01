@@ -273,7 +273,7 @@ static char treedb_schema_yuneta_agent[]= "\
                 },                                                  \n\
                 'yuno_release': {                                   \n\
                     'header': 'yuno_release',                       \n\
-                    'fillspace': 16,                                \n\
+                    'fillspace': 12,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
                         'persistent',                               \n\
@@ -282,21 +282,21 @@ static char treedb_schema_yuneta_agent[]= "\
                 },                                                  \n\
                 'yuno_alias': {                                     \n\
                     'header': 'yuno_alias',                         \n\
-                    'fillspace': 16,                                \n\
+                    'fillspace': 10,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
                         'persistent'                                \n\
                     ]                                               \n\
                 },                                                  \n\
                 'yuno_running': {                                   \n\
-                    'header': 'yuno_running',                       \n\
+                    'header': 'running',                            \n\
                     'fillspace': 7,                                 \n\
                     'type': 'boolean',                              \n\
                     'flag': [                                       \n\
                     ]                                               \n\
                 },                                                  \n\
                 'yuno_playing': {                                   \n\
-                    'header': 'yuno_playing',                       \n\
+                    'header': 'playing',                            \n\
                     'fillspace': 7,                                 \n\
                     'type': 'boolean',                              \n\
                     'flag': [                                       \n\
@@ -310,7 +310,7 @@ static char treedb_schema_yuneta_agent[]= "\
                     ]                                               \n\
                 },                                                  \n\
                 'watcher_pid': {                                    \n\
-                    'header': 'watcher_pid',                        \n\
+                    'header': 'watch_pid',                          \n\
                     'fillspace': 7,                                 \n\
                     'type': 'integer',                              \n\
                     'flag': [                                       \n\

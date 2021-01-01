@@ -4234,13 +4234,14 @@ PRIVATE json_t *cmd_run_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
 
     char info[80];
     snprintf(info, sizeof(info), "%d yunos found to run", total_run);
-    json_t *kw_counter = json_pack("{s:s, s:i, s:i, s:o, s:I, s:I}",
+    json_t *kw_counter = json_pack("{s:s, s:i, s:i, s:o, s:{s:o, s:o}}",
         "info", info,
         "max_count", total_run,
         "expiration_timeout", 10*1000,
         "input_schema", filterlist, // owned
-        "user_data", (json_int_t)(size_t)iter,    // HACK free en diferido, en ac_final_count()
-        "user_data2", (json_int_t)(size_t)kw_answer     // HACK free en diferido, ac_final_count()
+        "__user_data__",
+            "iter", iter,                   // HACK free en diferido, en ac_final_count()
+            "kw_answer", kw_answer          // HACK free en diferido, en ac_final_count()
     );
 
     hgobj gobj_counter = gobj_create("", GCLASS_COUNTER, kw_counter, gobj);
@@ -4413,16 +4414,18 @@ PRIVATE json_t *cmd_kill_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
 
     char info[80];
     snprintf(info, sizeof(info), "%d yunos found to kill", total_killed);
-    json_t *kw_counter = json_pack("{s:s, s:i, s:i, s:o, s:I, s:I}",
+    json_t *kw_counter = json_pack("{s:s, s:i, s:i, s:o, s:{s:o, s:o}}",
         "info", info,
         "max_count", total_killed,
         "expiration_timeout", 10*1000,
         "input_schema", filterlist, // owned
-        "user_data", (json_int_t)(size_t)iter,    // HACK free en diferido, en ac_final_count()
-        "user_data2", (json_int_t)(size_t)kw_answer     // HACK free en diferido, ac_final_count()
+        "__user_data__",
+            "iter", iter,                   // HACK free en diferido, en ac_final_count()
+            "kw_answer", kw_answer          // HACK free en diferido, en ac_final_count()
     );
 
     hgobj gobj_counter = gobj_create("", GCLASS_COUNTER, kw_counter, gobj);
+
     json_t *kw_sub = json_pack("{s:{s:s}}",
         "__config__", "__rename_event_name__", "EV_COUNT"
     );
@@ -4594,13 +4597,14 @@ PRIVATE json_t *cmd_play_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
         total_to_played
     );
 
-    json_t *kw_counter = json_pack("{s:s, s:i, s:i, s:o, s:I, s:I}",
+    json_t *kw_counter = json_pack("{s:s, s:i, s:i, s:o, s:{s:o, s:o}}",
         "info", info,
         "max_count", total_to_played,
         "expiration_timeout", 10*1000,
         "input_schema", filterlist, // owned
-        "user_data", (json_int_t)(size_t)iter,    // HACK free en diferido, en ac_final_count()
-        "user_data2", (json_int_t)(size_t)kw_answer     // HACK free en diferido, ac_final_count()
+        "__user_data__",
+            "iter", iter,                   // HACK free en diferido, en ac_final_count()
+            "kw_answer", kw_answer          // HACK free en diferido, en ac_final_count()
     );
 
     hgobj gobj_counter = gobj_create("", GCLASS_COUNTER, kw_counter, gobj);
@@ -4760,13 +4764,14 @@ PRIVATE json_t *cmd_pause_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
         total_to_prepaused,
         total_to_paused
     );
-    json_t *kw_counter = json_pack("{s:s, s:i, s:i, s:o, s:I, s:I}",
+    json_t *kw_counter = json_pack("{s:s, s:i, s:i, s:o, s:{s:o, s:o}}",
         "info", info,
         "max_count", total_to_paused,
         "expiration_timeout", 10*1000,
         "input_schema", filterlist, // owned
-        "user_data", (json_int_t)(size_t)iter,    // HACK free en diferido, en ac_final_count()
-        "user_data2", (json_int_t)(size_t)kw_answer     // HACK free en diferido, ac_final_count()
+        "__user_data__",
+            "iter", iter,                   // HACK free en diferido, en ac_final_count()
+            "kw_answer", kw_answer          // HACK free en diferido, en ac_final_count()
     );
 
     hgobj gobj_counter = gobj_create("", GCLASS_COUNTER, kw_counter, gobj);
@@ -8924,8 +8929,8 @@ PRIVATE int ac_final_count(hgobj gobj, const char *event, json_t *kw, hgobj src)
 
 // KKK
 
-    json_t *iter_yunos = gobj_read_pointer_attr(src, "user_data");
-    json_t *kw_answer = gobj_read_pointer_attr(src, "user_data2");
+    json_t *iter_yunos = gobj_read_user_data(src, "iter");
+    json_t *kw_answer = gobj_read_user_data(src, "kw_answer");
 
     json_t *jn_request = msg_iev_pop_stack(kw, "requester_stack");
     if(!jn_request) {

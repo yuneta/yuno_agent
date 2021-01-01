@@ -8929,8 +8929,8 @@ PRIVATE int ac_final_count(hgobj gobj, const char *event, json_t *kw, hgobj src)
 
 // KKK
 
-    json_t *iter_yunos = gobj_read_user_data(src, "iter");
-    json_t *kw_answer = gobj_read_user_data(src, "kw_answer");
+    json_t *iter_yunos = gobj_kw_get_user_data(src, "iter", 0, KW_EXTRACT);
+    json_t *kw_answer = gobj_kw_get_user_data(src, "kw_answer", 0, KW_EXTRACT);
 
     json_t *jn_request = msg_iev_pop_stack(kw, "requester_stack");
     if(!jn_request) {
@@ -8961,7 +8961,6 @@ PRIVATE int ac_final_count(hgobj gobj, const char *event, json_t *kw, hgobj src)
         KW_DECREF(kw);
         return 0;
     }
-    JSON_DECREF(jn_request);
 
     BOOL ok = (max_count>0 && max_count==cur_count);
 
@@ -8972,7 +8971,7 @@ PRIVATE int ac_final_count(hgobj gobj, const char *event, json_t *kw, hgobj src)
         cur_count
     );
 
-    json_t *jn_data = iter_yunos;
+    json_t *jn_data = json_incref(iter_yunos);
 
     /*
      *  Inform
@@ -8985,6 +8984,8 @@ PRIVATE int ac_final_count(hgobj gobj, const char *event, json_t *kw, hgobj src)
         kw_answer  // owned
     );
 
+    JSON_DECREF(iter_yunos);
+    JSON_DECREF(jn_request);
     KW_DECREF(kw);
 
     return gobj_send_event(
@@ -9003,8 +9004,8 @@ PRIVATE int ac_timeout(hgobj gobj, const char *event, json_t *kw, hgobj src)
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
     if(!priv->enabled_yunos_running) {
         priv->enabled_yunos_running = 1;
-        run_enabled_yunos(gobj);
-        exec_startup_command(gobj);
+//         run_enabled_yunos(gobj);
+//         exec_startup_command(gobj);
     }
 
     KW_DECREF(kw);

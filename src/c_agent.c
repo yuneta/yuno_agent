@@ -304,7 +304,7 @@ SDATA_END()
 PRIVATE sdata_desc_t pm_running_keys[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id of yuno"),
-SDATAPM (ASN_OCTET_STR, "realm_name",   0,              0,          "Realm Name"),
+SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "yuno_role",    0,              0,          "Yuno Role"),
 SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno Name"),
 SDATAPM (ASN_OCTET_STR, "yuno_release", 0,              0,          "Yuno Release"),
@@ -314,7 +314,7 @@ SDATA_END()
 PRIVATE sdata_desc_t pm_run_yuno[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id of yuno"),
-SDATAPM (ASN_OCTET_STR, "realm_name",   0,              0,          "Realm Name"),
+SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "yuno_role",    0,              0,          "Yuno Role"),
 SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno Name"),
 SDATAPM (ASN_OCTET_STR, "yuno_release", 0,              0,          "Yuno Release"),
@@ -324,7 +324,7 @@ SDATA_END()
 PRIVATE sdata_desc_t pm_kill_yuno[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id of yuno"),
-SDATAPM (ASN_OCTET_STR, "realm_name",   0,              0,          "Realm Name"),
+SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "yuno_role",    0,              0,          "Yuno Role"),
 SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno Name"),
 SDATAPM (ASN_OCTET_STR, "yuno_release", 0,              0,          "Yuno Release"),
@@ -336,7 +336,7 @@ SDATA_END()
 PRIVATE sdata_desc_t pm_list_yunos[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id"),
-SDATAPM (ASN_OCTET_STR, "realm_name",   0,              0,          "Yuno realm"),
+SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "yuno_role",    0,              0,          "Yuno role"),
 SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno name"),
 SDATAPM (ASN_OCTET_STR, "yuno_release", 0,              0,          "Yuno Release"),
@@ -356,7 +356,7 @@ SDATA_END()
 PRIVATE sdata_desc_t pm_play_yuno[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id of yuno"),
-SDATAPM (ASN_OCTET_STR, "realm_name",   0,              0,          "Realm Name"),
+SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "yuno_role",    0,              0,          "Yuno Role"),
 SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno Name"),
 SDATAPM (ASN_OCTET_STR, "yuno_release", 0,              0,          "Yuno Release"),
@@ -366,7 +366,7 @@ SDATA_END()
 PRIVATE sdata_desc_t pm_pause_yuno[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id of yuno"),
-SDATAPM (ASN_OCTET_STR, "realm_name",   0,              0,          "Realm Name"),
+SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "yuno_role",    0,              0,          "Yuno Role"),
 SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno Name"),
 SDATAPM (ASN_OCTET_STR, "yuno_release", 0,              0,          "Yuno Release"),
@@ -376,7 +376,7 @@ SDATA_END()
 PRIVATE sdata_desc_t pm_enable_yuno[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id of yuno"),
-SDATAPM (ASN_OCTET_STR, "realm_name",   0,              0,          "Realm Name"),
+SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "yuno_role",    0,              0,          "Yuno Role"),
 SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno Name"),
 SDATAPM (ASN_OCTET_STR, "yuno_release", 0,              0,          "Yuno Release"),
@@ -386,7 +386,7 @@ SDATA_END()
 PRIVATE sdata_desc_t pm_disable_yuno[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id of yuno"),
-SDATAPM (ASN_OCTET_STR, "realm_name",   0,              0,          "Realm Name"),
+SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "yuno_role",    0,              0,          "Yuno Role"),
 SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno Name"),
 SDATAPM (ASN_OCTET_STR, "yuno_release", 0,              0,          "Yuno Release"),
@@ -396,7 +396,7 @@ SDATA_END()
 PRIVATE sdata_desc_t pm_trace_on_yuno[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id of yuno"),
-SDATAPM (ASN_OCTET_STR, "realm_name",   0,              0,          "Realm Name"),
+SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "yuno_role",    0,              0,          "Yuno Role"),
 SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno Name"),
 SDATAPM (ASN_OCTET_STR, "yuno_release", 0,              0,          "Yuno Release"),
@@ -406,7 +406,7 @@ SDATA_END()
 PRIVATE sdata_desc_t pm_trace_off_yuno[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id of yuno"),
-SDATAPM (ASN_OCTET_STR, "realm_name",   0,              0,          "Realm Name"),
+SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "yuno_role",    0,              0,          "Yuno Role"),
 SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno Name"),
 SDATAPM (ASN_OCTET_STR, "yuno_release", 0,              0,          "Yuno Release"),
@@ -418,7 +418,7 @@ PRIVATE sdata_desc_t pm_command_yuno[] = {
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id of yuno"),
 SDATAPM (ASN_OCTET_STR, "command",      0,              0,          "Command to be executed in matched yunos"),
 SDATAPM (ASN_OCTET_STR, "service",      0,              0,          "Service of yuno where execute the command"),
-SDATAPM (ASN_OCTET_STR, "realm_name",   0,              0,          "Realm Name"),
+SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "yuno_role",    0,              0,          "Yuno Role"),
 SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno Name"),
 SDATAPM (ASN_OCTET_STR, "yuno_release", 0,              0,          "Yuno Release"),
@@ -430,7 +430,7 @@ PRIVATE sdata_desc_t pm_stats_yuno[] = {
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id of yuno"),
 SDATAPM (ASN_OCTET_STR, "stats",        0,              0,          "Statistic to be executed in matched yunos"),
 SDATAPM (ASN_OCTET_STR, "service",      0,              0,          "Service of yuno where execute the statistic"),
-SDATAPM (ASN_OCTET_STR, "realm_name",   0,              0,          "Realm Name"),
+SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "yuno_role",    0,              0,          "Yuno Role"),
 SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno Name"),
 SDATAPM (ASN_OCTET_STR, "yuno_release", 0,              0,          "Yuno Release"),
@@ -442,7 +442,7 @@ PRIVATE sdata_desc_t pm_authzs_yuno[] = {
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id of yuno"),
 SDATAPM (ASN_OCTET_STR, "authz",        0,              0,          "permission to search"),
 SDATAPM (ASN_OCTET_STR, "service",      0,              0,          "Service of yuno where search the permission"),
-SDATAPM (ASN_OCTET_STR, "realm_name",   0,              0,          "Realm Name"),
+SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "yuno_role",    0,              0,          "Yuno Role"),
 SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno Name"),
 SDATAPM (ASN_OCTET_STR, "yuno_release", 0,              0,          "Yuno Release"),
@@ -453,7 +453,7 @@ PRIVATE sdata_desc_t pm_set_alias[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id of yuno"),
 SDATAPM (ASN_OCTET_STR, "alias",        0,              0,          "New Yuno alias"),
-SDATAPM (ASN_OCTET_STR, "realm_name",   0,              0,          "Realm Name"),
+SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "yuno_role",    0,              0,          "Yuno Role"),
 SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno Name"),
 SDATAPM (ASN_OCTET_STR, "yuno_release", 0,              0,          "Yuno Release"),
@@ -466,7 +466,7 @@ PRIVATE sdata_desc_t pm_set_multiple[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id of yuno"),
 SDATAPM (ASN_BOOLEAN,   "multiple",     0,              0,          "New multiple set"),
-SDATAPM (ASN_OCTET_STR, "realm_name",   0,              0,          "Realm Name"),
+SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "yuno_role",    0,              0,          "Yuno Role"),
 SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno Name"),
 SDATAPM (ASN_OCTET_STR, "yuno_release", 0,              0,          "Yuno Release"),
@@ -511,7 +511,8 @@ SDATA_END()
 PRIVATE sdata_desc_t pm_replicate_node[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id"),
-SDATAPM (ASN_OCTET_STR, "realm_name",   0,              0,          "Realm name you want replicate/upgrade"),
+SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
+upgrade"),
 SDATAPM (ASN_OCTET_STR, "url",          0,              0,          "Url of node where replicate/upgrade"),
 SDATAPM (ASN_OCTET_STR, "filename",     0,              0,          "Filename where save replicate/upgrade"),
 SDATA_END()
@@ -3674,7 +3675,7 @@ PRIVATE json_t *cmd_find_new_yunos(hgobj gobj, const char *cmd, json_t *kw, hgob
     int idx; json_t *yuno;
     json_array_foreach(iter, idx, yuno) {
         const char *id = SDATA_GET_ID(yuno);
-        const char *realm_name = SDATA_GET_STR(yuno, "realm_name");
+        const char *realm_id = SDATA_GET_STR(yuno, "realm_id`0");
         const char *yuno_role = SDATA_GET_STR(yuno, "yuno_role");
         const char *yuno_name = SDATA_GET_STR(yuno, "yuno_name");
         const char *role_version = SDATA_GET_STR(yuno, "role_version");
@@ -6245,7 +6246,7 @@ PRIVATE int write_service_client_connectors(
     const char *config_path
 )
 {
-    const char *realm_name_ = kw_get_str(yuno, "realm_name", "", KW_REQUIRED);
+    const char *realm_id_ = kw_get_str(yuno, "realm_id`0", "", KW_REQUIRED);
     const char *yuno_role_ = kw_get_str(yuno, "yuno_role", "", KW_REQUIRED);
     const char *yuno_name_ = kw_get_str(yuno, "yuno_name", "", KW_REQUIRED);
 
@@ -6280,7 +6281,7 @@ PRIVATE int write_service_client_connectors(
                 "msgset",           "%s", MSGSET_SERVICE_ERROR,
                 "msg",              "%s", "required service NOT FOUND",
                 "required service", "%s", yuno_service,
-                "realm_name",       "%s", realm_name_?realm_name_:"",
+                "realm_id",         "%s", realm_id_?realm_id_:"",
                 "yuno_role",        "%s", yuno_role_?yuno_role_:"",
                 "yuno_name",        "%s", yuno_name_?yuno_name_:"",
                 NULL
@@ -6295,7 +6296,7 @@ PRIVATE int write_service_client_connectors(
                 "msgset",           "%s", MSGSET_SERVICE_ERROR,
                 "msg",              "%s", "service connector NULL",
                 "required service", "%s", yuno_service,
-                "realm_name",       "%s", realm_name_?realm_name_:"",
+                "realm_id",         "%s", realm_id_?realm_id_:"",
                 "yuno_role",        "%s", yuno_role_?yuno_role_:"",
                 "yuno_name",        "%s", yuno_name_?yuno_name_:"",
                 NULL
@@ -6312,6 +6313,7 @@ PRIVATE int write_service_client_connectors(
         snprintf(port, sizeof(port), "%d", port_);
         json_t * jn_config_variables = json_pack("{s:{s:s, s:s, s:s, s:s, s:s, s:s, s:s}}",
             "__json_config_variables__",
+            // TODO poner todas las variables globales, reinos
                 "__yuno_name__", yuno_name,
                 "__yuno_role__", yuno_role,
                 "__yuno_service__", yuno_service,
@@ -8977,6 +8979,14 @@ PRIVATE int ac_final_count(hgobj gobj, const char *event, json_t *kw, hgobj src)
 
     json_t *jn_request = msg_iev_pop_stack(kw, "requester_stack");
     if(!jn_request) {
+        log_error(0,
+            "gobj",         "%s", gobj_full_name(gobj),
+            "function",     "%s", __FUNCTION__,
+            "msgset",       "%s", MSGSET_INTERNAL_ERROR,
+            "msg",          "%s", "no requester_stack",
+            NULL
+        );
+        log_debug_json(0, iter_yunos, "no requester_stack");
         JSON_DECREF(iter_yunos);
         KW_DECREF(kw_answer);
         KW_DECREF(kw);
@@ -9017,7 +9027,9 @@ PRIVATE int ac_final_count(hgobj gobj, const char *event, json_t *kw, hgobj src)
     json_t *jn_data = gobj_list_nodes(
         priv->resource,
         "yunos",
-        json_pack("{s:o}", "id", iter_yunos),
+        json_pack("{s:o}",
+            "id", iter_yunos // owned
+        ),
         0,
         gobj
     );

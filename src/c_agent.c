@@ -6227,8 +6227,14 @@ PRIVATE int write_service_client_connectors(
     const char *yuno_name_ = kw_get_str(yuno, "yuno_name", "", KW_REQUIRED);
 
     json_t *hs_binary = get_yuno_binary(gobj, yuno);
-    json_t *jn_required_services = kw_get_dict_value(hs_binary, "required_services", 0, KW_REQUIRED);
+    json_t *jn_required_services = kw_get_dict_value(
+        hs_binary,
+        "required_services",
+        0,
+        KW_REQUIRED
+    );
     if(json_array_size(jn_required_services)==0) {
+        json_decref(hs_binary);
         return 0;
     }
     json_t *jn_services = json_array();
@@ -6308,6 +6314,8 @@ PRIVATE int write_service_client_connectors(
         yuneta_rpermission(),
         TRUE
     );
+
+    json_decref(hs_binary);
 
     return 0;
 }
@@ -6500,32 +6508,40 @@ PRIVATE GBUFFER *build_yuno_running_script(
          *      Put yuno configuration
          *--------------------------------------*/
         json_t *hs_config = get_yuno_config(gobj, yuno);
+        if(hs_config) {
+            gbuf_config = gbuf_create(4*1024, 256*1024, 0, 0);
+            snprintf(config_file_name, sizeof(config_file_name), "%d-%s",
+                n_config+1,
+                role_plus_name
+            );
+            snprintf(config_path, sizeof(config_path),
+                "%s/%s.json",
+                yuno_bin_path,
+                config_file_name
+            );
 
-        gbuf_config = gbuf_create(4*1024, 256*1024, 0, 0);
-        snprintf(config_file_name, sizeof(config_file_name), "%d-%s",
-            n_config+1,
-            role_plus_name
-        );
-        snprintf(config_path, sizeof(config_path), "%s/%s.json", yuno_bin_path, config_file_name);
+            json_t *content = SDATA_GET_JSON(hs_config, "zcontent");
+            JSON_INCREF(content);
+            json_append2gbuf(
+                gbuf_config,
+                content // owned
+            );
 
-        json_t *content = SDATA_GET_JSON(hs_config, "zcontent");
-        JSON_INCREF(content);
-        json_append2gbuf(
-            gbuf_config,
-            content // owned
-        );
+            gbuf2file( // save: user configurations
+                gbuf_config, // owned
+                config_path,
+                yuneta_rpermission(),
+                TRUE
+            );
+            if(n_config > 0) {
+                gbuf_printf(gbuf_script, ",");
+            }
+            gbuf_printf(gbuf_script, "\"%s\"", config_path);
+            n_config++;
 
-        gbuf2file( // save: user configurations
-            gbuf_config, // owned
-            config_path,
-            yuneta_rpermission(),
-            TRUE
-        );
-        if(n_config > 0) {
-            gbuf_printf(gbuf_script, ",");
+            json_decref(hs_config);
         }
-        gbuf_printf(gbuf_script, "\"%s\"", config_path);
-        n_config++;
+
     }
     if(1) {
         /*-------------------------------------------*

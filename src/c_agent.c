@@ -6871,7 +6871,7 @@ PRIVATE int trace_on_yuno(hgobj gobj, json_t *yuno, json_t *kw,  hgobj src)
     if(!channel_gobj) {
         return -1;
     }
-    json_object_set_new(kw, "service", json_string("__yuno__"));
+    json_object_set_new(kw, "service", json_string("__root__"));
 
     char command[256];
     snprintf(
@@ -6900,7 +6900,7 @@ PRIVATE int trace_off_yuno(hgobj gobj, json_t *yuno, json_t *kw,  hgobj src)
     if(!channel_gobj) {
         return -1;
     }
-    json_object_set_new(kw, "service", json_string("__yuno__"));
+    json_object_set_new(kw, "service", json_string("__root__"));
 
     char command[256];
     snprintf(
@@ -7466,8 +7466,11 @@ PRIVATE int restart_nodes(hgobj gobj)
         if(running) {
             hgobj channel_gobj = (hgobj)(size_t)kw_get_int(yuno, "_channel_gobj", 0, KW_REQUIRED);
             if(channel_gobj) {
-                // HACK release yuno info connection
-                gobj_write_pointer_attr(channel_gobj, "user_data", 0);
+                gobj_write_user_data( // HACK release yuno info connection
+                    channel_gobj,
+                    "__yuno__",
+                    json_string("")
+                );
             }
             kill_yuno(gobj, yuno);
         }
@@ -8439,7 +8442,14 @@ PRIVATE int ac_play_yuno_ack(hgobj gobj, const char *event, json_t *kw, hgobj sr
          *  suscritos a all ellos.
          */
         hgobj channel_gobj = (hgobj)(size_t)kw_get_int(kw, "__temp__`channel_gobj", 0, KW_REQUIRED);
-        json_t *yuno = gobj_read_pointer_attr(channel_gobj, "user_data");
+        const char *__yuno__ = json_string_value(gobj_read_user_data(channel_gobj, "__yuno__"));
+        json_t *yuno = gobj_get_node(
+            priv->resource,
+            "yunos",
+            json_pack("{s:s}", "id", __yuno__),
+            0,
+            src
+        );
         if(!yuno) {
             log_error(0,
                 "gobj",         "%s", gobj_full_name(gobj),
@@ -8478,7 +8488,14 @@ PRIVATE int ac_pause_yuno_ack(hgobj gobj, const char *event, json_t *kw, hgobj s
          *  Saco al originante por el user_data del canal.
          */
         hgobj channel_gobj = (hgobj)(size_t)kw_get_int(kw, "__temp__`channel_gobj", 0, KW_REQUIRED);
-        json_t *yuno = gobj_read_pointer_attr(channel_gobj, "user_data");
+        const char *__yuno__ = json_string_value(gobj_read_user_data(channel_gobj, "__yuno__"));
+        json_t *yuno = gobj_get_node(
+            priv->resource,
+            "yunos",
+            json_pack("{s:s}", "id", __yuno__),
+            0,
+            src
+        );
         if(!yuno) {
             log_error(0,
                 "gobj",         "%s", gobj_full_name(gobj),
@@ -8835,8 +8852,7 @@ PRIVATE int ac_on_open(hgobj gobj, const char *event, json_t *kw, hgobj src)
         json_object_set_new(yuno, "solicitante", json_string(""));
     }
 
-    json_t *x = gobj_update_node(priv->resource, "yunos", json_incref(yuno), 0, src); // Volatil
-    json_decref(x);
+    json_decref(gobj_update_node(priv->resource, "yunos", json_incref(yuno), 0, src)); // Volatil
 
     JSON_DECREF(iter_yunos);
     KW_DECREF(kw);
@@ -8971,7 +8987,13 @@ PRIVATE int ac_final_count(hgobj gobj, const char *event, json_t *kw, hgobj src)
         cur_count
     );
 
-    json_t *jn_data = json_incref(iter_yunos);
+    json_t *jn_data = gobj_list_nodes(
+        priv->resource,
+        "yunos",
+        json_pack("{s:o}", "id", iter_yunos),
+        0,
+        gobj
+    );
 
     /*
      *  Inform
@@ -8979,12 +9001,14 @@ PRIVATE int ac_final_count(hgobj gobj, const char *event, json_t *kw, hgobj src)
     json_t *webix = msg_iev_build_webix(gobj,
         ok?0:-1,
         jn_comment, // owned
-        tranger_list_topic_desc(gobj_read_pointer_attr(priv->resource, "tranger"), "yunos"),
+        tranger_list_topic_desc(
+            gobj_read_pointer_attr(priv->resource, "tranger"),
+            "yunos"
+        ),
         jn_data,
         kw_answer  // owned
     );
 
-    JSON_DECREF(iter_yunos);
     JSON_DECREF(jn_request);
     KW_DECREF(kw);
 
@@ -9004,8 +9028,8 @@ PRIVATE int ac_timeout(hgobj gobj, const char *event, json_t *kw, hgobj src)
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
     if(!priv->enabled_yunos_running) {
         priv->enabled_yunos_running = 1;
-//         run_enabled_yunos(gobj);
-//         exec_startup_command(gobj);
+        run_enabled_yunos(gobj);
+        exec_startup_command(gobj);
     }
 
     KW_DECREF(kw);

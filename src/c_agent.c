@@ -6370,6 +6370,7 @@ PRIVATE json_t *assigned_yuno_global_service_variables(
     /*
      *  Crea una entrada en global por servicio: "__service__`__json_config_variables__"
      *  con
+     *      __realm_id__
      *      __yuno_name__
      *      __yuno_role__
      *      __yuno_service__
@@ -6401,11 +6402,13 @@ PRIVATE json_t *assigned_yuno_global_service_variables(
         json_object_set_new(jn_global_content, key, jn_variables);
 
         const char *ip = SDATA_GET_STR(hs, "ip");
+        const char *realm_id = SDATA_GET_STR(hs, "realm_id");
         uint32_t port_ = SDATA_GET_INT(hs, "port");
         char port[32];
         snprintf(port, sizeof(port), "%d", port_);
         const char *url = SDATA_GET_STR(hs, "url");
 
+        json_object_set_new(jn_variables, "__realm_id__", json_string(realm_id));
         json_object_set_new(jn_variables, "__yuno_name__", json_string(yuno_name));
         json_object_set_new(jn_variables, "__yuno_role__", json_string(yuno_role));
         json_object_set_new(jn_variables, "__yuno_service__", json_string(service));

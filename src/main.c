@@ -91,27 +91,35 @@ PRIVATE char variable_config[]= "\
         'Authz.initial_load': {                                     \n\
             'roles': [                                              \n\
                 {                                                   \n\
+                    'id': 'root',                                   \n\
+                    'disabled': false,                              \n\
+                    'description': 'Super-Owner of system',         \n\
+                    'realm_id': '==*'                               \n\
+                },                                                  \n\
+                {                                                   \n\
                     'id': 'owner',                                  \n\
                     'disabled': false,                              \n\
-                    'description': 'Owner of Realm',                \n\
-                    'realm_id': '==*'                               \n\
+                    'description': 'Owner of system',               \n\
+                    'realm_id': '==$this`__realm_id__'              \n\
                 }                                                   \n\
             ],                                                      \n\
             'users': [                                              \n\
                 {                                                   \n\
                     'id': 'yuneta',                                 \n\
-                    'role_id': ['roles^owner^users']                \n\
+                    'role_id': [                                    \n\
+                        'roles^root^users',                         \n\
+                        'roles^owner^users'                         \n\
+                    ]                                               \n\
                 }                                                   \n\
             ],                                                      \n\
             'authorizations': [                                     \n\
                 {                                                   \n\
                     'id': '__allow_all__',                          \n\
                     'role_id': [                                    \n\
+                        'roles^root^authorizations',                \n\
                         'roles^owner^authorizations'                \n\
                     ],                                              \n\
                     'description': 'Full Access',                   \n\
-                    'yuno_role': '==*',                             \n\
-                    'yuno_name': '==*',                             \n\
                     'service': '==*',                               \n\
                     'constraints': {                                \n\
                         'authz': [],                                \n\

@@ -93,14 +93,8 @@ PRIVATE char variable_config[]= "\
                 {                                                   \n\
                     'id': 'owner',                                  \n\
                     'disabled': false,                              \n\
-                    'description': 'Super-Owner of system',         \n\
-                    'realm_owner': '==*',                           \n\
-                    'realm_role': '==*',                            \n\
-                    'realm_name': '==*',                            \n\
-                    'realm_env': '==*',                             \n\
-                    'yuno_role': '==*',                             \n\
-                    'yuno_name': '==*',                             \n\
-                    'service': '==*'                                \n\
+                    'description': 'Owner of Realm',                \n\
+                    'realm_id': '==*'                               \n\
                 }                                                   \n\
             ],                                                      \n\
             'users': [                                              \n\
@@ -115,6 +109,10 @@ PRIVATE char variable_config[]= "\
                     'role_id': [                                    \n\
                         'roles^owner^authorizations'                \n\
                     ],                                              \n\
+                    'description': 'Full Access',                   \n\
+                    'yuno_role': '==*',                             \n\
+                    'yuno_name': '==*',                             \n\
+                    'service': '==*',                               \n\
                     'constraints': {                                \n\
                         'authz': [],                                \n\
                         'event': [],                                \n\

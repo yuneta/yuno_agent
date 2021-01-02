@@ -18,6 +18,10 @@
             ┌───────────────────────────┐
             │* id (url)                 │
             │                           │
+            │                 realms {} │ ◀─┐N
+            │                           │   │
+            │       parent_realm_id (↖) │ ──┘ 1
+            │                           │
             │* realm_owner              │
             │* realm_role               │
             │* realm_name               │
@@ -96,7 +100,9 @@
                     public_services
             ┌───────────────────────────┐
             │* id    (service)          │
+            │                           │
             │* service                  │
+            │* realm_id                 │
             │  description              │
             │* yuno_role                │
             │* yuno_name                │
@@ -150,6 +156,23 @@ static char treedb_schema_yuneta_agent[]= "\
                     'flag': [                                       \n\
                         'persistent',                               \n\
                         'required'                                  \n\
+                    ]                                               \n\
+                },                                                  \n\
+                'realms': {                                         \n\
+                    'header': 'Realms',                             \n\
+                    'fillspace': 10,                                \n\
+                    'type': 'dict',                                 \n\
+                    'flag': ['hook'],                               \n\
+                    'hook': {                                       \n\
+                        'realms': 'parent_realm_id'                 \n\
+                    }                                               \n\
+                },                                                  \n\
+                'parent_realm_id': {                                \n\
+                    'header': 'Realm Parent',                       \n\
+                    'fillspace': 10,                                \n\
+                    'type': 'string',                               \n\
+                    'flag': [                                       \n\
+                        'fkey'                                      \n\
                     ]                                               \n\
                 },                                                  \n\
                 'realm_owner': {                                    \n\
@@ -612,6 +635,15 @@ static char treedb_schema_yuneta_agent[]= "\
                 'service': {                                        \n\
                     'header': 'service',                            \n\
                     'fillspace': 18,                                \n\
+                    'type': 'string',                               \n\
+                    'flag': [                                       \n\
+                        'persistent',                               \n\
+                        'required'                                  \n\
+                    ]                                               \n\
+                },                                                  \n\
+                'realm_id': {                                       \n\
+                    'header': 'realm_id',                           \n\
+                    'fillspace': 30,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
                         'persistent',                               \n\

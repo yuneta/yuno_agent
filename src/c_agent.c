@@ -269,6 +269,20 @@ SDATAPM (ASN_JSON,      "range_ports",  0,              0,          "Range Ports
 SDATAPM (ASN_OCTET_STR, "bind_ip",      0,              0,          "Ip to be bind by the Realm services"),
 SDATA_END()
 };
+PRIVATE sdata_desc_t pm_update_realm[] = {
+/*-PM----type-----------name------------flag------------default-----description---------- */
+SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id"),
+SDATAPM (ASN_OCTET_STR, "bind_ip",      0,              0,          "Ip to be bind by the Realm"),
+SDATAPM (ASN_UNSIGNED,  "last_port",    0,              0,          "Last port assigned"),
+SDATA_END()
+};
+PRIVATE sdata_desc_t pm_del_realm[] = {
+/*-PM----type-----------name------------flag------------default-----description---------- */
+SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id"),
+SDATAPM (ASN_OCTET_STR, "version",      0,              0,          "realm version"),
+SDATAPM (ASN_BOOLEAN,   "force",        0,              0,          "Force delete"),
+SDATA_END()
+};
 
 PRIVATE sdata_desc_t pm_public_services[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
@@ -512,7 +526,6 @@ PRIVATE sdata_desc_t pm_replicate_node[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id"),
 SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
-upgrade"),
 SDATAPM (ASN_OCTET_STR, "url",          0,              0,          "Url of node where replicate/upgrade"),
 SDATAPM (ASN_OCTET_STR, "filename",     0,              0,          "Filename where save replicate/upgrade"),
 SDATA_END()
@@ -523,21 +536,6 @@ PRIVATE sdata_desc_t pm_replicate_binaries[] = {
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Binary role you want replicate"),
 SDATAPM (ASN_OCTET_STR, "url",          0,              0,          "Url of node where replicate binaries"),
 SDATAPM (ASN_OCTET_STR, "filename",     0,              0,          "Filename where save the replicate"),
-SDATA_END()
-};
-
-PRIVATE sdata_desc_t pm_update_realm[] = {
-/*-PM----type-----------name------------flag------------default-----description---------- */
-SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id"),
-SDATAPM (ASN_OCTET_STR, "bind_ip",      0,              0,          "Ip to be bind by the Realm"),
-SDATAPM (ASN_UNSIGNED,  "last_port",    0,              0,          "Last port assigned"),
-SDATA_END()
-};
-PRIVATE sdata_desc_t pm_del_realm[] = {
-/*-PM----type-----------name------------flag------------default-----description---------- */
-SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id"),
-SDATAPM (ASN_OCTET_STR, "version",      0,              0,          "realm version"),
-SDATAPM (ASN_BOOLEAN,   "force",        0,              0,          "Force delete"),
 SDATA_END()
 };
 
@@ -732,8 +730,8 @@ SDATACM2 (ASN_SCHEMA,   "replicate-node",   0,                  0,              
 SDATACM2 (ASN_SCHEMA,   "upgrade-node",     0,                  0,                  pm_replicate_node, cmd_replicate_node, "Upgrade realms' yunos in other node or in file"),
 SDATACM2 (ASN_SCHEMA,   "replicate-binaries", 0,                0,                  pm_replicate_binaries, cmd_replicate_binaries, "Replicate binaries in other node or in file"),
 SDATACM2 (ASN_SCHEMA,   "",                 0,                  0,                  0,              0,              ""),
-SDATACM2 (ASN_SCHEMA,   "update-public-service", 0,             0,                  pm_update_service, cmd_update_public_service,"Update a public service"),
-SDATACM2 (ASN_SCHEMA,   "delete-public-service", 0,             0,                  pm_del_service, cmd_delete_public_service,"Remove a public service"),
+SDATACM2 (ASN_SCHEMA,   "update-public-service", 0,             0,                  pm_update_service, cmd_update_public_service, "Update a public service"),
+SDATACM2 (ASN_SCHEMA,   "delete-public-service", 0,             0,                  pm_del_service, cmd_delete_public_service, "Remove a public service"),
 SDATACM2 (ASN_SCHEMA,   "",                 0,                  0,                  0,              0,              ""),
 SDATACM2 (ASN_SCHEMA,   "create-realm",     0,                  0,                  pm_create_realms,  cmd_create_realm,"Create a new realm"),
 SDATACM2 (ASN_SCHEMA,   "update-realm",     0,                  0,                  pm_update_realm,cmd_update_realm,"Update a realm"),
@@ -754,8 +752,8 @@ SDATACM2 (ASN_SCHEMA,   "create-yuno",      0,                  0,              
 SDATACM2 (ASN_SCHEMA,   "delete-yuno",      0,                  0,                  pm_delete_yuno, cmd_delete_yuno, "Delete yuno"),
 SDATACM2 (ASN_SCHEMA,   "set-alias",        0,                  0,                  pm_set_alias,   cmd_set_alias,  "Set yuno alias"),
 SDATACM2 (ASN_SCHEMA,   "set-multiple",     0,                  0,                  pm_set_multiple,cmd_set_multiple,"Set yuno multiple"),
-SDATACM2 (ASN_SCHEMA,   "edit-yuno-config", 0,                  a_edit_yuno_config, pm_list_yunos,       0,              "Edit yuno configuration"),
-SDATACM2 (ASN_SCHEMA,   "view-yuno-config", 0,                  a_view_yuno_config, pm_list_yunos,       0,              "View yuno configuration"),
+SDATACM2 (ASN_SCHEMA,   "edit-yuno-config", 0,                  a_edit_yuno_config, pm_list_yunos,  0,              "Edit yuno configuration"),
+SDATACM2 (ASN_SCHEMA,   "view-yuno-config", 0,                  a_view_yuno_config, pm_list_yunos,  0,              "View yuno configuration"),
 
 /*-CMD2--type-----------name----------------flag----------------alias---------------items-----------json_fn---------description---------- */
 SDATACM2 (ASN_SCHEMA,   "",                 0,                  0,                  0,              0,              "\nOperation\n---------"),
@@ -774,7 +772,7 @@ SDATACM2 (ASN_SCHEMA,   "list-realms-instances",0,              a_realms_instanc
 SDATACM2 (ASN_SCHEMA,   "list-public-services-instances",0,     a_public_services_instances,pm_public_services, cmd_public_services_instances,"List public services instances"),
 
 SDATACM2 (ASN_SCHEMA,   "list-snaps",       0,                  a_list_snaps,       0,              cmd_list_snaps, "List snaps"),
-SDATACM2 (ASN_SCHEMA,   "snap-content",     0,                  0,                  pm_snap_content,              cmd_snap_content, "Show snap content"),
+SDATACM2 (ASN_SCHEMA,   "snap-content",     0,                  0,                  pm_snap_content,cmd_snap_content, "Show snap content"),
 SDATACM2 (ASN_SCHEMA,   "shoot-snap",       0,                  0,                  pm_shoot_snap,  cmd_shoot_snap, "Shoot snap"),
 SDATACM2 (ASN_SCHEMA,   "activate-snap",    0,                  0,                  pm_activate_snap,cmd_activate_snap,"Activate snap"),
 SDATACM2 (ASN_SCHEMA,   "deactivate-snap",  0,                  0,                  0,              cmd_deactivate_snap,"De-Activate snap"),
@@ -1350,14 +1348,14 @@ PRIVATE json_t *cmd_replicate_node(hgobj gobj, const char *cmd, json_t *kw, hgob
 //     int realm_replicates = 0;
 //     json_t *kw_ids = 0;
 //
-//     const char *realm_name = kw_get_str(kw, "realm_name", 0, 0);
-//     if(!empty_string(realm_name)) {
-//         json_int_t realm_id = find_last_id_by_name(gobj, "realms", "name", realm_name);
+//     const char *realm_id = kw_get_str(kw, "realm_id", 0, 0);
+//     if(!empty_string(realm_id)) {
+//         json_int_t realm_id = find_last_id_by_name(gobj, "realms", "name", realm_id);
 //         if(!realm_id) {
 //             return msg_iev_build_webix(
 //                 gobj,
 //                 -1,
-//                 json_local_sprintf("Realm %s not found", realm_name),
+//                 json_local_sprintf("Realm %s not found", realm_id),
 //                 0,
 //                 0,
 //                 kw  // owned
@@ -1399,11 +1397,11 @@ PRIVATE json_t *cmd_replicate_node(hgobj gobj, const char *cmd, json_t *kw, hgob
 //         time(&t);
 //         strftime(fecha, sizeof(fecha), "%Y-%m-%d", localtime(&t));
 //
-//         if(!empty_string(realm_name)) {
+//         if(!empty_string(realm_id)) {
 //             snprintf(source_, sizeof(source_), "%s-%s-realm-%s.json",
 //                 upgrade?"upgrade":"replicate",
 //                 fecha,
-//                 realm_name
+//                 realm_id
 //             );
 //         } else {
 //             GBUFFER *gbuf_ids = gbuf_create((size_t)4*1024, (size_t)32*1024, 0, 0);
@@ -1534,9 +1532,9 @@ PRIVATE json_t *cmd_replicate_node(hgobj gobj, const char *cmd, json_t *kw, hgob
 //         /*
 //          *  Valid yuno to replicate.
 //          */
-//         const char *realm_name = kw_get_str(yuno, "realm_name");
-//         if(!realm_name) {
-//             realm_name = "";
+//         const char *realm_id = kw_get_str(yuno, "realm_id");
+//         if(!realm_id) {
+//             realm_id = "";
 //         }
 //         const char *yuno_role = kw_get_str(yuno, "yuno_role");
 //         const char *yuno_name = kw_get_str(yuno, "yuno_name");
@@ -1552,8 +1550,8 @@ PRIVATE json_t *cmd_replicate_node(hgobj gobj, const char *cmd, json_t *kw, hgob
 //          *  Order: kill-yuno.
 //          */
 //         fprintf(file,
-//             "{\"command\": \"-kill-yuno realm_name='%s' yuno_role='%s' yuno_name='%s'\"}\n",
-//             realm_name,
+//             "{\"command\": \"-kill-yuno realm_id='%s' yuno_role='%s' yuno_name='%s'\"}\n",
+//             realm_id,
 //             yuno_role,
 //             yuno_name
 //         );
@@ -1642,9 +1640,9 @@ PRIVATE json_t *cmd_replicate_node(hgobj gobj, const char *cmd, json_t *kw, hgob
 //          *  Order: create-yuno.
 //          */
 //         fprintf(file,
-//             "{\"command\": \"%screate-yuno realm_name='%s' yuno_role='%s' yuno_name='%s' yuno_alias='%s' disabled=%d\"}\n",
+//             "{\"command\": \"%screate-yuno realm_id='%s' yuno_role='%s' yuno_name='%s' yuno_alias='%s' disabled=%d\"}\n",
 //             upgrade?"-":"",
-//             realm_name,
+//             realm_id,
 //             yuno_role,
 //             yuno_name,
 //             yuno_alias,
@@ -1656,7 +1654,7 @@ PRIVATE json_t *cmd_replicate_node(hgobj gobj, const char *cmd, json_t *kw, hgob
 //              *  Order: top-last con filtro.
 //              */
 //             json_t *jn_filter = json_pack("{s:s, s:s, s:s, s:b, s:b}",
-//                 "realm_name", realm_name,
+//                 "realm_id", realm_id,
 //                 "yuno_role", yuno_role,
 //                 "yuno_name", yuno_name,
 //                 "yuno_running", 1,
@@ -1664,8 +1662,8 @@ PRIVATE json_t *cmd_replicate_node(hgobj gobj, const char *cmd, json_t *kw, hgob
 //             );
 //             char *filter = json2uglystr(jn_filter);
 //             fprintf(file,
-//                 "{\"command\": \"-top-last-yuno realm_name='%s' yuno_role='%s' yuno_name='%s'\", \"response_filter\":%s}\n\n",
-//                 realm_name,
+//                 "{\"command\": \"-top-last-yuno realm_id='%s' yuno_role='%s' yuno_name='%s'\", \"response_filter\":%s}\n\n",
+//                 realm_id,
 //                 yuno_role,
 //                 yuno_name,
 //                 filter
@@ -1674,8 +1672,8 @@ PRIVATE json_t *cmd_replicate_node(hgobj gobj, const char *cmd, json_t *kw, hgob
 //             gbmem_free(filter);
 //         } else {
 //             fprintf(file,
-//                 "{\"command\": \"-run-yuno realm_name='%s' yuno_role='%s' yuno_name='%s'\"}\n\n",
-//                 realm_name,
+//                 "{\"command\": \"-run-yuno realm_id='%s' yuno_role='%s' yuno_name='%s'\"}\n\n",
+//                 realm_id,
 //                 yuno_role,
 //                 yuno_name
 //             );
@@ -3751,10 +3749,10 @@ PRIVATE json_t *cmd_find_new_yunos(hgobj gobj, const char *cmd, json_t *kw, hgob
         json_array_append_new(
             jn_data,
             json_sprintf(
-                "create-yuno id=%s realm_name=%s yuno_role=%s role_version=%s "
+                "create-yuno id=%s realm_id=%s yuno_role=%s role_version=%s "
                 "yuno_name=%s name_version=%s yuno_alias=%s multiple=%d",
                 id,
-                realm_name,
+                realm_id,
                 yuno_role,
                 new_role_version,
                 yuno_name,
@@ -6202,19 +6200,24 @@ PRIVATE json_t *get_yuno_config(hgobj gobj, json_t *yuno)
 /***************************************************************************
  *  Find a service for client
  ***************************************************************************/
-PRIVATE json_t *find_service_for_client(hgobj gobj, const char *service_, json_t *yuno)
+PRIVATE json_t *find_service_for_client(
+    hgobj gobj,
+    const char *realm_id,
+    const char *service_
+)
 {
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
     char *resource = "public_services";
 
     char *service = gbmem_strdup(service_);
-    char *service_yuno_name = strchr(service, '.');
+    char *service_yuno_name = strchr(service, '.');     // TODO review: services with . ?
     if(service_yuno_name) {
         *service_yuno_name = 0;
         service_yuno_name++; // yuno_name of service required
     }
 
-    json_t *kw_find = json_pack("{s:s}",
+    json_t *kw_find = json_pack("{s:s, s:s}",
+        "realm_id", realm_id,
         "service", service
     );
     if(service_yuno_name) {
@@ -6273,7 +6276,7 @@ PRIVATE int write_service_client_connectors(
         if(empty_string(yuno_service)) {
             continue;
         }
-        json_t *hs_service = find_service_for_client(gobj, yuno_service, yuno);
+        json_t *hs_service = find_service_for_client(gobj, realm_id_, yuno_service);
         if(!hs_service) {
             log_error(0,
                 "gobj",             "%s", gobj_full_name(gobj),
@@ -6281,9 +6284,9 @@ PRIVATE int write_service_client_connectors(
                 "msgset",           "%s", MSGSET_SERVICE_ERROR,
                 "msg",              "%s", "required service NOT FOUND",
                 "required service", "%s", yuno_service,
-                "realm_id",         "%s", realm_id_?realm_id_:"",
-                "yuno_role",        "%s", yuno_role_?yuno_role_:"",
-                "yuno_name",        "%s", yuno_name_?yuno_name_:"",
+                "realm_id",         "%s", realm_id_,
+                "yuno_role",        "%s", yuno_role_,
+                "yuno_name",        "%s", yuno_name_,
                 NULL
             );
             continue;
@@ -6296,14 +6299,15 @@ PRIVATE int write_service_client_connectors(
                 "msgset",           "%s", MSGSET_SERVICE_ERROR,
                 "msg",              "%s", "service connector NULL",
                 "required service", "%s", yuno_service,
-                "realm_id",         "%s", realm_id_?realm_id_:"",
-                "yuno_role",        "%s", yuno_role_?yuno_role_:"",
-                "yuno_name",        "%s", yuno_name_?yuno_name_:"",
+                "realm_id",         "%s", realm_id_,
+                "yuno_role",        "%s", yuno_role_,
+                "yuno_name",        "%s", yuno_name_,
                 NULL
             );
             continue;
         }
         const char *url = SDATA_GET_STR(hs_service, "url");
+        const char *realm_id = SDATA_GET_STR(hs_service, "realm_id");
         const char *yuno_role = SDATA_GET_STR(hs_service, "yuno_role");
         const char *yuno_name = SDATA_GET_STR(hs_service, "yuno_name");
         const char *schema = SDATA_GET_STR(hs_service, "schema");
@@ -6311,9 +6315,9 @@ PRIVATE int write_service_client_connectors(
         uint32_t port_ =  SDATA_GET_INT(hs_service, "port");
         char port[32];
         snprintf(port, sizeof(port), "%d", port_);
-        json_t * jn_config_variables = json_pack("{s:{s:s, s:s, s:s, s:s, s:s, s:s, s:s}}",
+        json_t * jn_config_variables = json_pack("{s:{s:s, s:s, s:s, s:s, s:s, s:s, s:s, s:s}}",
             "__json_config_variables__",
-            // TODO poner todas las variables globales, reinos
+                "__realm_id__", realm_id,
                 "__yuno_name__", yuno_name,
                 "__yuno_role__", yuno_role,
                 "__yuno_service__", yuno_service,
@@ -7232,6 +7236,7 @@ PRIVATE int build_release_name(char *bf, int bfsize, json_t *hs_binary, json_t *
  ***************************************************************************/
 PRIVATE json_t *find_public_service(
     hgobj gobj,
+    const char *realm_id,
     const char *yuno_role,
     const char *yuno_name,
     const char *service)
@@ -7239,7 +7244,8 @@ PRIVATE json_t *find_public_service(
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
     char *resource = "public_services";
 
-    json_t *kw_find = json_pack("{s:s, s:s, s:s}",
+    json_t *kw_find = json_pack("{s:s, s:s, s:s, s:s}",
+        "realm_id", realm_id,
         "yuno_role", yuno_role,
         "yuno_name", yuno_name,
         "service", service
@@ -7352,7 +7358,7 @@ PRIVATE int register_public_services(hgobj gobj, json_t *yuno)
         log_debug_json(0, yuno, "no realm");
         return -1;
     }
-
+    const char *realm_id = SDATA_GET_ID(hs_realm);
     json_t *jn_public_services = SDATA_GET_JSON(hs_binary, "public_services");
     json_t *jn_service_descriptor = SDATA_GET_JSON(hs_binary, "service_descriptor");
     if(jn_public_services) {
@@ -7376,6 +7382,7 @@ PRIVATE int register_public_services(hgobj gobj, json_t *yuno)
              */
             json_t *hs_service = find_public_service(
                 gobj,
+                realm_id,
                 yuno_role,
                 yuno_name,
                 service
@@ -7387,7 +7394,8 @@ PRIVATE int register_public_services(hgobj gobj, json_t *yuno)
                 port = SDATA_GET_INT(hs_service, "port");
 
             } else {
-                json_t *kw_write_service = json_pack("{s:s, s:s, s:s, s:s, s:s}",
+                json_t *kw_write_service = json_pack("{s:s, s:s, s:s, s:s, s:s, s:s}",
+                    "realm_id", realm_id,
                     "service", service,
                     "description", description,
                     "schema", schema,
@@ -9067,8 +9075,8 @@ PRIVATE int ac_timeout(hgobj gobj, const char *event, json_t *kw, hgobj src)
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
     if(!priv->enabled_yunos_running) {
         priv->enabled_yunos_running = 1;
-// TODO TEST        run_enabled_yunos(gobj);
-//         exec_startup_command(gobj);
+        run_enabled_yunos(gobj);
+        exec_startup_command(gobj);
     }
 
     KW_DECREF(kw);

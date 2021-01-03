@@ -672,6 +672,7 @@ SDATA_END()
 PRIVATE sdata_desc_t pm_delete_yuno[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id"),
+SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm id"),
 SDATAPM (ASN_OCTET_STR, "yuno_role",    0,              0,          "Yuno role"),
 SDATAPM (ASN_OCTET_STR, "role_version", 0,              0,          "Role version"),
 SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno name"),
@@ -3765,6 +3766,7 @@ PRIVATE json_t *cmd_find_new_yunos(hgobj gobj, const char *cmd, json_t *kw, hgob
                 }
             }
         }
+        json_incref(config_found);
         JSON_DECREF(configs);
 
         /*
@@ -3792,6 +3794,7 @@ PRIVATE json_t *cmd_find_new_yunos(hgobj gobj, const char *cmd, json_t *kw, hgob
                 }
             }
         }
+        json_incref(binary_found);
         JSON_DECREF(binaries);
 
         if(!config_found && !binary_found) {
@@ -3820,9 +3823,13 @@ PRIVATE json_t *cmd_find_new_yunos(hgobj gobj, const char *cmd, json_t *kw, hgob
                 SDATA_GET_BOOL(yuno, "multiple")
             )
         );
-    }
-    JSON_DECREF(iter);
 
+        json_decref(binary_found);
+        json_decref(config_found);
+    }
+    json_decref(iter);
+
+    int ret = 0;
     json_t *schema = 0;
     if(create) {
         if(json_array_size(jn_data)) {
@@ -3836,12 +3843,24 @@ PRIVATE json_t *cmd_find_new_yunos(hgobj gobj, const char *cmd, json_t *kw, hgob
                     0,
                     gobj
                 );
-                json_array_extend(new_jn_data, kw_get_dict_value(webix, "data", 0, KW_REQUIRED));
-                JSON_DECREF(webix);
+                if(kw_get_int(webix, "result", 0, KW_REQUIRED)<0) {
+                    json_t *c = kw_get_dict_value(webix, "comment", 0, KW_REQUIRED);
+                    json_array_append(new_jn_data, c);
+                    ret += -1;
+                } else {
+                    json_t *d = kw_get_dict_value(webix, "data", 0, KW_REQUIRED);
+                    json_array_extend(new_jn_data, d);
+                }
+                json_decref(webix);
             }
-            JSON_DECREF(jn_data);
+            json_decref(jn_data);
             jn_data = new_jn_data;
-            schema = tranger_list_topic_desc(gobj_read_pointer_attr(priv->resource, "tranger"), "yunos");
+            if(ret == 0) {
+                schema = tranger_list_topic_desc(
+                    gobj_read_pointer_attr(priv->resource, "tranger"),
+                    "yunos"
+                );
+            }
         }
     }
 
@@ -3850,7 +3869,7 @@ PRIVATE json_t *cmd_find_new_yunos(hgobj gobj, const char *cmd, json_t *kw, hgob
      */
     return msg_iev_build_webix(
         gobj,
-        0,
+        ret,
         0,
         schema,
         jn_data, // owned
@@ -3982,7 +4001,7 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
             "yuno_name", yuno_name,
             "yuno_release", yuno_release
         );
-        json_t *iter_find = gobj_list_nodes(
+        json_t *iter_find = gobj_list_nodes( // TODO busca instances mejor?
             priv->resource,
             resource,
             kw_find, // filter
@@ -4031,6 +4050,9 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
         src
     );
     if(!yuno) {
+        json_decref(hs_realm);
+        json_decref(hs_binary);
+        json_decref(hs_configuration);
         return msg_iev_build_webix(
             gobj,
             -1,

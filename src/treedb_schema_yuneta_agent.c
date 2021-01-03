@@ -211,6 +211,15 @@ static char treedb_schema_yuneta_agent[]= "\
                         'required'                                  \n\
                     ]                                               \n\
                 },                                                  \n\
+                'disabled': {                                       \n\
+                    'header': 'disabled',                           \n\
+                    'fillspace': 8,                                 \n\
+                    'type': 'boolean',                              \n\
+                    'flag': [                                       \n\
+                        'inherit',                                  \n\
+                        'persistent'                                \n\
+                    ]                                               \n\
+                },                                                  \n\
                 'range_ports': {                                    \n\
                     'header': 'range_ports',                        \n\
                     'fillspace': 15,                                \n\

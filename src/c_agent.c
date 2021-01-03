@@ -122,7 +122,10 @@ PRIVATE json_t *find_configuration_version(
 );
 PRIVATE int build_release_name(char *bf, int bfsize, json_t *hs_binary, json_t *hs_config);
 
-PRIVATE int register_public_services(hgobj gobj, json_t *yuno);
+PRIVATE int register_public_services(
+    hgobj gobj,
+    json_t *yuno // not owned
+);
 PRIVATE int restart_nodes(hgobj gobj);
 
 /***************************************************************************
@@ -4069,18 +4072,25 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
     gobj_link_nodes(priv->resource, "yunos", hs_realm, yuno, src);
     gobj_link_nodes(priv->resource, "binary", yuno, hs_binary, src);
     gobj_link_nodes(priv->resource, "configurations", yuno, hs_configuration, src);
-    yuno = gobj_get_node(
+print_json(yuno); // TODO TEST
+    json_t *iter = gobj_node_instances(
         priv->resource,
         resource,
+        "",
         yuno,
         0,
         src
     );
+print_json(iter);  // TODO TEST
+    yuno = json_array_get(iter, 0);
+    json_incref(yuno);
+    json_decref(iter);
 
     /*-----------------------------*
      *  Register public services
      *-----------------------------*/
     int result = register_public_services(gobj, yuno);
+print_json(yuno);  // TODO TEST
 
     /*
      *  Inform
@@ -7486,12 +7496,26 @@ PRIVATE json_t *get_new_service_port(
 /***************************************************************************
  *
  ***************************************************************************/
-PRIVATE int register_public_services(hgobj gobj, json_t *yuno)
+PRIVATE int register_public_services(
+    hgobj gobj,
+    json_t *yuno // not owned
+)
 {
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
-    int ret = 0;
-
     char *resource = "public_services";
+
+    if(!yuno) {
+        log_error(0,
+            "gobj",         "%s", gobj_full_name(gobj),
+            "function",     "%s", __FUNCTION__,
+            "msgset",       "%s", MSGSET_INTERNAL_ERROR,
+            "msg",          "%s", "yuno NULL",
+            NULL
+        );
+        return -1;
+    }
+
+    int ret = 0;
 
     const char *yuno_id = SDATA_GET_ID(yuno);
     const char *yuno_role = SDATA_GET_STR(yuno, "yuno_role");

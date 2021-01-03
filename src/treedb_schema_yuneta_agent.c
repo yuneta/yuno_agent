@@ -43,7 +43,7 @@
             │* yuno_role                │
             │* yuno_name                │
             │* yuno_release (2)         │
-            │  yuno_alias               │
+            │  yuno_tag                 │
             │  yuno_running             │
             │  yuno_playing             │
             │  yuno_pid                 │
@@ -303,8 +303,8 @@ static char treedb_schema_yuneta_agent[]= "\
                         'required'                                  \n\
                     ]                                               \n\
                 },                                                  \n\
-                'yuno_alias': {                                     \n\
-                    'header': 'yuno_alias',                         \n\
+                'yuno_tag': {                                       \n\
+                    'header': 'yuno_tag',                           \n\
                     'fillspace': 10,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\

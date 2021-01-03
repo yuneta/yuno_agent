@@ -234,7 +234,7 @@ PRIVATE json_t *cmd_list_yunos(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
 PRIVATE json_t *cmd_find_new_yunos(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_create_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_delete_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
-PRIVATE json_t *cmd_set_alias(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
+PRIVATE json_t *cmd_set_tag(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_set_multiple(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 
 PRIVATE json_t *cmd_command_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
@@ -353,7 +353,7 @@ SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "yuno_role",    0,              0,          "Yuno Role"),
 SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno Name"),
 SDATAPM (ASN_OCTET_STR, "yuno_release", 0,              0,          "Yuno Release"),
-SDATAPM (ASN_OCTET_STR, "yuno_alias",   0,              0,          "Yuno Alias"),
+SDATAPM (ASN_OCTET_STR, "yuno_tag",     0,              0,          "Yuno Tag"),
 SDATA_END()
 };
 PRIVATE sdata_desc_t pm_run_yuno[] = {
@@ -363,7 +363,7 @@ SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "yuno_role",    0,              0,          "Yuno Role"),
 SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno Name"),
 SDATAPM (ASN_OCTET_STR, "yuno_release", 0,              0,          "Yuno Release"),
-SDATAPM (ASN_OCTET_STR, "yuno_alias",   0,              0,          "Yuno Alias"),
+SDATAPM (ASN_OCTET_STR, "yuno_tag",     0,              0,          "Yuno Tag"),
 SDATA_END()
 };
 PRIVATE sdata_desc_t pm_kill_yuno[] = {
@@ -373,7 +373,7 @@ SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "yuno_role",    0,              0,          "Yuno Role"),
 SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno Name"),
 SDATAPM (ASN_OCTET_STR, "yuno_release", 0,              0,          "Yuno Release"),
-SDATAPM (ASN_OCTET_STR, "yuno_alias",   0,              0,          "Yuno Alias"),
+SDATAPM (ASN_OCTET_STR, "yuno_tag",     0,              0,          "Yuno Tag"),
 SDATAPM (ASN_BOOLEAN,   "app",          0,              0,          "Kill app yunos (id>=1000)"),
 SDATAPM (ASN_BOOLEAN,   "force",        0,              0,          "kill with SIGKILL instead of SIGQUIT"),
 SDATA_END()
@@ -385,7 +385,7 @@ SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "yuno_role",    0,              0,          "Yuno role"),
 SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno name"),
 SDATAPM (ASN_OCTET_STR, "yuno_release", 0,              0,          "Yuno Release"),
-SDATAPM (ASN_OCTET_STR, "yuno_alias",   0,              0,          "Yuno alias"),
+SDATAPM (ASN_OCTET_STR, "yuno_tag",     0,              0,          "Yuno Tag"),
 SDATAPM (ASN_BOOLEAN,   "yuno_running", 0,              0,          "True if yuno is running"),
 SDATAPM (ASN_BOOLEAN,   "yuno_playing", 0,              0,          "True if yuno is playing"),
 SDATAPM (ASN_BOOLEAN,   "disabled",     0,              0,          "True if yuno is disabled"),
@@ -405,7 +405,7 @@ SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "yuno_role",    0,              0,          "Yuno Role"),
 SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno Name"),
 SDATAPM (ASN_OCTET_STR, "yuno_release", 0,              0,          "Yuno Release"),
-SDATAPM (ASN_OCTET_STR, "yuno_alias",   0,              0,          "Yuno Alias"),
+SDATAPM (ASN_OCTET_STR, "yuno_tag",     0,              0,          "Yuno Tag"),
 SDATA_END()
 };
 PRIVATE sdata_desc_t pm_pause_yuno[] = {
@@ -415,7 +415,7 @@ SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "yuno_role",    0,              0,          "Yuno Role"),
 SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno Name"),
 SDATAPM (ASN_OCTET_STR, "yuno_release", 0,              0,          "Yuno Release"),
-SDATAPM (ASN_OCTET_STR, "yuno_alias",   0,              0,          "Yuno Alias"),
+SDATAPM (ASN_OCTET_STR, "yuno_tag",     0,              0,          "Yuno Tag"),
 SDATA_END()
 };
 PRIVATE sdata_desc_t pm_enable_yuno[] = {
@@ -425,7 +425,7 @@ SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "yuno_role",    0,              0,          "Yuno Role"),
 SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno Name"),
 SDATAPM (ASN_OCTET_STR, "yuno_release", 0,              0,          "Yuno Release"),
-SDATAPM (ASN_OCTET_STR, "yuno_alias",   0,              0,          "Yuno Alias"),
+SDATAPM (ASN_OCTET_STR, "yuno_tag",     0,              0,          "Yuno Tag"),
 SDATA_END()
 };
 PRIVATE sdata_desc_t pm_disable_yuno[] = {
@@ -435,7 +435,7 @@ SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "yuno_role",    0,              0,          "Yuno Role"),
 SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno Name"),
 SDATAPM (ASN_OCTET_STR, "yuno_release", 0,              0,          "Yuno Release"),
-SDATAPM (ASN_OCTET_STR, "yuno_alias",   0,              0,          "Yuno Alias"),
+SDATAPM (ASN_OCTET_STR, "yuno_tag",     0,              0,          "Yuno Tag"),
 SDATA_END()
 };
 PRIVATE sdata_desc_t pm_trace_on_yuno[] = {
@@ -445,7 +445,7 @@ SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "yuno_role",    0,              0,          "Yuno Role"),
 SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno Name"),
 SDATAPM (ASN_OCTET_STR, "yuno_release", 0,              0,          "Yuno Release"),
-SDATAPM (ASN_OCTET_STR, "yuno_alias",   0,              0,          "Yuno Alias"),
+SDATAPM (ASN_OCTET_STR, "yuno_tag",     0,              0,          "Yuno Tag"),
 SDATA_END()
 };
 PRIVATE sdata_desc_t pm_trace_off_yuno[] = {
@@ -455,7 +455,7 @@ SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "yuno_role",    0,              0,          "Yuno Role"),
 SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno Name"),
 SDATAPM (ASN_OCTET_STR, "yuno_release", 0,              0,          "Yuno Release"),
-SDATAPM (ASN_OCTET_STR, "yuno_alias",   0,              0,          "Yuno Alias"),
+SDATAPM (ASN_OCTET_STR, "yuno_tag",     0,              0,          "Yuno Tag"),
 SDATA_END()
 };
 PRIVATE sdata_desc_t pm_command_yuno[] = {
@@ -467,7 +467,7 @@ SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "yuno_role",    0,              0,          "Yuno Role"),
 SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno Name"),
 SDATAPM (ASN_OCTET_STR, "yuno_release", 0,              0,          "Yuno Release"),
-SDATAPM (ASN_OCTET_STR, "yuno_alias",   0,              0,          "Yuno Alias"),
+SDATAPM (ASN_OCTET_STR, "yuno_tag",     0,              0,          "Yuno Tag"),
 SDATA_END()
 };
 PRIVATE sdata_desc_t pm_stats_yuno[] = {
@@ -479,7 +479,7 @@ SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "yuno_role",    0,              0,          "Yuno Role"),
 SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno Name"),
 SDATAPM (ASN_OCTET_STR, "yuno_release", 0,              0,          "Yuno Release"),
-SDATAPM (ASN_OCTET_STR, "yuno_alias",   0,              0,          "Yuno Alias"),
+SDATAPM (ASN_OCTET_STR, "yuno_tag",     0,              0,          "Yuno Tag"),
 SDATA_END()
 };
 PRIVATE sdata_desc_t pm_authzs_yuno[] = {
@@ -491,18 +491,18 @@ SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "yuno_role",    0,              0,          "Yuno Role"),
 SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno Name"),
 SDATAPM (ASN_OCTET_STR, "yuno_release", 0,              0,          "Yuno Release"),
-SDATAPM (ASN_OCTET_STR, "yuno_alias",   0,              0,          "Yuno Alias"),
+SDATAPM (ASN_OCTET_STR, "yuno_tag",     0,              0,          "Yuno Tag"),
 SDATA_END()
 };
-PRIVATE sdata_desc_t pm_set_alias[] = {
+PRIVATE sdata_desc_t pm_set_tag[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id of yuno"),
-SDATAPM (ASN_OCTET_STR, "alias",        0,              0,          "New Yuno alias"),
+SDATAPM (ASN_OCTET_STR, "tag",        0,              0,          "New Yuno Tag"),
 SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "yuno_role",    0,              0,          "Yuno Role"),
 SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno Name"),
 SDATAPM (ASN_OCTET_STR, "yuno_release", 0,              0,          "Yuno Release"),
-SDATAPM (ASN_OCTET_STR, "yuno_alias",   0,              0,          "Yuno Alias"),
+SDATAPM (ASN_OCTET_STR, "yuno_tag",     0,              0,          "Yuno Tag"),
 SDATAPM (ASN_BOOLEAN,   "yuno_running", 0,              0,          "Yuno running"),
 SDATAPM (ASN_BOOLEAN,   "disabled",     0,              0,          "Yuno disabled"),
 SDATA_END()
@@ -515,7 +515,7 @@ SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "yuno_role",    0,              0,          "Yuno Role"),
 SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno Name"),
 SDATAPM (ASN_OCTET_STR, "yuno_release", 0,              0,          "Yuno Release"),
-SDATAPM (ASN_OCTET_STR, "yuno_alias",   0,              0,          "Yuno Alias"),
+SDATAPM (ASN_OCTET_STR, "yuno_tag",     0,              0,          "Yuno Tag"),
 SDATAPM (ASN_BOOLEAN,   "yuno_running", 0,              0,          "Yuno running"),
 SDATAPM (ASN_BOOLEAN,   "disabled",     0,              0,          "Yuno disabled"),
 SDATA_END()
@@ -660,7 +660,7 @@ SDATAPM (ASN_OCTET_STR, "yuno_role",    0,              0,          "Yuno role")
 SDATAPM (ASN_OCTET_STR, "role_version", 0,              0,          "Role version"),
 SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno name"),
 SDATAPM (ASN_OCTET_STR, "name_version", 0,              0,          "Name version"),
-SDATAPM (ASN_OCTET_STR, "yuno_alias",   0,              0,          "Yuno alias"),
+SDATAPM (ASN_OCTET_STR, "yuno_tag",     0,              0,          "Yuno Tag"),
 
 SDATAPM (ASN_BOOLEAN,   "disabled",     0,              0,          "True if yuno is disabled"),
 SDATAPM (ASN_BOOLEAN,   "must_play",    0,              0,          "True if yuno must play"),
@@ -676,7 +676,7 @@ SDATAPM (ASN_OCTET_STR, "yuno_role",    0,              0,          "Yuno role")
 SDATAPM (ASN_OCTET_STR, "role_version", 0,              0,          "Role version"),
 SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno name"),
 SDATAPM (ASN_OCTET_STR, "name_version", 0,              0,          "Name version"),
-SDATAPM (ASN_OCTET_STR, "yuno_alias",   0,              0,          "Yuno alias"),
+SDATAPM (ASN_OCTET_STR, "yuno_tag",     0,              0,          "Yuno Tag"),
 SDATAPM (ASN_OCTET_STR, "yuno_release", 0,              0,          "Yuno release"),
 SDATAPM (ASN_BOOLEAN,   "force",        0,              0,          "Force delete"),
 SDATA_END()
@@ -781,7 +781,7 @@ SDATACM2 (ASN_SCHEMA,   "",                 0,                  0,              
 SDATACM2 (ASN_SCHEMA,   "find-new-yunos",   0,                  0,                  pm_find_new_yunos,cmd_find_new_yunos, "Find new yunos"),
 SDATACM2 (ASN_SCHEMA,   "create-yuno",      0,                  0,                  pm_create_yuno, cmd_create_yuno, "Create yuno"),
 SDATACM2 (ASN_SCHEMA,   "delete-yuno",      0,                  0,                  pm_delete_yuno, cmd_delete_yuno, "Delete yuno"),
-SDATACM2 (ASN_SCHEMA,   "set-alias",        0,                  0,                  pm_set_alias,   cmd_set_alias,  "Set yuno alias"),
+SDATACM2 (ASN_SCHEMA,   "set-tag",          0,                  0,                  pm_set_tag,   cmd_set_tag,  "Set yuno tag"),
 SDATACM2 (ASN_SCHEMA,   "set-multiple",     0,                  0,                  pm_set_multiple,cmd_set_multiple,"Set yuno multiple"),
 SDATACM2 (ASN_SCHEMA,   "edit-yuno-config", 0,                  a_edit_yuno_config, pm_list_yunos,  0,              "Edit yuno configuration"),
 SDATACM2 (ASN_SCHEMA,   "view-yuno-config", 0,                  a_view_yuno_config, pm_list_yunos,  0,              "View yuno configuration"),
@@ -1520,19 +1520,19 @@ PRIVATE json_t *cmd_replicate_node(hgobj gobj, const char *cmd, json_t *kw, hgob
 //     while(i_hs) {
 //         BOOL valid_yuno = TRUE;
 //         /*
-//          *  The rule: only enabled yunos and aliased yunos are replicated.
+//          *  The rule: only enabled yunos and taged yunos are replicated.
 //          */
 //         BOOL yuno_disabled = kw_get_bool(yuno, "disabled");
-//         const char *alias = kw_get_str(yuno, "yuno_alias");
-//         if(empty_string(alias)) {
+//         const char *tag = kw_get_str(yuno, "yuno_tag");
+//         if(empty_string(tag)) {
 //             if(yuno_disabled) {
-//                 // Sin alias y disabled, ignora en cualquier caso.
+//                 // Sin tag y disabled, ignora en cualquier caso.
 //                 valid_yuno = FALSE;
 //             }
 //         } else {
 //             // NEW Version 2.2.5
 //             if(yuno_disabled && upgrade) {
-//                 // Con alias y disabled, ignora en upgrade, no en replicate.
+//                 // Con tag y disabled, ignora en upgrade, no en replicate.
 //                 valid_yuno = FALSE;
 //             }
 //         }
@@ -1572,9 +1572,9 @@ PRIVATE json_t *cmd_replicate_node(hgobj gobj, const char *cmd, json_t *kw, hgob
 //         if(!yuno_name) {
 //             yuno_name = "";
 //         }
-//         const char *yuno_alias = kw_get_str(yuno, "yuno_alias");
-//         if(!yuno_alias) {
-//             yuno_alias = "";
+//         const char *yuno_tag = kw_get_str(yuno, "yuno_tag");
+//         if(!yuno_tag) {
+//             yuno_tag = "";
 //         }
 //
 //         /*
@@ -1671,12 +1671,12 @@ PRIVATE json_t *cmd_replicate_node(hgobj gobj, const char *cmd, json_t *kw, hgob
 //          *  Order: create-yuno.
 //          */
 //         fprintf(file,
-//             "{\"command\": \"%screate-yuno realm_id='%s' yuno_role='%s' yuno_name='%s' yuno_alias='%s' disabled=%d\"}\n",
+//             "{\"command\": \"%screate-yuno realm_id='%s' yuno_role='%s' yuno_name='%s' yuno_tag='%s' disabled=%d\"}\n",
 //             upgrade?"-":"",
 //             realm_id,
 //             yuno_role,
 //             yuno_name,
-//             yuno_alias,
+//             yuno_tag,
 //             yuno_disabled?1:0
 //         );
 //
@@ -3411,16 +3411,16 @@ PRIVATE json_t *cmd_delete_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
 /***************************************************************************
  *
  ***************************************************************************/
-PRIVATE json_t *cmd_set_alias(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
+PRIVATE json_t *cmd_set_tag(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
 {
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
     char *resource = "yunos";
 
-    const char *yuno_alias = kw_get_str(kw, "alias", 0, 0);
-    if(!yuno_alias) {
+    const char *yuno_tag = kw_get_str(kw, "tag", 0, 0);
+    if(!yuno_tag) {
         return msg_iev_build_webix(gobj,
             -1,
-            json_local_sprintf("What alias?"),
+            json_local_sprintf("What tag?"),
             0,
             0,
             kw  // owned
@@ -3457,7 +3457,7 @@ PRIVATE json_t *cmd_set_alias(hgobj gobj, const char *cmd, json_t *kw, hgobj src
 
     int idx; json_t *node;
     json_array_foreach(iter, idx, node) {
-        json_object_set_new(node, "yuno_alias", json_string(yuno_alias));
+        json_object_set_new(node, "yuno_tag", json_string(yuno_tag));
         json_array_append_new(
             jn_data,
             gobj_update_node( // Node updated to collection.
@@ -3612,8 +3612,8 @@ PRIVATE json_t *cmd_top_yunos(hgobj gobj, const char *cmd, json_t *kw, hgobj src
     int idx; json_t *node;
     json_array_foreach(iter, idx, node) {
         BOOL disabled = kw_get_bool(node, "disabled", 0, KW_REQUIRED);
-        const char *yuno_alias = kw_get_str(node, "yuno_alias", 0, KW_REQUIRED);
-        if(!disabled || !empty_string(yuno_alias)) {
+        const char *yuno_tag = kw_get_str(node, "yuno_tag", 0, KW_REQUIRED);
+        if(!disabled || !empty_string(yuno_tag)) {
             json_array_append(jn_data, webix?yuno2multiselect(node):node);
         }
     }
@@ -3809,14 +3809,14 @@ PRIVATE json_t *cmd_find_new_yunos(hgobj gobj, const char *cmd, json_t *kw, hgob
             jn_data,
             json_sprintf(
                 "create-yuno id=%s realm_id=%s yuno_role=%s role_version=%s "
-                "yuno_name=%s name_version=%s yuno_alias=%s multiple=%d",
+                "yuno_name=%s name_version=%s yuno_tag=%s multiple=%d",
                 id,
                 realm_id,
                 yuno_role,
                 new_role_version,
                 yuno_name,
                 new_name_version,
-                SDATA_GET_STR(yuno, "yuno_alias"),
+                SDATA_GET_STR(yuno, "yuno_tag"),
                 SDATA_GET_BOOL(yuno, "multiple")
             )
         );
@@ -6574,7 +6574,7 @@ PRIVATE GBUFFER *build_yuno_running_script(
     BOOL multiple = kw_get_bool(yuno, "multiple", 0, KW_REQUIRED);
     const char *yuno_role = kw_get_str(yuno, "yuno_role", "", KW_REQUIRED);
     const char *yuno_name = kw_get_str(yuno, "yuno_name", "", KW_REQUIRED);
-    const char *yuno_alias = kw_get_str(yuno, "yuno_alias", "", KW_REQUIRED);
+    const char *yuno_tag = kw_get_str(yuno, "yuno_tag", "", KW_REQUIRED);
     const char *yuno_release = kw_get_str(yuno, "yuno_release", "", KW_REQUIRED);
     json_int_t launch_id = kw_get_int(yuno, "launch_id", 0, KW_REQUIRED);
 
@@ -6729,7 +6729,7 @@ PRIVATE GBUFFER *build_yuno_running_script(
             "environment", jn_environment,
             "yuno",
                 "yuno_name", yuno_name,
-                "yuno_alias", yuno_alias,
+                "yuno_tag", yuno_tag,
                 "yuno_release", yuno_release,
                 "realm_id", SDATA_GET_STR(yuno, "realm_id`0"),
                 "bind_ip", bind_ip,
@@ -6796,7 +6796,7 @@ PRIVATE int run_yuno(
     const char *yuno_id = kw_get_str(yuno, "id", "", KW_REQUIRED);
     const char *yuno_role = kw_get_str(yuno, "yuno_role", "", KW_REQUIRED);
     const char *yuno_name = kw_get_str(yuno, "yuno_name", "", KW_REQUIRED);
-    const char *yuno_alias = kw_get_str(yuno, "yuno_alias", "", KW_REQUIRED);
+    const char *yuno_tag = kw_get_str(yuno, "yuno_tag", "", KW_REQUIRED);
     const char *yuno_release = kw_get_str(yuno, "yuno_release", "", KW_REQUIRED);
 
     char yuno_bin_path[NAME_MAX];
@@ -6836,7 +6836,7 @@ PRIVATE int run_yuno(
             "yuno_id",      "%s", yuno_id,
             "yuno_role",    "%s", yuno_role,
             "yuno_name",    "%s", yuno_name?yuno_name:"",
-            "yuno_alias",   "%s", yuno_name?yuno_alias:"",
+            "yuno_tag",   "%s", yuno_name?yuno_tag:"",
             "yuno_release", "%s", yuno_release?yuno_release:"",
             "ret",          "%d", ret,
             NULL

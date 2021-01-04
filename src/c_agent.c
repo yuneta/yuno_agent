@@ -4072,7 +4072,6 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
     gobj_link_nodes(priv->resource, "yunos", hs_realm, yuno, src);
     gobj_link_nodes(priv->resource, "binary", yuno, hs_binary, src);
     gobj_link_nodes(priv->resource, "configurations", yuno, hs_configuration, src);
-print_json(yuno); // TODO TEST
     json_t *iter = gobj_node_instances(
         priv->resource,
         resource,
@@ -4081,16 +4080,18 @@ print_json(yuno); // TODO TEST
         0,
         src
     );
-print_json(iter);  // TODO TEST
+print_json(iter);
     yuno = json_array_get(iter, 0);
     json_incref(yuno);
     json_decref(iter);
 
     /*-----------------------------*
      *  Register public services
+     *  TODO bug:
+     *  en find-new-yunos create=1 podemos crear yunos que todavían no están activos
+     *  (hasta deactivate-snap) y sin embargo se actualizan sus datos de public-service
      *-----------------------------*/
     int result = register_public_services(gobj, yuno);
-print_json(yuno);  // TODO TEST
 
     /*
      *  Inform

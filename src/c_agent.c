@@ -7454,12 +7454,11 @@ PRIVATE json_t *find_public_service(
 /***************************************************************************
  *
  ***************************************************************************/
-PRIVATE json_t *get_new_service_port(
+PRIVATE int get_new_service_port(
     hgobj gobj,
-    json_t *hs_realm // owned
+    json_t *hs_realm // NOT owned
 )
 {
-    PRIVATE_DATA *priv = gobj_priv_data(gobj);
     uint32_t new_port = 0;
     json_t *jn_range_ports = SDATA_GET_JSON(hs_realm, "range_ports");
     json_t *jn_port_list = json_expand_integer_list(jn_range_ports);
@@ -7478,7 +7477,6 @@ PRIVATE json_t *get_new_service_port(
                 NULL
             );
             JSON_DECREF(jn_port_list);
-            json_decref(hs_realm);
             return 0;
         }
         idx ++;
@@ -7491,17 +7489,13 @@ PRIVATE json_t *get_new_service_port(
                 NULL
             );
             JSON_DECREF(jn_port_list);
-            json_decref(hs_realm);
             return 0;
         }
         new_port = json_list_int(jn_port_list, idx);
     }
-    SDATA_SET_INT(hs_realm, "last_port", new_port);
-
-    hs_realm = gobj_update_node(priv->resource, "realms", hs_realm, 0, gobj);
 
     JSON_DECREF(jn_port_list);
-    return hs_realm;
+    return new_port;
 }
 
 /***************************************************************************
@@ -7628,8 +7622,10 @@ PRIVATE int register_public_services(
                     ret += -1;
                     continue;
                 }
-                hs_realm = get_new_service_port(gobj, hs_realm);
-                port = SDATA_GET_INT(hs_realm, "last_port");
+                port = get_new_service_port(gobj, hs_realm);
+
+                SDATA_SET_INT(hs_realm, "last_port", port);
+                hs_realm = gobj_update_node(priv->resource, "realms", hs_realm, 0, gobj);
             }
 
             /*
@@ -9332,8 +9328,8 @@ PRIVATE int ac_timeout(hgobj gobj, const char *event, json_t *kw, hgobj src)
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
     if(!priv->enabled_yunos_running) {
         priv->enabled_yunos_running = 1;
-// TODO TEST        run_enabled_yunos(gobj);
-//         exec_startup_command(gobj);
+        run_enabled_yunos(gobj);
+        exec_startup_command(gobj);
     }
 
     KW_DECREF(kw);

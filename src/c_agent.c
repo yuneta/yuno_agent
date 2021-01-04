@@ -4080,7 +4080,7 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
         0,
         src
     );
-print_json(iter);
+
     yuno = json_array_get(iter, 0);
     json_incref(yuno);
     json_decref(iter);
@@ -4310,7 +4310,17 @@ PRIVATE json_t *cmd_run_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
                 }
 
                 // Volatil if you don't want historic data
-                json_decref(gobj_update_node(priv->resource, resource, json_incref(yuno), 0, src));
+                // TODO force volatil, sino no aparece el yuno con mas release el primero
+                // y falla el deactivate-snap
+                json_decref(
+                    gobj_update_node(
+                        priv->resource,
+                        resource,
+                        json_incref(yuno),
+                        json_pack("{s:b}", "volatil", 1),
+                        src
+                    )
+                );
                 total_run++;
             } else {
                 log_error(0,
@@ -8687,7 +8697,19 @@ PRIVATE int ac_play_yuno_ack(hgobj gobj, const char *event, json_t *kw, hgobj sr
             return 0;
         }
         json_object_set_new(yuno, "yuno_playing", json_true());
-        json_decref(gobj_update_node(priv->resource, "yunos", yuno, 0, src)); // Volatil
+
+        // Volatil if you don't want historic data
+        // TODO force volatil, sino no aparece el yuno con mas release el primero
+        // y falla el deactivate-snap
+        json_decref(
+            gobj_update_node(
+                priv->resource,
+                "yunos",
+                yuno,
+                json_pack("{s:b}", "volatil", 1),
+                src
+            )
+        );
 
         gobj_publish_event(
             gobj,
@@ -8733,7 +8755,18 @@ PRIVATE int ac_pause_yuno_ack(hgobj gobj, const char *event, json_t *kw, hgobj s
             return 0;
         }
         json_object_set_new(yuno, "yuno_playing", json_false());
-        json_decref(gobj_update_node(priv->resource, "yunos", yuno, 0, src)); // Volatil
+        // Volatil if you don't want historic data
+        // TODO force volatil, sino no aparece el yuno con mas release el primero
+        // y falla el deactivate-snap
+        json_decref(
+            gobj_update_node(
+                priv->resource,
+                "yunos",
+                yuno,
+                json_pack("{s:b}", "volatil", 1),
+                src
+            )
+        );
 
         gobj_publish_event(
             gobj,
@@ -9037,8 +9070,18 @@ PRIVATE int ac_on_open(hgobj gobj, const char *event, json_t *kw, hgobj src)
         );
     }
 
-    // Volatil if you don't want historic data.
-    json_decref(gobj_update_node(priv->resource, "yunos", json_incref(yuno), 0, src));
+    // Volatil if you don't want historic data
+    // TODO force volatil, sino no aparece el yuno con mas release el primero
+    // y falla el deactivate-snap
+    json_decref(
+        gobj_update_node(
+            priv->resource,
+            "yunos",
+            json_incref(yuno),
+            json_pack("{s:b}", "volatil", 1),
+            src
+        )
+    );
 
     log_debug(0,
         "gobj",         "%s", gobj_full_name(gobj),
@@ -9080,8 +9123,18 @@ PRIVATE int ac_on_open(hgobj gobj, const char *event, json_t *kw, hgobj src)
         }
         // se pierde, no existe el campo solicitante, change your mind! TODO
         json_object_set_new(yuno, "solicitante", json_string(""));
-        // Volatil if you don't want historic data.
-        json_decref(gobj_update_node(priv->resource, "yunos", json_incref(yuno), 0, src));
+        // Volatil if you don't want historic data
+        // TODO force volatil, sino no aparece el yuno con mas release el primero
+        // y falla el deactivate-snap
+        json_decref(
+            gobj_update_node(
+                priv->resource,
+                "yunos",
+                json_incref(yuno),
+                json_pack("{s:b}", "volatil", 1),
+                src
+            )
+        );
     }
 
     JSON_DECREF(iter_yunos);
@@ -9157,8 +9210,18 @@ PRIVATE int ac_on_close(hgobj gobj, const char *event, json_t *kw, hgobj src)
     json_object_set_new(yuno, "yuno_pid", json_integer(0));
     json_object_set_new(yuno, "_channel_gobj", json_integer(0));
 
-    // Volatil if you don't want historic data.
-    json_decref(gobj_update_node(priv->resource, "yunos", yuno, 0, src));
+    // Volatil if you don't want historic data
+    // TODO force volatil, sino no aparece el yuno con mas release el primero
+    // y falla el deactivate-snap
+    json_decref(
+        gobj_update_node(
+            priv->resource,
+            "yunos",
+            yuno,
+            json_pack("{s:b}", "volatil", 1),
+            src
+        )
+    );
 
     KW_DECREF(kw);
     return 0;

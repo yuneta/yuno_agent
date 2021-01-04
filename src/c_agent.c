@@ -9332,8 +9332,8 @@ PRIVATE int ac_timeout(hgobj gobj, const char *event, json_t *kw, hgobj src)
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
     if(!priv->enabled_yunos_running) {
         priv->enabled_yunos_running = 1;
-        run_enabled_yunos(gobj);
-        exec_startup_command(gobj);
+// TODO TEST        run_enabled_yunos(gobj);
+//         exec_startup_command(gobj);
     }
 
     KW_DECREF(kw);

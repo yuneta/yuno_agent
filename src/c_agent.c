@@ -8909,6 +8909,7 @@ PRIVATE int ac_on_open(hgobj gobj, const char *event, json_t *kw, hgobj src)
         0,
         src
     );
+print_json(iter_yunos); // TODO TEST
     int found = json_array_size(iter_yunos);
     if(found==0) {
         log_error(0,

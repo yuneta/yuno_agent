@@ -2429,7 +2429,6 @@ PRIVATE json_t *cmd_list_binaries(hgobj gobj, const char *cmd, json_t *kw, hgobj
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
     char *resource = "binaries";
 
-print_json2("kw", kw); // TODO TEST
     /*
      *  Get a iter of matched resources
      */
@@ -2440,9 +2439,6 @@ print_json2("kw", kw); // TODO TEST
         0,
         src
     );
-
-print_json2("jn_data", jn_data); // TODO TEST
-print_json2("kw", kw); // TODO TEST
 
     /*
      *  Inform
@@ -8913,7 +8909,7 @@ PRIVATE int ac_on_open(hgobj gobj, const char *event, json_t *kw, hgobj src)
         0,
         src
     );
-print_json(iter_yunos); // TODO TEST
+
     int found = json_array_size(iter_yunos);
     if(found==0) {
         log_error(0,
@@ -9333,8 +9329,8 @@ PRIVATE int ac_timeout(hgobj gobj, const char *event, json_t *kw, hgobj src)
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
     if(!priv->enabled_yunos_running) {
         priv->enabled_yunos_running = 1;
-        run_enabled_yunos(gobj);
-        exec_startup_command(gobj);
+//         run_enabled_yunos(gobj);
+//         exec_startup_command(gobj);
     }
 
     KW_DECREF(kw);

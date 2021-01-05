@@ -278,6 +278,7 @@ int main(int argc, char *argv[])
      */
     gobj_set_gclass_trace(GCLASS_IEVENT_SRV, "identity-card", TRUE);
     gobj_set_gclass_trace(GCLASS_IEVENT_CLI, "identity-card", TRUE);
+gobj_set_gclass_trace(GCLASS_IEVENT_SRV, "ievents2", TRUE);
 
     if(argv[1]) {
         if(strcmp(argv[1], "verbose2")==0) {

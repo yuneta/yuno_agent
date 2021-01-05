@@ -2429,6 +2429,7 @@ PRIVATE json_t *cmd_list_binaries(hgobj gobj, const char *cmd, json_t *kw, hgobj
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
     char *resource = "binaries";
 
+print_json2("kw", kw); // TODO TEST
     /*
      *  Get a iter of matched resources
      */
@@ -2439,6 +2440,9 @@ PRIVATE json_t *cmd_list_binaries(hgobj gobj, const char *cmd, json_t *kw, hgobj
         0,
         src
     );
+
+print_json2("jn_data", jn_data); // TODO TEST
+print_json2("kw", kw); // TODO TEST
 
     /*
      *  Inform

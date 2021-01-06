@@ -3747,7 +3747,7 @@ PRIVATE json_t *cmd_find_new_yunos(hgobj gobj, const char *cmd, json_t *kw, hgob
          */
         char config_name[NAME_MAX];
         snprintf(config_name, sizeof(config_name), "%s.%s", yuno_role, yuno_name);
-        json_t *configs = gobj_node_instances(
+        json_t *configs = gobj_list_instances(
             priv->resource,
             "configurations",
             "",
@@ -3775,7 +3775,7 @@ PRIVATE json_t *cmd_find_new_yunos(hgobj gobj, const char *cmd, json_t *kw, hgob
         /*
          *  Find a greater role version
          */
-        json_t *binaries = gobj_node_instances(
+        json_t *binaries = gobj_list_instances(
             priv->resource,
             "binaries",
             "",
@@ -4072,7 +4072,7 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
     gobj_link_nodes(priv->resource, "yunos", hs_realm, yuno, src);
     gobj_link_nodes(priv->resource, "binary", yuno, hs_binary, src);
     gobj_link_nodes(priv->resource, "configurations", yuno, hs_configuration, src);
-    json_t *iter = gobj_node_instances(
+    json_t *iter = gobj_list_instances(
         priv->resource,
         resource,
         "",
@@ -5753,7 +5753,7 @@ PRIVATE json_t *cmd_realms_instances(hgobj gobj, const char *cmd, json_t *kw, hg
     /*
      *  Get a iter of matched resources
      */
-    json_t *jn_data = gobj_node_instances(
+    json_t *jn_data = gobj_list_instances(
         priv->resource,
         resource,
         "",
@@ -5786,7 +5786,7 @@ PRIVATE json_t *cmd_yunos_instances(hgobj gobj, const char *cmd, json_t *kw, hgo
     /*
      *  Get a iter of matched resources.
      */
-    json_t *jn_data = gobj_node_instances(
+    json_t *jn_data = gobj_list_instances(
         priv->resource,
         resource,
         "",
@@ -5819,7 +5819,7 @@ PRIVATE json_t *cmd_binaries_instances(hgobj gobj, const char *cmd, json_t *kw, 
     /*
      *  Get a iter of matched resources
      */
-    json_t *jn_data = gobj_node_instances(
+    json_t *jn_data = gobj_list_instances(
         priv->resource,
         resource,
         "",
@@ -5852,7 +5852,7 @@ PRIVATE json_t *cmd_configs_instances(hgobj gobj, const char *cmd, json_t *kw, h
     /*
      *  Get a iter of matched resources
      */
-    json_t *jn_data = gobj_node_instances(
+    json_t *jn_data = gobj_list_instances(
         priv->resource,
         resource,
         "",
@@ -5885,7 +5885,7 @@ PRIVATE json_t *cmd_public_services_instances(hgobj gobj, const char *cmd, json_
     /*
      *  Get a iter of matched resources
      */
-    json_t *jn_data = gobj_node_instances(
+    json_t *jn_data = gobj_list_instances(
         priv->resource,
         resource,
         "",
@@ -6250,7 +6250,7 @@ PRIVATE json_t *get_yuno_binary(hgobj gobj, json_t *yuno)
         }
 
         JSON_DECREF(binaries);
-        binaries = gobj_node_instances(
+        binaries = gobj_list_instances(
             priv->resource,
             "binaries",
             "",
@@ -6328,7 +6328,7 @@ PRIVATE json_t *get_yuno_config(hgobj gobj, json_t *yuno)
         }
 
         JSON_DECREF(configurations);
-        configurations = gobj_node_instances(
+        configurations = gobj_list_instances(
             priv->resource,
             "configurations",
             "",
@@ -7316,7 +7316,7 @@ PRIVATE json_t *find_binary_version(
         "id", role
     );
 
-    json_t *iter_find = gobj_node_instances(
+    json_t *iter_find = gobj_list_instances(
         priv->resource,
         "binaries",
         "",
@@ -7366,7 +7366,7 @@ PRIVATE json_t *find_configuration_version(
     json_t *kw_find = json_pack("{s:s}",
         "id", with_prefix
     );
-    json_t *iter_find = gobj_node_instances(
+    json_t *iter_find = gobj_list_instances(
         priv->resource,
         "configurations",
         "",
@@ -7746,7 +7746,7 @@ PRIVATE int ac_edit_config(hgobj gobj, const char *event, json_t *kw, hgobj src)
         );
     }
     KW_INCREF(kw);
-    json_t *iter = gobj_node_instances(
+    json_t *iter = gobj_list_instances(
         priv->resource,
         resource,
         "",
@@ -7823,7 +7823,7 @@ PRIVATE int ac_view_config(hgobj gobj, const char *event, json_t *kw, hgobj src)
         );
     }
     KW_INCREF(kw);
-    json_t *iter = gobj_node_instances(
+    json_t *iter = gobj_list_instances(
         priv->resource,
         resource,
         "",
@@ -9329,8 +9329,8 @@ PRIVATE int ac_timeout(hgobj gobj, const char *event, json_t *kw, hgobj src)
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
     if(!priv->enabled_yunos_running) {
         priv->enabled_yunos_running = 1;
-//         run_enabled_yunos(gobj);
-//         exec_startup_command(gobj);
+        run_enabled_yunos(gobj);
+        exec_startup_command(gobj);
     }
 
     KW_DECREF(kw);
@@ -9496,7 +9496,7 @@ PRIVATE GCLASS _gclass = {
         0, //mt_topic_hooks,
         0, //mt_node_parents,
         0, //mt_node_childs,
-        0, //mt_node_instances,
+        0, //mt_list_instances,
         0, //mt_future60,
         0, //mt_topic_size,
         0, //mt_future62,

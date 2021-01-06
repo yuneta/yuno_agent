@@ -124,7 +124,9 @@ PRIVATE int build_release_name(char *bf, int bfsize, json_t *hs_binary, json_t *
 
 PRIVATE int register_public_services(
     hgobj gobj,
-    json_t *yuno // not owned
+    json_t *yuno, // not owned
+    json_t *hs_binary, // not owned
+    json_t *hs_realm // not owned
 );
 PRIVATE int restart_nodes(hgobj gobj);
 
@@ -695,7 +697,7 @@ SDATA_END()
 PRIVATE sdata_desc_t pm_snap_content[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "topic_name",   0,              0,          "Topic name"),
-SDATAPM (ASN_OCTET_STR, "snap_name",    0,              0,          "Snap name"),
+SDATAPM (ASN_OCTET_STR, "name",         0,              0,          "Snap name"),
 SDATA_END()
 };
 PRIVATE sdata_desc_t pm_shoot_snap[] = {
@@ -4004,11 +4006,11 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
             "yuno_name", yuno_name,
             "yuno_release", yuno_release
         );
-        json_t *iter_find = gobj_list_nodes( // TODO busca instances mejor?
+        json_t *iter_find = gobj_list_nodes(
             priv->resource,
             resource,
             kw_find, // filter
-            0,
+            json_pack("{s:b}", "include-instances", 1),
             src
         );
         if(json_array_size(iter_find)) {
@@ -4069,9 +4071,26 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
     /*-----------------------------*
      *  Link
      *-----------------------------*/
-    gobj_link_nodes(priv->resource, "yunos", hs_realm, yuno, src);
-    gobj_link_nodes(priv->resource, "binary", yuno, hs_binary, src);
-    gobj_link_nodes(priv->resource, "configurations", yuno, hs_configuration, src);
+    int result = 0;
+    result += gobj_link_nodes(
+        priv->resource, "yunos",
+        json_incref(hs_realm),
+        json_incref(yuno),
+        src
+    );
+    result += gobj_link_nodes(
+        priv->resource, "binary",
+        json_incref(yuno),
+        json_incref(hs_binary),
+        src
+    );
+    result += gobj_link_nodes(
+        priv->resource,
+        "configurations",
+        json_incref(yuno),
+        json_incref(hs_configuration),
+        src
+    );
     json_t *iter = gobj_list_instances(
         priv->resource,
         resource,
@@ -4091,7 +4110,7 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
      *  en find-new-yunos create=1 podemos crear yunos que todavían no están activos
      *  (hasta deactivate-snap) y sin embargo se actualizan sus datos de public-service
      *-----------------------------*/
-    int result = register_public_services(gobj, yuno);
+    result += register_public_services(gobj, yuno, hs_binary, hs_realm);
 
     /*
      *  Inform
@@ -5593,7 +5612,7 @@ PRIVATE json_t *cmd_snap_content(hgobj gobj, const char *cmd, json_t *kw, hgobj 
             kw  // owned
         );
     }
-    const char *snap_name = kw_get_str(kw, "snap_name", 0, 0);
+    const char *snap_name = kw_get_str(kw, "name", 0, 0);
     if(empty_string(snap_name)) {
         return msg_iev_build_webix(gobj,
             -1,
@@ -5611,12 +5630,23 @@ PRIVATE json_t *cmd_snap_content(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         kw_incref(kw),
         src
     );
-
     if(json_array_size(jn_data)==0) {
+        JSON_DECREF(jn_data);
         return msg_iev_build_webix(gobj,
             -1,
             json_local_sprintf(
                 "Cannot found snap '%s'", snap_name
+            ),
+            0,
+            0,
+            kw  // owned
+        );
+    } else if(json_array_size(jn_data)>1) {
+        JSON_DECREF(jn_data);
+        return msg_iev_build_webix(gobj,
+            -1,
+            json_local_sprintf(
+                "Too much snaps"
             ),
             0,
             0,
@@ -7499,26 +7529,18 @@ PRIVATE int get_new_service_port(
 }
 
 /***************************************************************************
- *
+ *  TODO bug: si registramos un servicio con cambios en el conector
+ *  afectará al snap shoot actual
  ***************************************************************************/
 PRIVATE int register_public_services(
     hgobj gobj,
-    json_t *yuno // not owned
+    json_t *yuno, // not owned
+    json_t *hs_binary, // not owned
+    json_t *hs_realm // not owned
 )
 {
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
     char *resource = "public_services";
-
-    if(!yuno) {
-        log_error(0,
-            "gobj",         "%s", gobj_full_name(gobj),
-            "function",     "%s", __FUNCTION__,
-            "msgset",       "%s", MSGSET_INTERNAL_ERROR,
-            "msg",          "%s", "yuno NULL",
-            NULL
-        );
-        return -1;
-    }
 
     int ret = 0;
 
@@ -7526,31 +7548,6 @@ PRIVATE int register_public_services(
     const char *yuno_role = SDATA_GET_STR(yuno, "yuno_role");
     const char *yuno_name = SDATA_GET_STR(yuno, "yuno_name");
 
-    json_t *hs_binary = get_yuno_binary(gobj, yuno);
-    if(!hs_binary) {
-        log_error(0,
-            "gobj",         "%s", gobj_full_name(gobj),
-            "function",     "%s", __FUNCTION__,
-            "msgset",       "%s", MSGSET_INTERNAL_ERROR,
-            "msg",          "%s", "no binary",
-            NULL
-        );
-        log_debug_json(0, yuno, "no binary");
-        return -1;
-    }
-
-    json_t *hs_realm = get_yuno_realm(gobj, yuno);
-    if(!hs_realm) {
-        log_error(0,
-            "gobj",         "%s", gobj_full_name(gobj),
-            "function",     "%s", __FUNCTION__,
-            "msgset",       "%s", MSGSET_INTERNAL_ERROR,
-            "msg",          "%s", "no realm",
-            NULL
-        );
-        log_debug_json(0, yuno, "no realm");
-        return -1;
-    }
     const char *realm_id = SDATA_GET_ID(hs_realm);
     json_t *jn_public_services = SDATA_GET_JSON(hs_binary, "public_services");
     json_t *jn_service_descriptor = SDATA_GET_JSON(hs_binary, "service_descriptor");
@@ -7652,8 +7649,6 @@ PRIVATE int register_public_services(
             json_decref(gobj_update_node(priv->resource, resource, hs_service, 0, gobj));
         }
     }
-    json_decref(hs_realm);
-    json_decref(hs_binary);
     return ret;
 }
 

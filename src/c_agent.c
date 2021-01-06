@@ -5087,11 +5087,11 @@ PRIVATE json_t* cmd_disable_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj 
          */
         BOOL disabled = kw_get_bool(node, "disabled", 0, KW_REQUIRED);
         if(!disabled) {
-            BOOL playing = kw_get_bool(node, "node_playing", 0, KW_REQUIRED);
+            BOOL playing = kw_get_bool(node, "yuno_playing", 0, KW_REQUIRED);
             if(playing) {
                 pause_yuno(gobj, node, 0, src);
             }
-            BOOL running = kw_get_bool(node, "node_running", 0, KW_REQUIRED);
+            BOOL running = kw_get_bool(node, "yuno_running", 0, KW_REQUIRED);
             if(running) {
                 kill_yuno(gobj, node);
             }

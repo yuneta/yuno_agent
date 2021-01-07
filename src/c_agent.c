@@ -209,6 +209,7 @@ PRIVATE json_t *cmd_trace_off_yuno(hgobj gobj, const char *cmd, json_t *kw, hgob
 PRIVATE json_t *cmd_dir_yuneta(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_dir_realms(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_dir_logs(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
+PRIVATE json_t *cmd_dir_local_data(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_dir_repos(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_dir_store(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_list_persistent_attrs(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
@@ -552,6 +553,11 @@ PRIVATE sdata_desc_t pm_logs[] = {
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id of yuno"),
 SDATA_END()
 };
+PRIVATE sdata_desc_t pm_local_data[] = {
+/*-PM----type-----------name------------flag------------default-----description---------- */
+SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id of yuno"),
+SDATA_END()
+};
 PRIVATE sdata_desc_t pm_domain[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "domain",       0,              0,          "Domain wanted"),
@@ -703,6 +709,7 @@ SDATA_END()
 PRIVATE sdata_desc_t pm_shoot_snap[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "name",         0,              0,          "Snap name"),
+SDATAPM (ASN_OCTET_STR, "description",  0,              0,          "Snap description"),
 SDATA_END()
 };
 PRIVATE sdata_desc_t pm_activate_snap[] = {
@@ -751,6 +758,7 @@ SDATACM2 (ASN_SCHEMA,   "set-ordered-kill", 0,                  0,              
 SDATACM2 (ASN_SCHEMA,   "set-quick-kill",   0,                  0,                  0,              cmd_set_qkill,  "Kill yunos with SIGKILL, quick kill"),
 SDATACM2 (ASN_SCHEMA,   "",                 0,                  0,                  0,              0,              "\nYuneta tree\n-----------"),
 SDATACM2 (ASN_SCHEMA,   "dir-logs",         0,                  0,                  pm_logs,        cmd_dir_logs,   "List log filenames of yuno"),
+SDATACM2 (ASN_SCHEMA,   "dir-local-data",   0,                  0,                  pm_local_data,  cmd_dir_local_data, "List local data filenames of yuno"),
 SDATACM2 (ASN_SCHEMA,   "dir-yuneta",       0,                  0,                  pm_dir,         cmd_dir_yuneta, "List /yuneta directory"),
 SDATACM2 (ASN_SCHEMA,   "dir-realms",       0,                  0,                  pm_dir,         cmd_dir_realms, "List /yuneta/realms directory"),
 SDATACM2 (ASN_SCHEMA,   "dir-repos",        0,                  0,                  pm_dir,         cmd_dir_repos,  "List /yuneta/repos directory"),
@@ -1291,6 +1299,68 @@ PRIVATE json_t *cmd_dir_logs(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
     int size;
     char **tree = get_ordered_filename_array(
         yuno_log_path,
+        ".*",
+        WD_RECURSIVE|WD_MATCH_DIRECTORY|WD_MATCH_REGULAR_FILE|WD_MATCH_SYMBOLIC_LINK|WD_HIDDENFILES,
+        &size
+    );
+    json_t *jn_array = json_array();
+    for(int i=0; i<size; i++) {
+        char *fullpath = tree[i];
+        json_array_append_new(jn_array, json_string(fullpath));
+    }
+    free_ordered_filename_array(tree, size);
+    json_decref(node);
+
+    return msg_iev_build_webix(
+        gobj,
+        0,
+        0,
+        0,
+        jn_array,
+        kw  // owned
+    );
+}
+
+/***************************************************************************
+ *
+ ***************************************************************************/
+PRIVATE json_t *cmd_dir_local_data(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
+{
+    PRIVATE_DATA *priv = gobj_priv_data(gobj);
+
+    const char *id = kw_get_str(kw, "id", 0, 0);
+    if(!id) {
+        return msg_iev_build_webix(
+            gobj,
+            -1,
+            json_local_sprintf("'id' required"),
+            0,
+            0,
+            kw  // owned
+        );
+    }
+
+    json_t *node = gobj_get_node(priv->resource, "yunos", json_incref(kw), 0, src);
+    if(!node) {
+        return msg_iev_build_webix(gobj,
+            -1,
+            json_local_sprintf("Yuno not found: %s", id),
+            0,
+            0,
+            kw  // owned
+        );
+    }
+
+    char private_domain[PATH_MAX];
+    build_yuno_private_domain(gobj, node, private_domain, sizeof(private_domain));
+
+    char yuno_data_path[NAME_MAX];
+    const char *work_dir = yuneta_work_dir();
+    build_path2(yuno_data_path, sizeof(yuno_data_path), work_dir, private_domain);
+
+    int size;
+    char **tree = get_ordered_filename_array(
+        yuno_data_path,
         ".*",
         WD_RECURSIVE|WD_MATCH_DIRECTORY|WD_MATCH_REGULAR_FILE|WD_MATCH_SYMBOLIC_LINK|WD_HIDDENFILES,
         &size
@@ -5686,17 +5756,23 @@ PRIVATE json_t *cmd_shoot_snap(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
             kw  // owned
         );
     }
+    const char *description = kw_get_str(kw, "description", "", 0);
+
     int ret = gobj_shoot_snap(
         priv->resource,
         name,
-        0,
+        json_pack("{s:s}",
+            "description", description
+        ),
         src
     );
     json_t *jn_data = 0;
     if(ret == 0) {
         jn_data = gobj_list_snaps(
             priv->resource,
-            json_pack("{s:s}", "name", name),
+            json_pack("{s:s}",
+                "name", name
+            ),
             src
         );
     }

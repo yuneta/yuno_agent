@@ -279,7 +279,7 @@ static char treedb_schema_yuneta_agent[]= "\
                 },                                                  \n\
                 'realm_id': {                                       \n\
                     'header': 'realm_id',                           \n\
-                    'fillspace': 30,                                \n\
+                    'fillspace': 28,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
                         'fkey'                                      \n\
@@ -314,7 +314,7 @@ static char treedb_schema_yuneta_agent[]= "\
                 },                                                  \n\
                 'yuno_tag': {                                       \n\
                     'header': 'yuno_tag',                           \n\
-                    'fillspace': 10,                                \n\
+                    'fillspace': 12,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
                         'persistent'                                \n\

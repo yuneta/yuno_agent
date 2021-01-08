@@ -6186,19 +6186,20 @@ PRIVATE char * build_yuno_private_domain(
         *bf = 0;
         return 0;
     }
-    char path[PATH_MAX];
     const char *realm_owner = kw_get_str(realm, "realm_owner", 0, KW_REQUIRED);
     const char *realm_role = kw_get_str(realm, "realm_role", 0, KW_REQUIRED);
     const char *realm_name = kw_get_str(realm, "realm_name", 0, KW_REQUIRED);
     const char *realm_env = kw_get_str(realm, "realm_env", 0, KW_REQUIRED);
-    build_path4(path, sizeof(path), realm_owner, realm_env, realm_role, realm_name);
+
+    char url[NAME_MAX];
+    snprintf(url, sizeof(url), "%s.%s.%s", realm_name, realm_role, realm_env);
 
     char role_plus_name[NAME_MAX];
     build_role_plus_name(role_plus_name, sizeof(role_plus_name), yuno);
 
     json_decref(realm);
 
-    return build_path3(bf, bfsize, "realms", path, role_plus_name);
+    return build_path4(bf, bfsize, "realms", realm_owner, url, role_plus_name);
 }
 
 /***************************************************************************

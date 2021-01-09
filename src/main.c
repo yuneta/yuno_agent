@@ -117,7 +117,7 @@ PRIVATE char variable_config[]= "\
             'users': [                                              \n\
                 {                                                   \n\
                     'id': 'yuneta',                                 \n\
-                    'role_ids': [                                   \n\
+                    'roles': [                                      \n\
                         'roles^root^users',                         \n\
                         'roles^owner^users'                         \n\
                     ]                                               \n\

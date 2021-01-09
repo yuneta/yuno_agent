@@ -19,7 +19,7 @@
 "Si quieres vivir en mi reino tienes que cumplir unas reglas."\
 "De lo contrario, vive como un standalone." \
 
-#define APP_VERSION     "4.6.3"
+#define APP_VERSION     "4.6.4"
 #define APP_DATETIME    __DATE__ " " __TIME__
 #define APP_SUPPORT     "<niyamaka at yuneta.io>"
 
@@ -43,10 +43,12 @@ PRIVATE char fixed_config[]= "\
 PRIVATE char variable_config[]= "\
 {                                                                   \n\
     '__json_config_variables__': {                                  \n\
+        '__realm_id__': 'agent.yunetacontrol.com',                  \n\
         '__input_url__': 'ws://127.0.0.1:1991',                     \n\
         '__top_url__': 'wss://0.0.0.0:1993'                         \n\
     },                                                              \n\
     'environment': {                                                \n\
+        'realm_id': '(^^__realm_id__^^)',                           \n\
         'use_system_memory': true,                                  \n\
         'log_gbmem_info': true,                                     \n\
         'MEM_MIN_BLOCK': 512,                                       \n\
@@ -94,25 +96,32 @@ PRIVATE char variable_config[]= "\
                     'id': 'root',                                   \n\
                     'disabled': false,                              \n\
                     'description': 'Super-Owner of system',         \n\
-                    'realm_id': '==*'                               \n\
+                    'realm_id': '*',                                \n\
+                    'service': '*'                                  \n\
                 },                                                  \n\
                 {                                                   \n\
                     'id': 'owner',                                  \n\
                     'disabled': false,                              \n\
                     'description': 'Owner of system',               \n\
-                    'realm_id': '==$this`__realm_id__'              \n\
+                    'realm_id': '(^^__realm_id__^^)',               \n\
+                    'service': '*'                                  \n\
+                },                                                  \n\
+                {                                                   \n\
+                    'id': 'manage-authz',                           \n\
+                    'disabled': false,                              \n\
+                    'description': 'Management of Authz',           \n\
+                    'realm_id': '(^^__realm_id__^^)',               \n\
+                    'service': 'authz'                              \n\
                 }                                                   \n\
             ],                                                      \n\
             'users': [                                              \n\
                 {                                                   \n\
                     'id': 'yuneta',                                 \n\
-                    'role_id': [                                    \n\
+                    'role_ids': [                                   \n\
                         'roles^root^users',                         \n\
                         'roles^owner^users'                         \n\
                     ]                                               \n\
                 }                                                   \n\
-            ],                                                      \n\
-            'authorizations': [                                     \n\
             ]                                                       \n\
         },                                                          \n\
         'Authz.jwt_public_key': '-----BEGIN PUBLIC KEY-----\\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAj0ZkOtmWlsDLJiJWXTEJ\\ntyXxlVY7iLseG982eaFgDaAdtE3Z5J+WDvzni7v4MPR55oMyi/oeAvTKIsVOv3aw\\nobRJ/Mr45Qh6I0j4Hn+rFfPW4wbmxRmFeyRrfMzYAZZoibZ3m7EFlj2RINvJFIgE\\npIoTf4UneXmlSDbUU9MTZe1mULfCfEZVa5V9W86BluAAib1mYJU7aJ20KPkbQAvW\\nXqC82AE9ga66HnQ2n56mv1kPyvNGKvvM6vD2IXQeLIYgudYT2KlGKd8isrOEkrno\\nXtPKMSaRhVccO73Wbo7krhjGV5MTpMvvOM+wDprslFkODm0MORsHORVxfcVGWSpU\\ngQIDAQAB\\n-----END PUBLIC KEY-----\\n'  \n\

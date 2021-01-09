@@ -6866,22 +6866,22 @@ PRIVATE GBUFFER *build_yuno_running_script(
             json_object_update(jn_global, jn_node_variables);
         }
 
-        json_t *jn_environment = json_pack("{s:s, s:s, s:s, s:s, s:s, s:s}",
+        json_t *jn_environment = json_pack("{s:s, s:s, s:s, s:s, s:s, s:s, s:s}",
             "work_dir", work_dir,
             "domain_dir", domain_dir,
+            "realm_id", SDATA_GET_STR(yuno, "realm_id`0"),
             "realm_owner", realm_owner,
             "realm_role", realm_role,
             "realm_name", realm_name,
             "realm_env", realm_env
         );
-        json_t *jn_content = json_pack("{s:o, s:o, s:{s:s, s:s, s:s, s:s, s:s, s:b, s:I}}",
+        json_t *jn_content = json_pack("{s:o, s:o, s:{s:s, s:s, s:s, s:s, s:b, s:I}}",
             "global", jn_global,
             "environment", jn_environment,
             "yuno",
                 "yuno_name", yuno_name,
                 "yuno_tag", yuno_tag,
                 "yuno_release", yuno_release,
-                "realm_id", SDATA_GET_STR(yuno, "realm_id`0"),
                 "bind_ip", bind_ip,
                 "multiple", multiple,
                 "launch_id", (json_int_t)launch_id

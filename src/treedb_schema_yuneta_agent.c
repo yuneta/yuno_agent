@@ -139,7 +139,7 @@
 
 static char treedb_schema_yuneta_agent[]= "\
 {                                                                   \n\
-    'id': 'yuneta_agent',                                           \n\
+    'id': 'treedb_yuneta_agent',                                    \n\
     'schema_version': '1',                                          \n\
     'topics': [                                                     \n\
         {                                                           \n\

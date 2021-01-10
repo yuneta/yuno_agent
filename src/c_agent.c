@@ -15,6 +15,8 @@
 #include <unistd.h>
 #include "c_agent.h"
 
+#include "treedb_schema_yuneta_agent.c"
+
 /***************************************************************************
  *              Constants
  ***************************************************************************/
@@ -133,7 +135,6 @@ PRIVATE int restart_nodes(hgobj gobj);
 /***************************************************************************
  *              Resources
  ***************************************************************************/
-#include "treedb_schema_yuneta_agent.c"
 
 
 /***************************************************************************
@@ -949,7 +950,7 @@ PRIVATE void mt_create(hgobj gobj)
         const char *treedb_name = kw_get_str(
             jn_treedb_schema_yuneta_agent,
             "id",
-            "yuneta_agent",
+            "treedb_yuneta_agent",
             KW_REQUIRED
         );
         json_t *kw_resource = json_pack("{s:I, s:s, s:o, s:i}",

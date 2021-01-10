@@ -111,7 +111,7 @@ PRIVATE char variable_config[]= "\
                     'disabled': false,                              \n\
                     'description': 'Management of Authz',           \n\
                     'realm_id': '(^^__realm_id__^^)',               \n\
-                    'service': 'authz'                              \n\
+                    'service': 'treedb_authz'                       \n\
                 }                                                   \n\
             ],                                                      \n\
             'users': [                                              \n\

@@ -5633,7 +5633,7 @@ PRIVATE json_t *cmd_check_json(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
 
     json_t *tranger = gobj_read_pointer_attr(priv->resource, "tranger");
     int result = 0;
-    kw_check_refcounts(tranger, max_refcount, &result)?0:-1;
+    json_check_refcounts(tranger, max_refcount, &result)?0:-1;
     return msg_iev_build_webix(gobj,
         result,
         json_local_sprintf("check refcounts of tranger: %s", result==0?"Ok":"Bad"),

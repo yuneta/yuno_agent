@@ -4203,20 +4203,26 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
     int result = 0;
     result += gobj_link_nodes(
         priv->resource, "yunos",
+        "realms",
         json_incref(hs_realm),
+        "yunos",
         json_incref(yuno),
         src
     );
     result += gobj_link_nodes(
         priv->resource, "binary",
+        "yunos",
         json_incref(yuno),
+        "binaries",
         json_incref(hs_binary),
         src
     );
     result += gobj_link_nodes(
         priv->resource,
         "configurations",
+        "yunos",
         json_incref(yuno),
+        "configurations",
         json_incref(hs_configuration),
         src
     );

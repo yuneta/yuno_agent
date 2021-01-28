@@ -1285,7 +1285,7 @@ PRIVATE json_t *cmd_dir_logs(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
         priv->resource,
         "yunos",
         json_incref(kw),
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
     if(!node) {
@@ -1349,7 +1349,7 @@ PRIVATE json_t *cmd_dir_local_data(hgobj gobj, const char *cmd, json_t *kw, hgob
         priv->resource,
         "yunos",
         json_incref(kw),
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
     if(!node) {
@@ -2022,7 +2022,7 @@ PRIVATE json_t *cmd_list_public_services(hgobj gobj, const char *cmd, json_t *kw
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
 
@@ -2057,7 +2057,7 @@ PRIVATE json_t *cmd_update_public_service(hgobj gobj, const char *cmd, json_t *k
         priv->resource,
         resource,
         kw_incref(kw),
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
 
@@ -2089,7 +2089,7 @@ PRIVATE json_t *cmd_update_public_service(hgobj gobj, const char *cmd, json_t *k
             priv->resource,
             resource,
             update,
-            json_pack("{s:b}", "only-id", 1),
+            json_pack("{s:b}", "only_id", 1),
             src
         );
         if(public_service) {
@@ -2130,7 +2130,7 @@ PRIVATE json_t *cmd_delete_public_service(hgobj gobj, const char *cmd, json_t *k
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
 
@@ -2197,7 +2197,7 @@ PRIVATE json_t *cmd_list_realms(hgobj gobj, const char *cmd, json_t *kw, hgobj s
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
 
@@ -2293,7 +2293,7 @@ PRIVATE json_t *cmd_create_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         priv->resource,
         resource,
         kw_find, // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
     if(json_array_size(iter)) {
@@ -2321,7 +2321,7 @@ PRIVATE json_t *cmd_create_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         priv->resource,
         resource,
         kw,
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
     if(!node) {
@@ -2372,7 +2372,7 @@ PRIVATE json_t *cmd_update_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
 
@@ -2404,7 +2404,7 @@ PRIVATE json_t *cmd_update_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
             priv->resource,
             resource,
             update,
-            json_pack("{s:b}", "only-id", 1),
+            json_pack("{s:b}", "only_id", 1),
             src
         );
         if(realm) {
@@ -2446,7 +2446,7 @@ PRIVATE json_t *cmd_delete_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
 
@@ -2537,7 +2537,7 @@ PRIVATE json_t *cmd_list_binaries(hgobj gobj, const char *cmd, json_t *kw, hgobj
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
 
@@ -2670,7 +2670,7 @@ PRIVATE json_t *cmd_install_binary(hgobj gobj, const char *cmd, json_t *kw, hgob
         priv->resource,
         resource,
         kw_find, // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
     if(json_array_size(iter)) {
@@ -2792,7 +2792,7 @@ PRIVATE json_t *cmd_install_binary(hgobj gobj, const char *cmd, json_t *kw, hgob
         priv->resource,
         resource,
         jn_basic_info,
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
     if(!node) {
@@ -2850,7 +2850,7 @@ PRIVATE json_t *cmd_update_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
         priv->resource,
         resource,
         json_incref(kw),
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
     if(!node) {
@@ -3001,7 +3001,7 @@ PRIVATE json_t *cmd_update_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
         priv->resource,
         resource,
         node,
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
 
@@ -3043,7 +3043,7 @@ PRIVATE json_t *cmd_delete_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
         priv->resource,
         resource,
         kw_incref(kw),  // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
 
@@ -3153,7 +3153,7 @@ PRIVATE json_t *cmd_list_configs(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
 
@@ -3243,7 +3243,7 @@ PRIVATE json_t *cmd_create_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
         priv->resource,
         resource,
         kw_find, // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
     if(json_array_size(iter)) {
@@ -3300,7 +3300,7 @@ PRIVATE json_t *cmd_create_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
         priv->resource,
         resource,
         kw_configuration,
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
     if(!node) {
@@ -3387,7 +3387,7 @@ PRIVATE json_t *cmd_update_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
         priv->resource,
         resource,
         kw_find, // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
     if(json_array_size(iter)!=1) {
@@ -3423,7 +3423,7 @@ PRIVATE json_t *cmd_update_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
         priv->resource,
         resource,
         json_incref(node),
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
     JSON_DECREF(iter);
@@ -3463,7 +3463,7 @@ PRIVATE json_t *cmd_delete_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
         priv->resource,
         resource,
         kw_incref(kw),  // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
 
@@ -3569,7 +3569,7 @@ PRIVATE json_t *cmd_set_tag(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
         priv->resource,
         resource,
         kw_incref(kw),  // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
 
@@ -3599,7 +3599,7 @@ PRIVATE json_t *cmd_set_tag(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
                 priv->resource,
                 resource,
                 json_incref(node),  // You cannot lose old node, belongs to iter.
-                json_pack("{s:b}", "only-id", 1),
+                json_pack("{s:b}", "only_id", 1),
                 src
             )
         );
@@ -3647,7 +3647,7 @@ PRIVATE json_t *cmd_set_multiple(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         priv->resource,
         resource,
         kw_incref(kw),  // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
 
@@ -3677,7 +3677,7 @@ PRIVATE json_t *cmd_set_multiple(hgobj gobj, const char *cmd, json_t *kw, hgobj 
                 priv->resource,
                 resource,
                 json_incref(node),  // You cannot lose old node, belongs to iter.
-                json_pack("{s:b}", "only-id", 1),
+                json_pack("{s:b}", "only_id", 1),
                 src
             )
         );
@@ -3736,7 +3736,7 @@ PRIVATE json_t *cmd_top_yunos(hgobj gobj, const char *cmd, json_t *kw, hgobj src
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
 
@@ -3800,7 +3800,7 @@ PRIVATE json_t *cmd_list_yunos(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
 
@@ -3858,7 +3858,7 @@ PRIVATE json_t *cmd_find_new_yunos(hgobj gobj, const char *cmd, json_t *kw, hgob
         priv->resource,
         "yunos",
         kw_incref(kw), // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
 
@@ -3883,7 +3883,7 @@ PRIVATE json_t *cmd_find_new_yunos(hgobj gobj, const char *cmd, json_t *kw, hgob
             "configurations",
             "",
             json_pack("{s:s}", "id", config_name),
-            json_pack("{s:b}", "only-id", 1),
+            json_pack("{s:b}", "only_id", 1),
             src
         );
         json_t *config_found = 0;
@@ -3911,7 +3911,7 @@ PRIVATE json_t *cmd_find_new_yunos(hgobj gobj, const char *cmd, json_t *kw, hgob
             "binaries",
             "",
             json_pack("{s:s}", "id", yuno_role),
-            json_pack("{s:b}", "only-id", 1),
+            json_pack("{s:b}", "only_id", 1),
             src
         );
         json_t *binary_found = 0;
@@ -4035,7 +4035,7 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
         priv->resource,
         "realms",
         json_pack("{s:s}", "id", realm_id),
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         gobj
     );
     if(!hs_realm) {
@@ -4139,7 +4139,7 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
             priv->resource,
             resource,
             kw_find, // filter
-            json_pack("{s:b, s:b}", "include-instances", 1, "only-id", 1),
+            json_pack("{s:b, s:b}", "include-instances", 1, "only_id", 1),
             src
         );
         if(json_array_size(iter_find)) {
@@ -4180,7 +4180,7 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
         priv->resource,
         resource,
         kw_incref(kw),
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
     if(!yuno) {
@@ -4231,7 +4231,7 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
         resource,
         "",
         yuno,
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
 
@@ -4285,7 +4285,7 @@ json_t* cmd_delete_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
         priv->resource,
         resource,
         kw_incref(kw),  // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
 
@@ -4378,7 +4378,7 @@ json_t* cmd_delete_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
         priv->resource,
         resource,
         kw_incref(kw),  // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
 
@@ -4411,7 +4411,7 @@ PRIVATE json_t *cmd_run_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
     if(json_array_size(iter)==0) {
@@ -4597,7 +4597,7 @@ PRIVATE json_t *cmd_kill_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
     if(json_array_size(iter)==0) {
@@ -4765,7 +4765,7 @@ PRIVATE json_t *cmd_play_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
     if(json_array_size(iter)==0) {
@@ -4950,7 +4950,7 @@ PRIVATE json_t *cmd_pause_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
     if(json_array_size(iter)==0) {
@@ -5119,7 +5119,7 @@ PRIVATE json_t* cmd_enable_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj s
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
     if(json_array_size(iter)==0) {
@@ -5153,7 +5153,7 @@ PRIVATE json_t* cmd_enable_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj s
                 priv->resource,
                 resource,
                 json_incref(node),  // You cannot lose old node, belongs to iter.
-                json_pack("{s:b}", "only-id", 1),
+                json_pack("{s:b}", "only_id", 1),
                 src
             )
         );
@@ -5190,7 +5190,7 @@ PRIVATE json_t* cmd_disable_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj 
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
     if(json_array_size(iter)==0) {
@@ -5239,7 +5239,7 @@ PRIVATE json_t* cmd_disable_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj 
                     priv->resource,
                     resource,
                     json_incref(node),  // You cannot lose old node, belongs to iter.
-                    json_pack("{s:b}", "only-id", 1),
+                    json_pack("{s:b}", "only_id", 1),
                     src
                 )
             );
@@ -5280,7 +5280,7 @@ PRIVATE json_t *cmd_trace_on_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
     if(json_array_size(iter)==0) {
@@ -5316,7 +5316,7 @@ PRIVATE json_t *cmd_trace_on_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj
                 priv->resource,
                 resource,
                 json_incref(yuno),  // You cannot lose old node, belongs to iter.
-                json_pack("{s:b}", "only-id", 1),
+                json_pack("{s:b}", "only_id", 1),
                 src
             )
         );
@@ -5352,7 +5352,7 @@ PRIVATE json_t* cmd_trace_off_yuno(hgobj gobj, const char* cmd, json_t* kw, hgob
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
     if(json_array_size(iter)==0) {
@@ -5388,7 +5388,7 @@ PRIVATE json_t* cmd_trace_off_yuno(hgobj gobj, const char* cmd, json_t* kw, hgob
                 priv->resource,
                 resource,
                 json_incref(yuno),  // You cannot lose old node, belongs to iter.
-                json_pack("{s:b}", "only-id", 1),
+                json_pack("{s:b}", "only_id", 1),
                 src
             )
         );
@@ -5439,7 +5439,7 @@ PRIVATE json_t *cmd_command_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
     if(json_array_size(iter)==0) {
@@ -5494,7 +5494,7 @@ PRIVATE json_t *cmd_stats_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
     if(json_array_size(iter)==0) {
@@ -5545,7 +5545,7 @@ PRIVATE json_t *cmd_authzs_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj s
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
     if(json_array_size(iter)==0) {
@@ -5783,7 +5783,7 @@ PRIVATE json_t *cmd_realms_instances(hgobj gobj, const char *cmd, json_t *kw, hg
         resource,
         "",
         kw_incref(kw), // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
 
@@ -5816,7 +5816,7 @@ PRIVATE json_t *cmd_yunos_instances(hgobj gobj, const char *cmd, json_t *kw, hgo
         resource,
         "",
         kw_incref(kw), // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
 
@@ -5849,7 +5849,7 @@ PRIVATE json_t *cmd_binaries_instances(hgobj gobj, const char *cmd, json_t *kw, 
         resource,
         "",
         kw_incref(kw), // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
 
@@ -5882,7 +5882,7 @@ PRIVATE json_t *cmd_configs_instances(hgobj gobj, const char *cmd, json_t *kw, h
         resource,
         "",
         kw_incref(kw), // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
 
@@ -5915,7 +5915,7 @@ PRIVATE json_t *cmd_public_services_instances(hgobj gobj, const char *cmd, json_
         resource,
         "",
         kw_incref(kw), // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
 
@@ -6218,7 +6218,7 @@ PRIVATE json_t *get_yuno_realm(hgobj gobj, json_t *yuno)
         priv->resource,
         "realms",
         json_pack("{s:s}", "id", realm_id),
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         gobj
     );
     if(!hs_realm) {
@@ -6258,7 +6258,7 @@ PRIVATE json_t *get_yuno_binary(hgobj gobj, json_t *yuno)
         priv->resource,
         "binaries",
         json_incref(kw_find), // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         gobj
     );
     if(json_array_size(binaries)==0) {
@@ -6281,7 +6281,7 @@ PRIVATE json_t *get_yuno_binary(hgobj gobj, json_t *yuno)
             "binaries",
             "",
             json_incref(kw_find), // filter
-            json_pack("{s:b}", "only-id", 1),
+            json_pack("{s:b}", "only_id", 1),
             gobj
         );
         if(json_array_size(binaries)==0) {
@@ -6335,7 +6335,7 @@ PRIVATE json_t *get_yuno_config(hgobj gobj, json_t *yuno)
         priv->resource,
         "configurations",
         json_incref(kw_find), // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         gobj
     );
 
@@ -6359,7 +6359,7 @@ PRIVATE json_t *get_yuno_config(hgobj gobj, json_t *yuno)
             "configurations",
             "",
             json_incref(kw_find), // filter
-            json_pack("{s:b}", "only-id", 1),
+            json_pack("{s:b}", "only_id", 1),
             gobj
         );
         if(json_array_size(configurations)==0) {
@@ -6414,7 +6414,7 @@ PRIVATE json_t *find_service_for_client(
         priv->resource,
         resource,
         kw_find, // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         gobj
     );
 
@@ -6572,7 +6572,7 @@ PRIVATE json_t *assigned_yuno_global_service_variables(
         priv->resource,
         "public_services",
         kw_find, // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         gobj
     );
 
@@ -7273,7 +7273,7 @@ PRIVATE int run_enabled_yunos(hgobj gobj)
         priv->resource,
         resource,
         0, // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         gobj
     );
     int idx; json_t *yuno;
@@ -7347,7 +7347,7 @@ PRIVATE json_t *find_binary_version(
         "binaries",
         "",
         kw_find, // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         gobj
     );
     int idx; json_t *hs;
@@ -7397,7 +7397,7 @@ PRIVATE json_t *find_configuration_version(
         "configurations",
         "",
         kw_find, // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         gobj
     );
 
@@ -7466,7 +7466,7 @@ PRIVATE json_t *find_public_service(
         priv->resource,
         resource,
         kw_find, // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         gobj
     );
 
@@ -7598,7 +7598,7 @@ PRIVATE int register_public_services(
                     priv->resource,
                     resource,
                     kw_write_service,
-                    json_pack("{s:b}", "only-id", 1),
+                    json_pack("{s:b}", "only_id", 1),
                     gobj
                 );
                 if(!hs_service) {
@@ -7622,7 +7622,7 @@ PRIVATE int register_public_services(
                     priv->resource,
                     "realms",
                     hs_realm,
-                    json_pack("{s:b}", "only-id", 1),
+                    json_pack("{s:b}", "only_id", 1),
                     gobj
                 );
             }
@@ -7669,7 +7669,7 @@ PRIVATE int restart_nodes(hgobj gobj)
         priv->resource,
         "yunos",
         0, // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         gobj
     );
 
@@ -7748,7 +7748,7 @@ PRIVATE int ac_edit_config(hgobj gobj, const char *event, json_t *kw, hgobj src)
         resource,
         "",
         kw, // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
     int found = json_array_size(iter);
@@ -7825,7 +7825,7 @@ PRIVATE int ac_view_config(hgobj gobj, const char *event, json_t *kw, hgobj src)
         resource,
         "",
         kw, // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
     int found = json_array_size(iter);
@@ -7888,7 +7888,7 @@ PRIVATE int ac_edit_yuno_config(hgobj gobj, const char *event, json_t *kw, hgobj
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
     if(json_array_size(iter)==0) {
@@ -8003,7 +8003,7 @@ PRIVATE int ac_view_yuno_config(hgobj gobj, const char *event, json_t *kw, hgobj
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
     if(json_array_size(iter)==0) {
@@ -8493,7 +8493,7 @@ PRIVATE int ac_read_running_keys(hgobj gobj, const char *event, json_t *kw, hgob
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
     if(json_array_size(iter)==0) {
@@ -8581,7 +8581,7 @@ PRIVATE int ac_read_running_bin(hgobj gobj, const char *event, json_t *kw, hgobj
         priv->resource,
         resource,
         kw_incref(kw), // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
     if(json_array_size(iter)==0) {
@@ -8675,7 +8675,7 @@ PRIVATE int ac_play_yuno_ack(hgobj gobj, const char *event, json_t *kw, hgobj sr
             priv->resource,
             "yunos",
             json_pack("{s:s}", "id", __yuno__),
-            json_pack("{s:b}", "only-id", 1),
+            json_pack("{s:b}", "only_id", 1),
             src
         );
         if(!yuno) {
@@ -8733,7 +8733,7 @@ PRIVATE int ac_pause_yuno_ack(hgobj gobj, const char *event, json_t *kw, hgobj s
             priv->resource,
             "yunos",
             json_pack("{s:s}", "id", __yuno__),
-            json_pack("{s:b}", "only-id", 1),
+            json_pack("{s:b}", "only_id", 1),
             src
         );
         if(!yuno) {
@@ -8903,7 +8903,7 @@ PRIVATE int ac_on_open(hgobj gobj, const char *event, json_t *kw, hgobj src)
         priv->resource,
         "yunos",
         kw_find, // filter
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
 
@@ -9165,7 +9165,7 @@ PRIVATE int ac_on_close(hgobj gobj, const char *event, json_t *kw, hgobj src)
         priv->resource,
         "yunos",
         json_pack("{s:s}", "id", __yuno__),
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         src
     );
 
@@ -9289,7 +9289,7 @@ PRIVATE int ac_final_count(hgobj gobj, const char *event, json_t *kw, hgobj src)
         json_pack("{s:o}",
             "id", iter_yunos // owned
         ),
-        json_pack("{s:b}", "only-id", 1),
+        json_pack("{s:b}", "only_id", 1),
         gobj
     );
 

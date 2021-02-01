@@ -60,7 +60,7 @@
             │  _channel_gobj            │
             │  solicitante              │
             │                           │
-            │         configurations [] │ ◀─────────┐n
+            │         configurations {} │ ◀─────────┐N
             │                           │           │
             │                 binary () │ ◀─┐1      │
             │                           │   │       │
@@ -140,7 +140,7 @@
 static char treedb_schema_yuneta_agent[]= "\
 {                                                                   \n\
     'id': 'treedb_yuneta_agent',                                    \n\
-    'schema_version': '1',                                          \n\
+    'schema_version': '2',                                          \n\
     'topics': [                                                     \n\
         {                                                           \n\
             'topic_name': 'realms',                                 \n\
@@ -263,7 +263,7 @@ static char treedb_schema_yuneta_agent[]= "\
             'topic_name': 'yunos',                                  \n\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
-            'topic_version': '1',                                   \n\
+            'topic_version': '2',                                   \n\
             'tkey': '',                                             \n\
             'topic_pkey2s': 'yuno_release',                         \n\
             'cols': {                                               \n\
@@ -443,7 +443,7 @@ static char treedb_schema_yuneta_agent[]= "\
                 'configurations': {                                 \n\
                     'header': 'configurations',                     \n\
                     'fillspace': 15,                                \n\
-                    'type': 'array',                                \n\
+                    'type': 'object',                               \n\
                     'flag': ['hook'],                               \n\
                     'hook': {                                       \n\
                         'configurations': 'yunos'                   \n\

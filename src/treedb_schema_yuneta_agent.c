@@ -30,7 +30,7 @@
             │* bind_ip                  │
             │  last_port                │
             │                           │
-            │                  yunos [] │ ◀─┐n
+            │                  yunos {} │ ◀─┐N
             │                           │   │
             └───────────────────────────┘   │
                                             │
@@ -140,13 +140,13 @@
 static char treedb_schema_yuneta_agent[]= "\
 {                                                                   \n\
     'id': 'treedb_yuneta_agent',                                    \n\
-    'schema_version': '2',                                          \n\
+    'schema_version': '3',                                          \n\
     'topics': [                                                     \n\
         {                                                           \n\
             'topic_name': 'realms',                                 \n\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
-            'topic_version': '1',                                   \n\
+            'topic_version': '2',                                   \n\
             'topic_pkey2s': '',                                     \n\
             'cols': {                                               \n\
                 'id': {                                             \n\
@@ -250,7 +250,7 @@ static char treedb_schema_yuneta_agent[]= "\
                 'yunos': {                                          \n\
                     'header': 'yunos',                              \n\
                     'fillspace': 22,                                \n\
-                    'type': 'array',                                \n\
+                    'type': 'object',                               \n\
                     'flag': ['hook'],                               \n\
                     'hook': {                                       \n\
                         'yunos': 'realm_id'                         \n\

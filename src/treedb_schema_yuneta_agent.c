@@ -32,6 +32,7 @@
             │                           │
             │                  yunos {} │ ◀─┐N
             │                           │   │
+            │  _geometry                │   │
             └───────────────────────────┘   │
                                             │
                         yunos               │
@@ -64,6 +65,7 @@
             │                           │           │
             │                 binary () │ ◀─┐1      │
             │                           │   │       │
+            │  _geometry                │   │       │
             └───────────────────────────┘   │       │
                                             │       │
                     binaries                │       │
@@ -82,6 +84,7 @@
             │  service_descriptor       │           │
             │* binary                   │           │
             │                           │           │
+            │  _geometry                │           │
             └───────────────────────────┘           │
                                                     │
                     configurations                  │
@@ -95,6 +98,7 @@
             │  description              │
             │  zcontent                 │
             │                           │
+            │  _geometry                │
             └───────────────────────────┘
 
                     public_services
@@ -114,6 +118,7 @@
             │  version                  │
             │  conector                 │
             │                           │
+            │  _geometry                │
             └───────────────────────────┘
 
 
@@ -140,13 +145,13 @@
 static char treedb_schema_yuneta_agent[]= "\
 {                                                                   \n\
     'id': 'treedb_yuneta_agent',                                    \n\
-    'schema_version': '3',                                          \n\
+    'schema_version': '4',                                          \n\
     'topics': [                                                     \n\
         {                                                           \n\
             'topic_name': 'realms',                                 \n\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
-            'topic_version': '2',                                   \n\
+            'topic_version': '3',                                   \n\
             'topic_pkey2s': '',                                     \n\
             'cols': {                                               \n\
                 'id': {                                             \n\
@@ -255,6 +260,14 @@ static char treedb_schema_yuneta_agent[]= "\
                     'hook': {                                       \n\
                         'yunos': 'realm_id'                         \n\
                     }                                               \n\
+                },                                                  \n\
+                '_geometry': {                                      \n\
+                    'header': 'Geometry',                           \n\
+                    'type': 'blob',                                 \n\
+                    'fillspace': 10,                                \n\
+                    'flag': [                                       \n\
+                        'persistent'                                \n\
+                    ]                                               \n\
                 }                                                   \n\
             }                                                       \n\
         },                                                          \n\
@@ -263,7 +276,7 @@ static char treedb_schema_yuneta_agent[]= "\
             'topic_name': 'yunos',                                  \n\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
-            'topic_version': '2',                                   \n\
+            'topic_version': '3',                                   \n\
             'tkey': '',                                             \n\
             'topic_pkey2s': 'yuno_release',                         \n\
             'cols': {                                               \n\
@@ -457,6 +470,14 @@ static char treedb_schema_yuneta_agent[]= "\
                     'hook': {                                       \n\
                         'binaries': 'yunos'                         \n\
                     }                                               \n\
+                },                                                  \n\
+                '_geometry': {                                      \n\
+                    'header': 'Geometry',                           \n\
+                    'type': 'blob',                                 \n\
+                    'fillspace': 10,                                \n\
+                    'flag': [                                       \n\
+                        'persistent'                                \n\
+                    ]                                               \n\
                 }                                                   \n\
             }                                                       \n\
         },                                                          \n\
@@ -465,7 +486,7 @@ static char treedb_schema_yuneta_agent[]= "\
             'topic_name': 'binaries',                               \n\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
-            'topic_version': '1',                                   \n\
+            'topic_version': '2',                                   \n\
             'tkey': '',                                             \n\
             'topic_pkey2s': 'version',                              \n\
             'cols': {                                               \n\
@@ -558,6 +579,14 @@ static char treedb_schema_yuneta_agent[]= "\
                     'fillspace': 22,                                \n\
                     'type': 'array',                                \n\
                     'flag': ['fkey']                                \n\
+                },                                                  \n\
+                '_geometry': {                                      \n\
+                    'header': 'Geometry',                           \n\
+                    'type': 'blob',                                 \n\
+                    'fillspace': 10,                                \n\
+                    'flag': [                                       \n\
+                        'persistent'                                \n\
+                    ]                                               \n\
                 }                                                   \n\
             }                                                       \n\
         },                                                          \n\
@@ -566,7 +595,7 @@ static char treedb_schema_yuneta_agent[]= "\
             'topic_name': 'configurations',                         \n\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
-            'topic_version': '1',                                   \n\
+            'topic_version': '2',                                   \n\
             'tkey': '',                                             \n\
             'topic_pkey2s': 'version',                              \n\
             'cols': {                                               \n\
@@ -620,6 +649,14 @@ static char treedb_schema_yuneta_agent[]= "\
                         'persistent',                               \n\
                         'required'                                  \n\
                     ]                                               \n\
+                },                                                  \n\
+                '_geometry': {                                      \n\
+                    'header': 'Geometry',                           \n\
+                    'type': 'blob',                                 \n\
+                    'fillspace': 10,                                \n\
+                    'flag': [                                       \n\
+                        'persistent'                                \n\
+                    ]                                               \n\
                 }                                                   \n\
             }                                                       \n\
         },                                                          \n\
@@ -628,7 +665,7 @@ static char treedb_schema_yuneta_agent[]= "\
             'topic_name': 'public_services',                        \n\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
-            'topic_version': '1',                                   \n\
+            'topic_version': '2',                                   \n\
             'topic_pkey2s': 'version',                              \n\
             'cols': {                                               \n\
                 'id': {                                             \n\
@@ -738,6 +775,14 @@ static char treedb_schema_yuneta_agent[]= "\
                     'header': 'connector',                          \n\
                     'fillspace': 12,                                \n\
                     'type': 'blob',                                 \n\
+                    'flag': [                                       \n\
+                        'persistent'                                \n\
+                    ]                                               \n\
+                },                                                  \n\
+                '_geometry': {                                      \n\
+                    'header': 'Geometry',                           \n\
+                    'type': 'blob',                                 \n\
+                    'fillspace': 10,                                \n\
                     'flag': [                                       \n\
                         'persistent'                                \n\
                     ]                                               \n\

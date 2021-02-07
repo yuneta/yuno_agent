@@ -19,7 +19,7 @@
 "Si quieres vivir en mi reino tienes que cumplir unas reglas."\
 "De lo contrario, vive como un standalone." \
 
-#define APP_VERSION     "4.8.6"
+#define APP_VERSION     "4.8.7"
 #define APP_DATETIME    __DATE__ " " __TIME__
 #define APP_SUPPORT     "<niyamaka at yuneta.io>"
 
@@ -97,6 +97,7 @@ PRIVATE char variable_config[]= "\
                     'disabled': false,                              \n\
                     'description': 'Super-Owner of system',         \n\
                     'realm_id': '*',                                \n\
+                    'parent_role_id': '',                           \n\
                     'service': '*'                                  \n\
                 },                                                  \n\
                 {                                                   \n\
@@ -104,6 +105,7 @@ PRIVATE char variable_config[]= "\
                     'disabled': false,                              \n\
                     'description': 'Owner of system',               \n\
                     'realm_id': '(^^__realm_id__^^)',               \n\
+                    'parent_role_id': '',                           \n\
                     'service': '*'                                  \n\
                 },                                                  \n\
                 {                                                   \n\
@@ -111,6 +113,7 @@ PRIVATE char variable_config[]= "\
                     'disabled': false,                              \n\
                     'description': 'Management of Authz',           \n\
                     'realm_id': '(^^__realm_id__^^)',               \n\
+                    'parent_role_id': '',                           \n\
                     'service': 'treedb_authzs'                      \n\
                 },                                                  \n\
                 {                                                   \n\
@@ -128,6 +131,14 @@ PRIVATE char variable_config[]= "\
                     'realm_id': '(^^__realm_id__^^)',               \n\
                     'parent_role_id': 'roles^manage-authzs^roles',  \n\
                     'service': 'treedb_authzs'                      \n\
+                },                                                  \n\
+                {                                                   \n\
+                    'id': 'manage-yuneta-agent',                    \n\
+                    'disabled': false,                              \n\
+                    'description': 'Management of Yuneta Agent',    \n\
+                    'realm_id': '(^^__realm_id__^^)',               \n\
+                    'parent_role_id': '',                           \n\
+                    'service': 'treedb_yuneta_agent'                \n\
                 }                                                   \n\
             ],                                                      \n\
             'users': [                                              \n\

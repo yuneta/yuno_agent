@@ -959,7 +959,7 @@ PRIVATE void mt_create(hgobj gobj)
         );
 
         priv->resource = gobj_create_service(
-            "treedb",
+            treedb_name,
             GCLASS_NODE,
             kw_resource,
             gobj

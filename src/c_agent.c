@@ -10,6 +10,7 @@
 #include <time.h>
 #include <string.h>
 #include <stdio.h>
+#include <grp.h>
 #include <errno.h>
 #include <regex.h>
 #include <unistd.h>
@@ -840,6 +841,7 @@ SDATA_END()
  *---------------------------------------------*/
 PRIVATE sdata_desc_t tattr_desc[] = {
 /*-ATTR-type------------name----------------flag----------------default---------description---------- */
+SDATA (ASN_OCTET_STR,   "__username__",     SDF_RD,             "",              "Username"),
 SDATA (ASN_OCTET_STR,   "tranger_path",     SDF_RD,             "/yuneta/store/agent/yuneta_agent.trdb", "tranger path"),
 SDATA (ASN_OCTET_STR,   "startup_command",  SDF_RD,             0,              "Command to execute at startup"),
 SDATA (ASN_JSON,        "agent_environment",SDF_RD,             0,              "Agent environment. Override the yuno environment"),
@@ -897,6 +899,30 @@ PRIVATE void mt_create(hgobj gobj)
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
 
     helper_quote2doublequote(treedb_schema_yuneta_agent);
+
+    BOOL is_yuneta = FALSE;
+    struct passwd *pw = getpwuid(getuid());
+    if(strcmp(pw->pw_name, "yuneta")==0) {
+        gobj_write_str_attr(gobj, "__username__", "yuneta");
+        is_yuneta = TRUE;
+    } else {
+        static gid_t groups[30]; // HACK to use outside
+        int ngroups = sizeof(groups)/sizeof(groups[0]);
+
+        getgrouplist(pw->pw_name, 0, groups, &ngroups);
+        for(int i=0; i<ngroups; i++) {
+            struct group *gr = getgrgid(groups[i]);
+            if(strcmp(gr->gr_name, "yuneta")==0) {
+                gobj_write_str_attr(gobj, "__username__", "yuneta");
+                is_yuneta = TRUE;
+                break;
+            }
+        }
+    }
+    if(!is_yuneta) {
+        trace_msg("User or group 'yuneta' is needed to run yuneta_agent");
+        exit(0);
+    }
 
     /*
      *  Chequea schema fichador, exit si falla.
@@ -8891,8 +8917,9 @@ PRIVATE int ac_on_open(hgobj gobj, const char *event, json_t *kw, hgobj src)
         "yunos",
         kw_find, // filter
         json_pack("{s:b, s:b}", "only_id", 1, "with_metadata", 1),
-        src
+        channel_gobj
     );
+
 
     int found = json_array_size(iter_yunos);
     if(found==0) {

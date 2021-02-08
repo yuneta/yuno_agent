@@ -7201,11 +7201,16 @@ PRIVATE json_t *cmd_authzs_agent(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         }
     }
 
-    json_t *webix = gobj_authzs(
-        service_gobj, // Can be null
-        authz
-    );
-    return webix;
+    if(empty_string(authz)) {
+        return gobj_authzs(
+            service_gobj // Can be null
+        );
+    } else {
+        return gobj_authz(
+            service_gobj, // Can be null
+            authz
+        );
+    }
 }
 
 /***************************************************************************

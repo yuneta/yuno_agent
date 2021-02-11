@@ -134,10 +134,12 @@ BINARY_YSHUTDOWN=/yuneta/development/output/agent/yshutdown
 BINARY_YLIST=/yuneta/development/output/agent/ylist
 BINARY_YTESTCONFIG=/yuneta/development/output/agent/ytestconfig
 BINARY_YSTATS=/yuneta/development/output/agent/ystats
+BINARY_YTESTS=/yuneta/development/output/agent/ytests
 BINARY_YCOMMAND=/yuneta/development/output/agent/ycommand
 
 mkdir -p /yuneta/bin/
 
 cp -v $BINARY_CLI $BINARY_BATCH \
-    $BINARY_YSHUTDOWN $BINARY_YLIST $BINARY_YSTATS $BINARY_YCOMMAND $BINARY_YTESTCONFIG \
+    $BINARY_YSHUTDOWN $BINARY_YLIST $BINARY_YSTATS $BINARY_YCOMMAND \
+    $BINARY_YTESTCONFIG $BINARY_YTESTS \
     /yuneta/bin/

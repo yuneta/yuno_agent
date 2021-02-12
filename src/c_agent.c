@@ -959,14 +959,12 @@ PRIVATE void mt_create(hgobj gobj)
         kw_tranger,
         gobj
     );
-    gobj_start(priv->gobj_tranger);
-    priv->tranger = gobj_read_pointer_attr(priv->gobj_tranger, "tranger");
 
     /*
      *  Registra tranger en 2key (in-memory double-key) para su acceso externo
      *  TODO elimina cuando c_tranger esté completa
      */
-    gobj_2key_register("tranger", "agent", priv->tranger);
+    //gobj_2key_register("tranger", "agent", priv->tranger);
 
     if(1) {
         /*-----------------------------*
@@ -978,8 +976,7 @@ PRIVATE void mt_create(hgobj gobj)
             "treedb_yuneta_agent",
             KW_REQUIRED
         );
-        json_t *kw_resource = json_pack("{s:I, s:s, s:o, s:i}",
-            "tranger", (json_int_t)(size_t)priv->tranger,
+        json_t *kw_resource = json_pack("{s:s, s:o, s:i}",
             "treedb_name", treedb_name,
             "treedb_schema", jn_treedb_schema_yuneta_agent,
             "exit_on_error", LOG_OPT_EXIT_ZERO
@@ -991,6 +988,8 @@ PRIVATE void mt_create(hgobj gobj)
             kw_resource,
             gobj
         );
+        gobj_set_bottom_gobj(priv->resource, priv->gobj_tranger);
+        gobj_set_bottom_gobj(gobj, priv->resource);
     }
 
     if(1) {
@@ -1059,9 +1058,11 @@ PRIVATE int mt_start(hgobj gobj)
 {
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
 
-    if(priv->resource) {
-        gobj_start(priv->resource);
-    }
+    /*
+     *  HACK pipe inheritance
+     */
+    priv->tranger = gobj_read_pointer_attr(gobj, "tranger");
+
     gobj_start(priv->timer);
     set_timeout(priv->timer, priv->timerStBoot);
     return 0;
@@ -1074,12 +1075,11 @@ PRIVATE int mt_stop(hgobj gobj)
 {
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
 
-    if(priv->resource) {
-        gobj_stop(priv->resource);
-    }
     clear_timeout(priv->timer);
     gobj_stop(priv->timer);
     gobj_stop_childs(gobj);
+    priv->tranger = 0;
+
     return 0;
 }
 

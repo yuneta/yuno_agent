@@ -988,6 +988,10 @@ PRIVATE void mt_create(hgobj gobj)
             kw_resource,
             gobj
         );
+
+        /*
+         *  HACK pipe inheritance
+         */
         gobj_set_bottom_gobj(priv->resource, priv->gobj_tranger);
         gobj_set_bottom_gobj(gobj, priv->resource);
     }

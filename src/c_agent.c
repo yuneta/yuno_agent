@@ -988,12 +988,6 @@ PRIVATE void mt_create(hgobj gobj)
             kw_resource,
             gobj
         );
-
-        /*
-         *  HACK pipe inheritance
-         */
-        gobj_set_bottom_gobj(priv->resource, priv->gobj_tranger);
-        gobj_set_bottom_gobj(gobj, priv->resource);
     }
 
     if(1) {
@@ -1065,6 +1059,9 @@ PRIVATE int mt_start(hgobj gobj)
     /*
      *  HACK pipe inheritance
      */
+    gobj_set_bottom_gobj(priv->resource, priv->gobj_tranger); // Overwrite set of create_service
+    gobj_set_bottom_gobj(gobj, priv->resource);
+
     priv->tranger = gobj_read_pointer_attr(gobj, "tranger");
 
     gobj_start(priv->timer);
@@ -1081,7 +1078,6 @@ PRIVATE int mt_stop(hgobj gobj)
 
     clear_timeout(priv->timer);
     gobj_stop(priv->timer);
-    gobj_stop_childs(gobj);
     priv->tranger = 0;
 
     return 0;

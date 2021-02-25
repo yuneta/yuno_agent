@@ -898,8 +898,9 @@ PRIVATE void mt_create(hgobj gobj)
 {
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
 
-    helper_quote2doublequote(treedb_schema_yuneta_agent);
-
+    /*----------------------------------------*
+     *  Check AUTHZS
+     *----------------------------------------*/
     BOOL is_yuneta = FALSE;
     struct passwd *pw = getpwuid(getuid());
     if(strcmp(pw->pw_name, "yuneta")==0) {
@@ -928,6 +929,7 @@ PRIVATE void mt_create(hgobj gobj)
     /*
      *  Chequea schema fichador, exit si falla.
      */
+    helper_quote2doublequote(treedb_schema_yuneta_agent);
     json_t *jn_treedb_schema_yuneta_agent;
     jn_treedb_schema_yuneta_agent = legalstring2json(treedb_schema_yuneta_agent, TRUE);
     if(!jn_treedb_schema_yuneta_agent) {

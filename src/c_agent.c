@@ -961,36 +961,30 @@ PRIVATE void mt_create(hgobj gobj)
         kw_tranger,
         gobj
     );
+    priv->tranger = gobj_read_pointer_attr(priv->gobj_tranger, "tranger");
 
-    /*
-     *  Registra tranger en 2key (in-memory double-key) para su acceso externo
-     *  TODO elimina cuando c_tranger esté completa
-     */
-    //gobj_2key_register("tranger", "agent", priv->tranger);
+    /*-----------------------------*
+     *      Open Agent Treedb
+     *-----------------------------*/
+    const char *treedb_name = kw_get_str(
+        jn_treedb_schema_yuneta_agent,
+        "id",
+        "treedb_yuneta_agent",
+        KW_REQUIRED
+    );
+    json_t *kw_resource = json_pack("{s:I, s:s, s:o, s:i}",
+        "tranger", (json_int_t)(size_t)priv->tranger,
+        "treedb_name", treedb_name,
+        "treedb_schema", jn_treedb_schema_yuneta_agent,
+        "exit_on_error", LOG_OPT_EXIT_ZERO
+    );
 
-    if(1) {
-        /*-----------------------------*
-         *      Open Agent Treedb
-         *-----------------------------*/
-        const char *treedb_name = kw_get_str(
-            jn_treedb_schema_yuneta_agent,
-            "id",
-            "treedb_yuneta_agent",
-            KW_REQUIRED
-        );
-        json_t *kw_resource = json_pack("{s:s, s:o, s:i}",
-            "treedb_name", treedb_name,
-            "treedb_schema", jn_treedb_schema_yuneta_agent,
-            "exit_on_error", LOG_OPT_EXIT_ZERO
-        );
-
-        priv->resource = gobj_create_service(
-            treedb_name,
-            GCLASS_NODE,
-            kw_resource,
-            gobj
-        );
-    }
+    priv->resource = gobj_create_service(
+        treedb_name,
+        GCLASS_NODE,
+        kw_resource,
+        gobj
+    );
 
     if(1) {
         /*-----------------------------*
@@ -1058,14 +1052,6 @@ PRIVATE int mt_start(hgobj gobj)
 {
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
 
-    /*
-     *  HACK pipe inheritance
-     */
-    gobj_set_bottom_gobj(priv->resource, priv->gobj_tranger); // Overwrite set of create_service
-    gobj_set_bottom_gobj(gobj, priv->resource);
-
-    priv->tranger = gobj_read_pointer_attr(gobj, "tranger");
-
     gobj_start(priv->timer);
     set_timeout(priv->timer, priv->timerStBoot);
     return 0;
@@ -1080,7 +1066,6 @@ PRIVATE int mt_stop(hgobj gobj)
 
     clear_timeout(priv->timer);
     gobj_stop(priv->timer);
-    priv->tranger = 0;
 
     return 0;
 }

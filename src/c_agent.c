@@ -8659,37 +8659,38 @@ PRIVATE int ac_play_yuno_ack(hgobj gobj, const char *event, json_t *kw, hgobj sr
 {
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
 
+    /*
+     *  Saco al originante por el user_data del canal.
+     *  HACK aquí nos viene directamente el evento del canal,
+     *  sin pasar por IOGate (spiderden), y por lo tanto sin "_channel_gobj"
+     *  porque el iev_srv no eleva ON_MESSAGE como los gossamer a spiderden,
+     *  se lo queda, y procesa el inter-evento.
+     *  Los mensajes ON_OPEN y ON_CLOSE del iogate:route nos llegan porque estamos
+     *  suscritos a all ellos.
+     */
+    hgobj channel_gobj = (hgobj)(size_t)kw_get_int(kw, "__temp__`channel_gobj", 0, KW_REQUIRED);
+    const char *__yuno__ = json_string_value(gobj_read_user_data(channel_gobj, "__yuno__"));
+    json_t *yuno = gobj_get_node(
+        priv->resource,
+        "yunos",
+        json_pack("{s:s}", "id", __yuno__),
+        json_pack("{s:b, s:b}", "only_id", 1, "with_metadata", 1),
+        src
+    );
+    if(!yuno) {
+        log_error(0,
+            "gobj",         "%s", gobj_full_name(gobj),
+            "function",     "%s", __FUNCTION__,
+            "msgset",       "%s", MSGSET_INTERNAL_ERROR,
+            "msg",          "%s", "hs_yuno NULL",
+            NULL
+        );
+        KW_DECREF(kw);
+        return 0;
+    }
+
     int action_return = kw_get_int(kw, "result", -1, 0);
     if(action_return == 0) {
-        /*
-         *  Saco al originante por el user_data del canal.
-         *  HACK aquí nos viene directamente el evento del canal,
-         *  sin pasar por IOGate (spiderden), y por lo tanto sin "_channel_gobj"
-         *  porque el iev_srv no eleva ON_MESSAGE como los gossamer a spiderden,
-         *  se lo queda, y procesa el inter-evento.
-         *  Los mensajes ON_OPEN y ON_CLOSE del iogate:route nos llegan porque estamos
-         *  suscritos a all ellos.
-         */
-        hgobj channel_gobj = (hgobj)(size_t)kw_get_int(kw, "__temp__`channel_gobj", 0, KW_REQUIRED);
-        const char *__yuno__ = json_string_value(gobj_read_user_data(channel_gobj, "__yuno__"));
-        json_t *yuno = gobj_get_node(
-            priv->resource,
-            "yunos",
-            json_pack("{s:s}", "id", __yuno__),
-            json_pack("{s:b, s:b}", "only_id", 1, "with_metadata", 1),
-            src
-        );
-        if(!yuno) {
-            log_error(0,
-                "gobj",         "%s", gobj_full_name(gobj),
-                "function",     "%s", __FUNCTION__,
-                "msgset",       "%s", MSGSET_INTERNAL_ERROR,
-                "msg",          "%s", "hs_yuno NULL",
-                NULL
-            );
-            KW_DECREF(kw);
-            return 0;
-        }
         json_object_set_new(yuno, "yuno_playing", json_true());
 
         // Volatil if you don't want historic data
@@ -8711,7 +8712,24 @@ PRIVATE int ac_play_yuno_ack(hgobj gobj, const char *event, json_t *kw, hgobj sr
             kw // own kw
         );
     } else {
-        KW_DECREF(kw);
+        json_object_set_new(yuno, "yuno_playing", json_false());
+
+        // Volatil if you don't want historic data
+        json_decref(
+            gobj_update_node(
+                priv->resource,
+                "yunos",
+                yuno,
+                json_pack("{s:b}", "volatil", 1),
+                src
+            )
+        );
+
+        gobj_publish_event(
+            gobj,
+            event,
+            kw // own kw
+        );
     }
     return 0;
 }

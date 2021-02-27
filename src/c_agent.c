@@ -8725,11 +8725,8 @@ PRIVATE int ac_play_yuno_ack(hgobj gobj, const char *event, json_t *kw, hgobj sr
             )
         );
 
-        gobj_publish_event(
-            gobj,
-            event,
-            kw // own kw
-        );
+        // TODO no publique pues sale como ok, que dé error por timeout
+        KW_DECREF(kw);
     }
     return 0;
 }

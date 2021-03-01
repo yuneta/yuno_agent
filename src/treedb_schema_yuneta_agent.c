@@ -8,9 +8,9 @@
     [↖] n fkeys     (n parents)
     {↖} N fkeys     (N parents) ???
 
-
-    * field required
-    = field inherited
+    (2) pkey2 - secondary key
+    *   field required
+    =   field inherited
 
 
 

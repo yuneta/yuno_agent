@@ -932,7 +932,17 @@ PRIVATE void mt_create(hgobj gobj)
     helper_quote2doublequote(treedb_schema_yuneta_agent);
     json_t *jn_treedb_schema_yuneta_agent;
     jn_treedb_schema_yuneta_agent = legalstring2json(treedb_schema_yuneta_agent, TRUE);
-    if(!jn_treedb_schema_yuneta_agent) {
+    if(parse_schema(jn_treedb_schema_yuneta_agent)<0) {
+        /*
+         *  Exit if schema fails
+         */
+        log_error(0,
+            "gobj",         "%s", gobj_full_name(gobj),
+            "function",     "%s", __FUNCTION__,
+            "msgset",       "%s", MSGSET_APP_ERROR,
+            "msg",          "%s", "Parse schema fails",
+            NULL
+        );
         exit(-1);
     }
 

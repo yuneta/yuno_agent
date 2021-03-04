@@ -3956,7 +3956,7 @@ PRIVATE json_t *cmd_find_new_yunos(hgobj gobj, const char *cmd, json_t *kw, hgob
             jn_data,
             json_sprintf(
                 "create-yuno id=%s realm_id=%s yuno_role=%s role_version=%s "
-                "yuno_name=%s name_version=%s yuno_tag=%s multiple=%d",
+                "yuno_name=%s name_version=%s yuno_tag=%s yuno_multiple=%d",
                 id,
                 realm_id,
                 yuno_role,

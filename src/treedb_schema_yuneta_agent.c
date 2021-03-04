@@ -26,6 +26,7 @@
             │* realm_role               │
             │* realm_name               │
             │* realm_env                │
+            │  realm_disabled           │
             │* range_ports              │
             │* bind_ip                  │
             │  last_port                │
@@ -49,12 +50,12 @@
             │  yuno_playing             │
             │  yuno_pid                 │
             │  watcher_pid              │
-            │  disabled                 │
+            │  yuno_disabled            │
             │  must_play                │
             │* role_version             │
             │* name_version             │
             │  traced                   │
-            │  multiple                 │
+            │  yuno_multiple            │
             │  global                   │
             │* date                     │
             │  yuno_startdate           │
@@ -145,14 +146,14 @@
 static char treedb_schema_yuneta_agent[]= "\
 {                                                                   \n\
     'id': 'treedb_yuneta_agent',                                    \n\
-    'schema_version': '5',                                          \n\
+    'schema_version': '7',                                          \n\
     'topics': [                                                     \n\
         {                                                           \n\
-            'id': 'realms',                                 \n\
+            'id': 'realms',                                         \n\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
-            'topic_version': '4',                                   \n\
-            'pkey2s': '',                                     \n\
+            'topic_version': '5',                                   \n\
+            'pkey2s': '',                                           \n\
             'cols': {                                               \n\
                 'id': {                                             \n\
                     'header': 'id',                                 \n\
@@ -216,8 +217,8 @@ static char treedb_schema_yuneta_agent[]= "\
                         'required'                                  \n\
                     ]                                               \n\
                 },                                                  \n\
-                'disabled': {                                       \n\
-                    'header': 'disabled',                           \n\
+                'realm_disabled': {                                 \n\
+                    'header': 'realm_disabled',                     \n\
                     'fillspace': 8,                                 \n\
                     'type': 'boolean',                              \n\
                     'flag': [                                       \n\
@@ -273,12 +274,12 @@ static char treedb_schema_yuneta_agent[]= "\
         },                                                          \n\
                                                                     \n\
         {                                                           \n\
-            'id': 'yunos',                                  \n\
+            'id': 'yunos',                                          \n\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
-            'topic_version': '4',                                   \n\
+            'topic_version': '6',                                   \n\
             'tkey': '',                                             \n\
-            'pkey2s': 'yuno_release',                         \n\
+            'pkey2s': 'yuno_release',                               \n\
             'cols': {                                               \n\
                 'id': {                                             \n\
                     'header': 'id',                                 \n\
@@ -361,8 +362,8 @@ static char treedb_schema_yuneta_agent[]= "\
                     'flag': [                                       \n\
                     ]                                               \n\
                 },                                                  \n\
-                'disabled': {                                       \n\
-                    'header': 'disabled',                           \n\
+                'yuno_disabled': {                                  \n\
+                    'header': 'yuno_disabled',                      \n\
                     'fillspace': 8,                                 \n\
                     'type': 'boolean',                              \n\
                     'flag': [                                       \n\
@@ -406,8 +407,8 @@ static char treedb_schema_yuneta_agent[]= "\
                         'persistent'                                \n\
                     ]                                               \n\
                 },                                                  \n\
-                'multiple': {                                       \n\
-                    'header': 'multiple',                           \n\
+                'yuno_multiple': {                                  \n\
+                    'header': 'yuno_multiple',                      \n\
                     'fillspace': 6,                                 \n\
                     'type': 'boolean',                              \n\
                     'flag': [                                       \n\
@@ -483,12 +484,12 @@ static char treedb_schema_yuneta_agent[]= "\
         },                                                          \n\
                                                                     \n\
         {                                                           \n\
-            'id': 'binaries',                               \n\
+            'id': 'binaries',                                       \n\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
             'topic_version': '3',                                   \n\
             'tkey': '',                                             \n\
-            'pkey2s': 'version',                              \n\
+            'pkey2s': 'version',                                    \n\
             'cols': {                                               \n\
                 'id': {                                             \n\
                     'header': 'id',                                 \n\
@@ -592,12 +593,12 @@ static char treedb_schema_yuneta_agent[]= "\
         },                                                          \n\
                                                                     \n\
         {                                                           \n\
-            'id': 'configurations',                         \n\
+            'id': 'configurations',                                 \n\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
             'topic_version': '3',                                   \n\
             'tkey': '',                                             \n\
-            'pkey2s': 'version',                              \n\
+            'pkey2s': 'version',                                    \n\
             'cols': {                                               \n\
                 'id': {                                             \n\
                     'header': 'id',                                 \n\
@@ -662,11 +663,11 @@ static char treedb_schema_yuneta_agent[]= "\
         },                                                          \n\
                                                                     \n\
         {                                                           \n\
-            'id': 'public_services',                        \n\
+            'id': 'public_services',                                \n\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
             'topic_version': '3',                                   \n\
-            'pkey2s': 'version',                              \n\
+            'pkey2s': 'version',                                    \n\
             'cols': {                                               \n\
                 'id': {                                             \n\
                     'header': 'id',                                 \n\

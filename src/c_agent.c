@@ -396,12 +396,12 @@ SDATAPM (ASN_OCTET_STR, "yuno_release", 0,              0,          "Yuno Releas
 SDATAPM (ASN_OCTET_STR, "yuno_tag",     0,              0,          "Yuno Tag"),
 SDATAPM (ASN_BOOLEAN,   "yuno_running", 0,              0,          "True if yuno is running"),
 SDATAPM (ASN_BOOLEAN,   "yuno_playing", 0,              0,          "True if yuno is playing"),
-SDATAPM (ASN_BOOLEAN,   "disabled",     0,              0,          "True if yuno is disabled"),
+SDATAPM (ASN_BOOLEAN,   "yuno_disabled",0,              0,          "True if yuno is disabled"),
 SDATAPM (ASN_BOOLEAN,   "must_play",    0,              0,          "True if yuno must play"),
 SDATAPM (ASN_OCTET_STR, "role_version", 0,              0,          "Role version"),
 SDATAPM (ASN_OCTET_STR, "name_version", 0,              0,          "Name version"),
 SDATAPM (ASN_BOOLEAN,   "traced",       0,              0,          "True if yuno is tracing"),
-SDATAPM (ASN_BOOLEAN,   "multiple",     0,              0,          "True if yuno can have multiple instances with same name"),
+SDATAPM (ASN_BOOLEAN,   "yuno_multiple",0,              0,          "True if yuno can have multiple instances with same name"),
 SDATAPM (ASN_BOOLEAN,   "global",       0,              0,          "Yuno with public service (False: bind to 127.0.0.1, True: bind to realm ip)"),
 SDATAPM (ASN_BOOLEAN,   "webix",        0,              0,          "List in webix format [{id,value}]"),
 SDATA_END()
@@ -512,20 +512,20 @@ SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno Name")
 SDATAPM (ASN_OCTET_STR, "yuno_release", 0,              0,          "Yuno Release"),
 SDATAPM (ASN_OCTET_STR, "yuno_tag",     0,              0,          "Yuno Tag"),
 SDATAPM (ASN_BOOLEAN,   "yuno_running", 0,              0,          "Yuno running"),
-SDATAPM (ASN_BOOLEAN,   "disabled",     0,              0,          "Yuno disabled"),
+SDATAPM (ASN_BOOLEAN,   "yuno_disabled",0,              0,          "Yuno disabled"),
 SDATA_END()
 };
 PRIVATE sdata_desc_t pm_set_multiple[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id of yuno"),
-SDATAPM (ASN_BOOLEAN,   "multiple",     0,              0,          "New multiple set"),
+SDATAPM (ASN_BOOLEAN,   "yuno_multiple",0,              0,          "New multiple set"),
 SDATAPM (ASN_OCTET_STR, "realm_id",     0,              0,          "Realm Id"),
 SDATAPM (ASN_OCTET_STR, "yuno_role",    0,              0,          "Yuno Role"),
 SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno Name"),
 SDATAPM (ASN_OCTET_STR, "yuno_release", 0,              0,          "Yuno Release"),
 SDATAPM (ASN_OCTET_STR, "yuno_tag",     0,              0,          "Yuno Tag"),
 SDATAPM (ASN_BOOLEAN,   "yuno_running", 0,              0,          "Yuno running"),
-SDATAPM (ASN_BOOLEAN,   "disabled",     0,              0,          "Yuno disabled"),
+SDATAPM (ASN_BOOLEAN,   "yuno_disabled",0,              0,          "Yuno disabled"),
 SDATA_END()
 };
 
@@ -675,9 +675,9 @@ SDATAPM (ASN_OCTET_STR, "yuno_name",    0,              0,          "Yuno name")
 SDATAPM (ASN_OCTET_STR, "name_version", 0,              0,          "Name version"),
 SDATAPM (ASN_OCTET_STR, "yuno_tag",     0,              0,          "Yuno Tag"),
 
-SDATAPM (ASN_BOOLEAN,   "disabled",     0,              0,          "True if yuno is disabled"),
+SDATAPM (ASN_BOOLEAN,   "yuno_disabled",0,              0,          "True if yuno is disabled"),
 SDATAPM (ASN_BOOLEAN,   "must_play",    0,              0,          "True if yuno must play"),
-SDATAPM (ASN_BOOLEAN,   "multiple",     0,              0,          "True if yuno can have multiple instances with same name"),
+SDATAPM (ASN_BOOLEAN,   "yuno_multiple",0,              0,          "True if yuno can have multiple instances with same name"),
 SDATAPM (ASN_BOOLEAN,   "global",       0,              0,          "Yuno with public service (False: bind to 127.0.0.1, True: bind to realm ip)"),
 SDATA_END()
 };
@@ -1633,7 +1633,7 @@ PRIVATE json_t *cmd_replicate_node(hgobj gobj, const char *cmd, json_t *kw, hgob
 //         /*
 //          *  The rule: only enabled yunos and taged yunos are replicated.
 //          */
-//         BOOL yuno_disabled = kw_get_bool(yuno, "disabled");
+//         BOOL yuno_disabled = kw_get_bool(yuno, "yuno_disabled");
 //         const char *tag = kw_get_str(yuno, "yuno_tag");
 //         if(empty_string(tag)) {
 //             if(yuno_disabled) {
@@ -3638,7 +3638,7 @@ PRIVATE json_t *cmd_set_multiple(hgobj gobj, const char *cmd, json_t *kw, hgobj 
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
     char *resource = "yunos";
 
-    if(!kw_has_key(kw, "multiple")) {
+    if(!kw_has_key(kw, "yuno_multiple")) {
         return msg_iev_build_webix(gobj,
             -210,
             json_local_sprintf("What multiple?"),
@@ -3647,8 +3647,8 @@ PRIVATE json_t *cmd_set_multiple(hgobj gobj, const char *cmd, json_t *kw, hgobj 
             kw  // owned
         );
     }
-    BOOL multiple = kw_get_bool(kw, "multiple", 0, 0);
-    kw_delete(kw, "multiple");
+    BOOL multiple = kw_get_bool(kw, "yuno_multiple", 0, 0);
+    kw_delete(kw, "yuno_multiple");
 
     /*
      *  Get a iter of matched resources.
@@ -3680,7 +3680,7 @@ PRIVATE json_t *cmd_set_multiple(hgobj gobj, const char *cmd, json_t *kw, hgobj 
 
     int idx; json_t *node;
     json_array_foreach(iter, idx, node) {
-        json_object_set_new(node, "multiple", json_boolean(multiple));
+        json_object_set_new(node, "yuno_multiple", json_boolean(multiple));
         json_array_append_new(
             jn_data,
             gobj_update_node( // Node updated to collection.
@@ -3756,7 +3756,7 @@ PRIVATE json_t *cmd_top_yunos(hgobj gobj, const char *cmd, json_t *kw, hgobj src
     json_t *jn_data = json_array();
     int idx; json_t *node;
     json_array_foreach(iter, idx, node) {
-        BOOL disabled = kw_get_bool(node, "disabled", 0, KW_REQUIRED);
+        BOOL disabled = kw_get_bool(node, "yuno_disabled", 0, KW_REQUIRED);
         const char *yuno_tag = kw_get_str(node, "yuno_tag", 0, KW_REQUIRED);
         if(!disabled || !empty_string(yuno_tag)) {
             json_array_append(jn_data, webix?yuno2multiselect(node):node);
@@ -3964,7 +3964,7 @@ PRIVATE json_t *cmd_find_new_yunos(hgobj gobj, const char *cmd, json_t *kw, hgob
                 yuno_name,
                 new_name_version,
                 SDATA_GET_STR(yuno, "yuno_tag"),
-                SDATA_GET_BOOL(yuno, "multiple")
+                SDATA_GET_BOOL(yuno, "yuno_multiple")
             )
         );
 
@@ -4134,7 +4134,7 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
     /*---------------------------------------------*
      *      Check multiple yuno
      *---------------------------------------------*/
-    BOOL multiple = kw_get_bool(kw, "multiple", 0, 0);
+    BOOL multiple = kw_get_bool(kw, "yuno_multiple", 0, 0);
     if(!multiple) {
         /*
          *  Check if already exists
@@ -4410,7 +4410,7 @@ PRIVATE json_t *cmd_run_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
     /*
      *  Get a iter of matched resources.
      */
-    json_object_set_new(kw, "disabled", json_false());
+    json_object_set_new(kw, "yuno_disabled", json_false());
     json_object_set_new(kw, "yuno_running", json_false());
 
     json_t *iter = gobj_list_nodes(
@@ -4449,7 +4449,7 @@ PRIVATE json_t *cmd_run_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
         /*
          *  Run the yuno
          */
-        BOOL disabled = kw_get_bool(yuno, "disabled", 0, KW_REQUIRED);
+        BOOL disabled = kw_get_bool(yuno, "yuno_disabled", 0, KW_REQUIRED);
         BOOL yuno_running = kw_get_bool(yuno, "yuno_running", 0, KW_REQUIRED);
         if(!disabled && !yuno_running) {
             int r = run_yuno(gobj, yuno, src);
@@ -4764,7 +4764,7 @@ PRIVATE json_t *cmd_play_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
     /*------------------------------------------------*
      *      Get the yunos
      *------------------------------------------------*/
-    json_object_set_new(kw, "disabled", json_false());
+    json_object_set_new(kw, "yuno_disabled", json_false());
     json_object_set_new(kw, "yuno_playing", json_false());
 
     json_t *iter = gobj_list_nodes(
@@ -4949,7 +4949,7 @@ PRIVATE json_t *cmd_pause_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
     /*------------------------------------------------*
      *      Get the yunos
      *------------------------------------------------*/
-    json_object_set_new(kw, "disabled", json_false());
+    json_object_set_new(kw, "yuno_disabled", json_false());
     json_object_set_new(kw, "yuno_playing", json_true());
 
     json_t *iter = gobj_list_nodes(
@@ -5119,7 +5119,7 @@ PRIVATE json_t* cmd_enable_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj s
     /*------------------------------------------------*
      *      Get the yunos
      *------------------------------------------------*/
-    json_object_set_new(kw, "disabled", json_true());
+    json_object_set_new(kw, "yuno_disabled", json_true());
 
     json_t *iter = gobj_list_nodes(
         priv->resource,
@@ -5151,7 +5151,7 @@ PRIVATE json_t* cmd_enable_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj s
         /*
          *  Enable yuno
          */
-        json_object_set_new(node, "disabled", json_false());
+        json_object_set_new(node, "yuno_disabled", json_false());
 
         json_array_append_new(
             jn_data,
@@ -5190,7 +5190,7 @@ PRIVATE json_t* cmd_disable_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj 
     /*------------------------------------------------*
      *      Get the yunos
      *------------------------------------------------*/
-    json_object_set_new(kw, "disabled", json_false());
+    json_object_set_new(kw, "yuno_disabled", json_false());
 
     json_t *iter = gobj_list_nodes(
         priv->resource,
@@ -5226,7 +5226,7 @@ PRIVATE json_t* cmd_disable_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj 
         /*
          *  Disable node
          */
-        BOOL disabled = kw_get_bool(node, "disabled", 0, KW_REQUIRED);
+        BOOL disabled = kw_get_bool(node, "yuno_disabled", 0, KW_REQUIRED);
         if(!disabled) {
             BOOL playing = kw_get_bool(node, "yuno_playing", 0, KW_REQUIRED);
             if(playing) {
@@ -5237,7 +5237,7 @@ PRIVATE json_t* cmd_disable_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj 
                 kill_yuno(gobj, node);
             }
 
-            json_object_set_new(node, "disabled", json_true());
+            json_object_set_new(node, "yuno_disabled", json_true());
 
             json_array_append_new(
                 jn_data,
@@ -5438,7 +5438,7 @@ PRIVATE json_t *cmd_command_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj 
     /*------------------------------------------------*
      *      Get the yunos
      *------------------------------------------------*/
-    json_object_set_new(kw, "disabled", json_false());
+    json_object_set_new(kw, "yuno_disabled", json_false());
     json_object_set_new(kw, "yuno_running", json_true());
 
     json_t *iter = gobj_list_nodes(
@@ -5493,7 +5493,7 @@ PRIVATE json_t *cmd_stats_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
     /*------------------------------------------------*
      *      Get the yunos
      *------------------------------------------------*/
-    json_object_set_new(kw, "disabled", json_false());
+    json_object_set_new(kw, "yuno_disabled", json_false());
     json_object_set_new(kw, "yuno_running", json_true());
 
     json_t *iter = gobj_list_nodes(
@@ -5544,7 +5544,7 @@ PRIVATE json_t *cmd_authzs_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj s
     /*------------------------------------------------*
      *      Get the yunos
      *------------------------------------------------*/
-    json_object_set_new(kw, "disabled", json_false());
+    json_object_set_new(kw, "yuno_disabled", json_false());
     json_object_set_new(kw, "yuno_running", json_true());
 
     json_t *iter = gobj_list_nodes(
@@ -6646,7 +6646,7 @@ PRIVATE GBUFFER *build_yuno_running_script(
     const char *realm_name = kw_get_str(hs_realm, "realm_name", "", KW_REQUIRED);
     const char *realm_env = kw_get_str(hs_realm, "realm_env", "", KW_REQUIRED);
 
-    BOOL multiple = kw_get_bool(yuno, "multiple", 0, KW_REQUIRED);
+    BOOL multiple = kw_get_bool(yuno, "yuno_multiple", 0, KW_REQUIRED);
     const char *yuno_role = kw_get_str(yuno, "yuno_role", "", KW_REQUIRED);
     const char *yuno_name = kw_get_str(yuno, "yuno_name", "", KW_REQUIRED);
     const char *yuno_tag = kw_get_str(yuno, "yuno_tag", "", KW_REQUIRED);
@@ -6808,7 +6808,7 @@ PRIVATE GBUFFER *build_yuno_running_script(
                 "yuno_tag", yuno_tag,
                 "yuno_release", yuno_release,
                 "bind_ip", bind_ip,
-                "multiple", multiple,
+                "yuno_multiple", multiple,
                 "launch_id", (json_int_t)launch_id
         );
         json_t *jn_agent_environment = gobj_read_json_attr(gobj, "agent_environment");
@@ -7292,7 +7292,7 @@ PRIVATE int run_enabled_yunos(hgobj gobj)
         /*
          *  Activate the yuno
          */
-        BOOL disabled = kw_get_bool(yuno, "disabled", 0, KW_REQUIRED);
+        BOOL disabled = kw_get_bool(yuno, "yuno_disabled", 0, KW_REQUIRED);
         if(!disabled) {
             BOOL running = kw_get_bool(yuno, "yuno_running", 0, KW_REQUIRED);
             if(!running) {
@@ -8921,7 +8921,7 @@ PRIVATE int ac_on_open(hgobj gobj, const char *event, json_t *kw, hgobj src)
         "yuno_role", yuno_role,
         "yuno_name", yuno_name,
         "yuno_release", yuno_release,
-        "disabled", 0,
+        "yuno_disabled", 0,
         "id", yuno_id,
         "realm_id", realm_id
     );

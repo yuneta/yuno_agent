@@ -223,6 +223,7 @@ PRIVATE json_t *cmd_update_public_service(hgobj gobj, const char *cmd, json_t *k
 PRIVATE json_t *cmd_delete_public_service(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 
 PRIVATE json_t *cmd_list_realms(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
+PRIVATE json_t *cmd_check_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_create_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_update_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_delete_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
@@ -297,7 +298,12 @@ SDATAPM (ASN_OCTET_STR, "realm_name",   0,              0,          "Realm Name"
 SDATAPM (ASN_OCTET_STR, "realm_env",    0,              0,          "Environment"),
 SDATA_END()
 };
-PRIVATE sdata_desc_t pm_create_realms[] = {
+PRIVATE sdata_desc_t pm_check_realm[] = {
+/*-PM----type-----------name------------flag------------default-----description---------- */
+SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id"),
+SDATA_END()
+};
+PRIVATE sdata_desc_t pm_create_realm[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id"),
 SDATAPM (ASN_OCTET_STR, "realm_owner",  0,              0,          "Realm Owner"),
@@ -778,7 +784,8 @@ SDATACM2 (ASN_SCHEMA,   "",                 0,                  0,              
 SDATACM2 (ASN_SCHEMA,   "update-public-service", 0,             0,                  pm_update_service, cmd_update_public_service, "Update a public service"),
 SDATACM2 (ASN_SCHEMA,   "delete-public-service", 0,             0,                  pm_del_service, cmd_delete_public_service, "Remove a public service"),
 SDATACM2 (ASN_SCHEMA,   "",                 0,                  0,                  0,              0,              ""),
-SDATACM2 (ASN_SCHEMA,   "create-realm",     0,                  0,                  pm_create_realms,  cmd_create_realm,"Create a new realm"),
+SDATACM2 (ASN_SCHEMA,   "check-realm",      0,                  0,                  pm_check_realm,  cmd_check_realm,"Check if a realm exists"),
+SDATACM2 (ASN_SCHEMA,   "create-realm",     0,                  0,                  pm_create_realm,  cmd_create_realm,"Create a new realm"),
 SDATACM2 (ASN_SCHEMA,   "update-realm",     0,                  0,                  pm_update_realm,cmd_update_realm,"Update a realm"),
 SDATACM2 (ASN_SCHEMA,   "delete-realm",     0,                  0,                  pm_del_realm,   cmd_delete_realm,"Remove a realm"),
 SDATACM2 (ASN_SCHEMA,   "",                 0,                  0,                  0,              0,              ""),
@@ -2230,6 +2237,48 @@ PRIVATE json_t *cmd_list_realms(hgobj gobj, const char *cmd, json_t *kw, hgobj s
         json_local_sprintf(cmd),
         tranger_list_topic_desc(gobj_read_pointer_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
+        kw  // owned
+    );
+}
+
+/***************************************************************************
+ *
+ ***************************************************************************/
+PRIVATE json_t *cmd_check_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
+{
+    PRIVATE_DATA *priv = gobj_priv_data(gobj);
+    char *resource = "realms";
+
+    const char *id = kw_get_str(kw, "id", "", 0);
+    if(empty_string(id)) {
+        return msg_iev_build_webix(
+            gobj,
+            -1,
+            json_local_sprintf("What realm id?"),
+            0,
+            0,
+            kw  // owned
+        );
+    }
+
+    json_t *node = gobj_get_node(
+        priv->resource,
+        resource,
+        json_incref(kw),
+        json_pack("{s:b, s:b}", "only_id", 1, "with_metadata", 1),
+        src
+    );
+    int ret = node?0:-1;
+
+    /*
+     *  Inform
+     */
+    return msg_iev_build_webix(
+        gobj,
+        ret,
+        ret<0?json_local_sprintf("Not found!"):json_local_sprintf("Exists!"),
+        tranger_list_topic_desc(gobj_read_pointer_attr(priv->resource, "tranger"), resource),
+        json_pack("[o]", node), // owned
         kw  // owned
     );
 }

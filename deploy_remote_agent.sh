@@ -20,6 +20,7 @@ scp -p \
     /yuneta/bin/json_diff \
     /yuneta/bin/ytests\
     /yuneta/bin/tranger_delete \
+    /yuneta/bin/list_queue_msgs \
     yuneta@$1:/yuneta/bin
 
 scp -p \

@@ -86,6 +86,11 @@ install(DIRECTORY service
     DESTINATION ${BIN_DEST_DIR}
 )
 
+install(DIRECTORY certs
+    USE_SOURCE_PERMISSIONS
+    DESTINATION ${BIN_DEST_DIR}
+)
+
 install(FILES
     deploy_agent.sh
     PERMISSIONS

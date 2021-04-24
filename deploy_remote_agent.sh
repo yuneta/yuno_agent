@@ -1,7 +1,5 @@
 #!/bin/sh
 
-# TODO remove list_gps_msg list_speed_msg
-
 ssh yuneta@$1 "/yuneta/bin/yshutdown"
 scp -p \
     /yuneta/bin/ybatch \

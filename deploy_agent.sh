@@ -128,6 +128,9 @@ cp -vn $CONFIG_AGENT /yuneta/agent/
 SERVICE_SCRIPTS=/yuneta/development/output/agent/service/
 cp -v -a $SERVICE_SCRIPTS /yuneta/agent/
 
+CERTS_SCRIPTS=/yuneta/development/output/agent/certs/
+cp -v -a $CERTS_SCRIPTS /yuneta/agent/
+
 BINARY_CLI=/yuneta/development/output/agent/yuneta
 BINARY_BATCH=/yuneta/development/output/agent/ybatch
 BINARY_YSHUTDOWN=/yuneta/development/output/agent/yshutdown

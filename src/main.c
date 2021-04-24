@@ -201,8 +201,8 @@ PRIVATE char variable_config[]= "\
                             'kw': {                                         \n\
                                 'crypto': {                                 \n\
                                     'library': 'openssl',                   \n\
-'ssl_certificate': '/yuneta/store/certs/self-signed/yuneta_agent.crt',      \n\
-'ssl_certificate_key': '/yuneta/store/certs/self-signed/yuneta_agent.key',  \n\
+            'ssl_certificate': '/yuneta/agent/certs/yuneta_agent.crt',      \n\
+            'ssl_certificate_key': '/yuneta/agent/certs/yuneta_agent.key',  \n\
                                     'trace': false                          \n\
                                 },                                          \n\
                                 'url': '(^^__top_url__^^)',                 \n\

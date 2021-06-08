@@ -45,7 +45,7 @@ PRIVATE char variable_config[]= "\
     '__json_config_variables__': {                                  \n\
         '__realm_id__': 'agent.yunetacontrol.com',                  \n\
         '__input_url__': 'ws://127.0.0.1:1991',                     \n\
-        '__top_url__': 'wss://0.0.0.0:1993'                         \n\
+        '__input_secure_url__': 'wss://0.0.0.0:1993'                \n\
     },                                                              \n\
     'environment': {                                                \n\
         'realm_id': '(^^__realm_id__^^)',                           \n\
@@ -205,7 +205,7 @@ PRIVATE char variable_config[]= "\
             'ssl_certificate_key': '/yuneta/agent/certs/yuneta_agent.key',  \n\
                                     'trace': false                          \n\
                                 },                                          \n\
-                                'url': '(^^__top_url__^^)',                 \n\
+                                'url': '(^^__input_secure_url__^^)',        \n\
                                 'child_tree_filter': {                      \n\
                                     'op': 'find',                           \n\
                                     'kw': {                                 \n\

@@ -19,7 +19,7 @@
 "Si quieres vivir en mi reino tienes que cumplir unas reglas."\
 "De lo contrario, vive como un standalone." \
 
-#define APP_VERSION     "4.12.2"
+#define APP_VERSION     "4.13.0"
 #define APP_DATETIME    __DATE__ " " __TIME__
 #define APP_SUPPORT     "<niyamaka at yuneta.io>"
 
@@ -45,7 +45,8 @@ PRIVATE char variable_config[]= "\
     '__json_config_variables__': {                                  \n\
         '__realm_id__': 'agent.yunetacontrol.com',                  \n\
         '__input_url__': 'ws://127.0.0.1:1991',                     \n\
-        '__input_secure_url__': 'wss://0.0.0.0:1993'                \n\
+        '__input_secure_url__': 'wss://0.0.0.0:1993',               \n\
+        '__output_url__': 'yunetacontrol.com:1994'                  \n\
     },                                                              \n\
     'environment': {                                                \n\
         'realm_id': '(^^__realm_id__^^)',                           \n\
@@ -248,6 +249,57 @@ PRIVATE char variable_config[]= "\
                         }                                               \n\
                     }                                                   \n\
                 }                                               \n\
+            ]                                           \n\
+        },                                              \n\
+        {                                               \n\
+            'name': 'controlcenter',                    \n\
+            'gclass': 'IEvent_cli',                     \n\
+            'autostart': true,                          \n\
+            'autoplay': true,                           \n\
+            'kw': {                                     \n\
+                'remote_yuno_name': '',                 \n\
+                'remote_yuno_role': 'controlcenter',    \n\
+                'remote_yuno_service': 'controlcenter'  \n\
+            },                                          \n\
+            'zchilds': [                                \n\
+                {                                               \n\
+                    'name': '__output_side__',                  \n\
+                    'gclass': 'IOGate',                         \n\
+                    'as_service': true,                         \n\
+                    'kw': {                                     \n\
+                        'persistent_channels': false            \n\
+                    },                                          \n\
+                    'zchilds': [                                \n\
+                        {                                               \n\
+                            'name': '__output_side__',                  \n\
+                            'gclass': 'Channel',                        \n\
+                            'kw': {                                     \n\
+                            },                                          \n\
+                            'zchilds': [                                \n\
+                                {                                       \n\
+                                    'name': '__output_side__',          \n\
+                                    'gclass': 'Prot_header4',           \n\
+                                    'zchilds': [                                \n\
+                                        {                                       \n\
+                                            'name': '__connex_output_side__',    \n\
+                                            'gclass': 'Connexs',                \n\
+                                            'kw': {                             \n\
+                                                'timeout_between_connections': 6000, \n\
+                                                'crypto': {                     \n\
+                                                    'library': 'openssl',       \n\
+                                                    'trace': false              \n\
+                                                },                              \n\
+                                                'urls':[                        \n\
+        'tcp://(^^__sys_machine__^^).(^^__output_url__^^)'                      \n\
+                                                ]                               \n\
+                                            }                                   \n\
+                                        }                                       \n\
+                                    ]                                           \n\
+                                }                                       \n\
+                            ]                                           \n\
+                        }                                               \n\
+                    ]                                           \n\
+                }                                              \n\
             ]                                           \n\
         },                                              \n\
         {                                                           \n\

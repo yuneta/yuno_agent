@@ -284,7 +284,7 @@ PRIVATE char variable_config[]= "\
                                             'name': '__connex_output_side__',    \n\
                                             'gclass': 'Connexs',                \n\
                                             'kw': {                             \n\
-                                                'timeout_between_connections': 6000, \n\
+                                                'timeout_between_connections': 60000, \n\
                                                 'crypto': {                     \n\
                                                     'library': 'openssl',       \n\
                                                     'trace': false              \n\

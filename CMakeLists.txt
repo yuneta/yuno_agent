@@ -72,7 +72,6 @@ TARGET_LINK_LIBRARIES(yuneta_agent
 
     pthread dl  # used by libuv
     lzma        # used by libunwind
-
     z rt m
     uuid
 )

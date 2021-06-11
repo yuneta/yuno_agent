@@ -6,7 +6,6 @@
  *          All Rights Reserved.
  ****************************************************************************/
 #include <yuneta_tls.h>
-#include <yuneta.h>
 #include "c_agent.h"
 #include "yuno_yuneta_agent.h"
 

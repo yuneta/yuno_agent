@@ -141,6 +141,7 @@ PRIVATE int restart_nodes(hgobj gobj);
 /***************************************************************************
  *          Data: config, public data, private data
  ***************************************************************************/
+// Deja que siga con insecure connection
 PRIVATE char agent_filter_chain_config[]= "\
 {                                           \n\
     'services': [                           \n\

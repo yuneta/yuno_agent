@@ -849,7 +849,7 @@ SDATA_END()
  *---------------------------------------------*/
 PRIVATE sdata_desc_t tattr_desc[] = {
 /*-ATTR-type------------name----------------flag----------------default---------description---------- */
-SDATA (ASN_OCTET_STR,   "__username__",     SDF_RD,             "",              "Username"),
+SDATA (ASN_OCTET_STR,   "__username__",     SDF_RD,             "",             "Username"),
 SDATA (ASN_OCTET_STR,   "tranger_path",     SDF_RD,             "/yuneta/store/agent/yuneta_agent.trdb", "tranger path"),
 SDATA (ASN_OCTET_STR,   "startup_command",  SDF_RD,             0,              "Command to execute at startup"),
 SDATA (ASN_JSON,        "agent_environment",SDF_RD,             0,              "Agent environment. Override the yuno environment"),
@@ -6841,9 +6841,10 @@ PRIVATE GBUFFER *build_yuno_running_script(
             json_object_update(jn_global, jn_node_variables);
         }
 
-        json_t *jn_environment = json_pack("{s:s, s:s, s:s, s:s, s:s, s:s, s:s}",
+        json_t *jn_environment = json_pack("{s:s, s:s, s:s, s:s, s:s, s:s, s:s, s:s}",
             "work_dir", work_dir,
             "domain_dir", domain_dir,
+            "node_owner", gobj_read_str_attr(gobj_yuno(), "node_owner"),
             "realm_id", SDATA_GET_STR(yuno, "realm_id`0"),
             "realm_owner", realm_owner,
             "realm_role", realm_role,

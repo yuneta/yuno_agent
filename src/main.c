@@ -18,7 +18,7 @@
 "Si quieres vivir en mi reino tienes que cumplir unas reglas."\
 "De lo contrario, vive como un standalone." \
 
-#define APP_VERSION     "4.13.3"
+#define APP_VERSION     "4.14.0"
 #define APP_DATETIME    __DATE__ " " __TIME__
 #define APP_SUPPORT     "<niyamaka at yuneta.io>"
 
@@ -289,7 +289,7 @@ PRIVATE char variable_config[]= "\
                                                     'trace': false              \n\
                                                 },                              \n\
                                                 'urls':[                        \n\
-        'tcps://(^^__sys_machine__^^).(^^__output_url__^^)'                      \n\
+        'tcps://(^^__node_owner__^^)(^^__sys_machine__^^).(^^__output_url__^^)'    \n\
                                                 ]                               \n\
                                             }                                   \n\
                                         }                                       \n\

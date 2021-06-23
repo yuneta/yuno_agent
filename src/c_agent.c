@@ -215,7 +215,6 @@ PRIVATE json_t *cmd_dir_logs(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
 PRIVATE json_t *cmd_dir_local_data(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_dir_repos(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_dir_store(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
-PRIVATE json_t *cmd_list_persistent_attrs(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_replicate_node(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_replicate_binaries(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 
@@ -567,11 +566,6 @@ PRIVATE sdata_desc_t pm_local_data[] = {
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id of yuno"),
 SDATA_END()
 };
-PRIVATE sdata_desc_t pm_domain[] = {
-/*-PM----type-----------name------------flag------------default-----description---------- */
-SDATAPM (ASN_OCTET_STR, "domain",       0,              0,          "Domain wanted"),
-SDATA_END()
-};
 
 PRIVATE sdata_desc_t pm_replicate_node[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
@@ -770,7 +764,6 @@ SDATACM2 (ASN_SCHEMA,   "dir-yuneta",       0,                  0,              
 SDATACM2 (ASN_SCHEMA,   "dir-realms",       0,                  0,                  pm_dir,         cmd_dir_realms, "List /yuneta/realms directory"),
 SDATACM2 (ASN_SCHEMA,   "dir-repos",        0,                  0,                  pm_dir,         cmd_dir_repos,  "List /yuneta/repos directory"),
 SDATACM2 (ASN_SCHEMA,   "dir-store",        0,                  0,                  pm_dir,         cmd_dir_store,  "List /yuneta/store directory"),
-SDATACM2 (ASN_SCHEMA,   "list-persistent-attrs", 0,             0,                  pm_domain,              cmd_list_persistent_attrs, "OLD List persistent attributes in domain directory"),
 SDATACM2 (ASN_SCHEMA,   "read-json",        0,                  a_read_json,        pm_read_json,   0,              "Read json file"),
 SDATACM2 (ASN_SCHEMA,   "read-file",        0,                  a_read_file,        pm_read_file,   0,              "Read a text file"),
 SDATACM2 (ASN_SCHEMA,   "read-binary-file", 0,                  a_read_binary_file, pm_read_binary_file, 0,         "Read a binary file (encoded in base64)"),
@@ -1426,67 +1419,31 @@ PRIVATE json_t *cmd_dir_local_data(hgobj gobj, const char *cmd, json_t *kw, hgob
     );
 }
 
-/***************************************************************************
- *
- ***************************************************************************/
-PRIVATE BOOL read_json_cb(
-    void *user_data,
-    wd_found_type type,     // type found
-    char *fullpath,         // directory+filename found
-    const char *directory,  // directory of found filename
-    char *name,             // dname[255]
-    int level,              // level of tree where file found
-    int index               // index of file inside of directory, relative to 0
-)
-{
-    json_t *jn_dict = user_data;
-    size_t flags = 0;
-    json_error_t error;
-    json_t *jn_attr = json_load_file(fullpath, flags, &error);
-    if(jn_attr) {
-        json_object_set_new(jn_dict, fullpath, jn_attr);
-    } else {
-        jn_attr = json_local_sprintf("Invalid json in '%s' file, error '%s'", fullpath, error.text);
-        json_object_set_new(jn_dict, fullpath, jn_attr);
-    }
-    return TRUE; // to continue
-}
-
-/***************************************************************************
- *
- ***************************************************************************/
-PRIVATE json_t* cmd_list_persistent_attrs(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
-{
-    const char *domain = kw_get_str(kw, "domain", "", 0);
-
-    char path[PATH_MAX];
-    if(empty_string(domain)) {
-        snprintf(path, sizeof(path), "%s/realms", yuneta_work_dir());
-    } else {
-        snprintf(path, sizeof(path), "%s/realms/%s", yuneta_work_dir(), domain);
-    }
-
-    json_t *jn_dict = json_object();
-
-    walk_dir_tree(
-        path,
-        ".*persistent-attrs.json",
-        WD_RECURSIVE|WD_MATCH_REGULAR_FILE,
-        read_json_cb,
-        jn_dict
-    );
-
-    /*
-     *  Inform
-     */
-    return msg_iev_build_webix(gobj,
-        0,
-        0,
-        0,
-        jn_dict, // owned
-        kw  // owned
-    );
-}
+// /***************************************************************************
+//  *
+//  ***************************************************************************/
+// PRIVATE BOOL read_json_cb(
+//     void *user_data,
+//     wd_found_type type,     // type found
+//     char *fullpath,         // directory+filename found
+//     const char *directory,  // directory of found filename
+//     char *name,             // dname[255]
+//     int level,              // level of tree where file found
+//     int index               // index of file inside of directory, relative to 0
+// )
+// {
+//     json_t *jn_dict = user_data;
+//     size_t flags = 0;
+//     json_error_t error;
+//     json_t *jn_attr = json_load_file(fullpath, flags, &error);
+//     if(jn_attr) {
+//         json_object_set_new(jn_dict, fullpath, jn_attr);
+//     } else {
+//         jn_attr = json_local_sprintf("Invalid json in '%s' file, error '%s'", fullpath, error.text);
+//         json_object_set_new(jn_dict, fullpath, jn_attr);
+//     }
+//     return TRUE; // to continue
+// }
 
 /***************************************************************************
  *

@@ -4957,7 +4957,6 @@ PRIVATE json_t *cmd_pause_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
      *      Get the yunos
      *------------------------------------------------*/
     json_object_set_new(kw, "yuno_disabled", json_false());
-    json_object_set_new(kw, "yuno_playing", json_true());
 
     json_t *iter = gobj_list_nodes(
         priv->resource,

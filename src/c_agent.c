@@ -6800,7 +6800,7 @@ PRIVATE GBUFFER *build_yuno_running_script(
         json_t *jn_environment = json_pack("{s:s, s:s, s:s, s:s, s:s, s:s, s:s, s:s}",
             "work_dir", work_dir,
             "domain_dir", domain_dir,
-            "node_owner", gobj_read_str_attr(gobj_yuno(), "node_owner"),
+            "node_owner", gobj_node_owner(),
             "realm_id", SDATA_GET_STR(yuno, "realm_id`0"),
             "realm_owner", realm_owner,
             "realm_role", realm_role,

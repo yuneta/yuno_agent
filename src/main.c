@@ -289,7 +289,7 @@ PRIVATE char variable_config[]= "\
                                                     'trace': false              \n\
                                                 },                              \n\
                                                 'urls':[                        \n\
-        'tcps://(^^__node_owner__^^)(^^__sys_machine__^^).(^^__output_url__^^)'    \n\
+        'tcps://(^^__sys_machine__^^).(^^__node_owner__^^).(^^__output_url__^^)'    \n\
                                                 ]                               \n\
                                             }                                   \n\
                                         }                                       \n\

@@ -6797,10 +6797,22 @@ PRIVATE GBUFFER *build_yuno_running_script(
             json_object_update(jn_global, jn_node_variables);
         }
 
+        const char *node_owner = gobj_node_owner();
+        if(empty_string(node_owner)) {
+            log_error(0,
+                "gobj",         "%s", gobj_full_name(gobj),
+                "function",     "%s", __FUNCTION__,
+                "msgset",       "%s", MSGSET_PARAMETER_ERROR,
+                "msg",          "%s", "node_owner EMPTY",
+                NULL
+            );
+            node_owner = "none";
+        }
+
         json_t *jn_environment = json_pack("{s:s, s:s, s:s, s:s, s:s, s:s, s:s, s:s}",
             "work_dir", work_dir,
             "domain_dir", domain_dir,
-            "node_owner", gobj_node_owner(),
+            "node_owner", node_owner,
             "realm_id", SDATA_GET_STR(yuno, "realm_id`0"),
             "realm_owner", realm_owner,
             "realm_role", realm_role,

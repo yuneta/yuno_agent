@@ -900,6 +900,23 @@ PRIVATE void mt_create(hgobj gobj)
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
 
     /*----------------------------------------*
+     *  Check node_owner
+     *----------------------------------------*/
+    const char *node_owner = gobj_node_owner();
+    if(empty_string(node_owner)) {
+        node_owner = "none";
+        gobj_set_node_owner(node_owner);
+
+        log_error(0,
+            "gobj",         "%s", gobj_full_name(gobj),
+            "function",     "%s", __FUNCTION__,
+            "msgset",       "%s", MSGSET_PARAMETER_ERROR,
+            "msg",          "%s", "node_owner EMPTY, setting none",
+            NULL
+        );
+    }
+
+    /*----------------------------------------*
      *  Check AUTHZS
      *----------------------------------------*/
     BOOL is_yuneta = FALSE;

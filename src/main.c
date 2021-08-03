@@ -18,7 +18,7 @@
 "Si quieres vivir en mi reino tienes que cumplir unas reglas."\
 "De lo contrario, vive como un standalone." \
 
-#define APP_VERSION     "4.15.6"
+#define APP_VERSION     "4.15.7"
 #define APP_DATETIME    __DATE__ " " __TIME__
 #define APP_SUPPORT     "<niyamaka at yuneta.io>"
 
@@ -251,7 +251,7 @@ PRIVATE char variable_config[]= "\
             ]                                           \n\
         },                                              \n\
         {                                               \n\
-            'name': 'controlcenter',                    \n\
+            'name': 'controlcenter_client',             \n\
             'gclass': 'IEvent_cli',                     \n\
             'autostart': true,                          \n\
             'autoplay': true,                           \n\
@@ -262,7 +262,7 @@ PRIVATE char variable_config[]= "\
             },                                          \n\
             'zchilds': [                                \n\
                 {                                               \n\
-                    'name': '__output_side__',                  \n\
+                    'name': '__controlcenter_client__',         \n\
                     'gclass': 'IOGate',                         \n\
                     'as_service': true,                         \n\
                     'kw': {                                     \n\
@@ -270,20 +270,20 @@ PRIVATE char variable_config[]= "\
                     },                                          \n\
                     'zchilds': [                                \n\
                         {                                               \n\
-                            'name': '__output_side__',                  \n\
+                            'name': '__controlcenter_client__',         \n\
                             'gclass': 'Channel',                        \n\
                             'kw': {                                     \n\
                             },                                          \n\
                             'zchilds': [                                \n\
                                 {                                       \n\
-                                    'name': '__output_side__',          \n\
+                                    'name': '__controlcenter_client__', \n\
                                     'gclass': 'Prot_header4',           \n\
                                     'zchilds': [                                \n\
                                         {                                       \n\
-                                            'name': '__connex_output_side__',    \n\
+                                            'name': '__connex_controlcenter_client__', \n\
                                             'gclass': 'Connexs',                \n\
                                             'kw': {                             \n\
-                                                'timeout_between_connections': 60000, \n\
+                                                'timeout_between_connections': 10000, \n\
                                                 'crypto': {                     \n\
                                                     'library': 'openssl',       \n\
                                                     'trace': false              \n\

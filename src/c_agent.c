@@ -268,6 +268,8 @@ PRIVATE json_t *cmd_binaries_instances(hgobj gobj, const char *cmd, json_t *kw, 
 PRIVATE json_t *cmd_configs_instances(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_public_services_instances(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 
+PRIVATE json_t *cmd_ping(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
+
 PRIVATE sdata_desc_t pm_help[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "cmd",          0,              0,          "command about you want help"),
@@ -833,6 +835,7 @@ SDATACM2 (ASN_SCHEMA,   "trace-off-yuno",   SDF_WILD_CMD,       0,              
 SDATACM2 (ASN_SCHEMA,   "command-yuno",     SDF_WILD_CMD,       0,                  pm_command_yuno,cmd_command_yuno,"Command to yuno. WARNING: parameter's keys are not checked"),
 SDATACM2 (ASN_SCHEMA,   "stats-yuno",       SDF_WILD_CMD,       0,                  pm_stats_yuno,  cmd_stats_yuno, "Get statistics of yuno"),
 SDATACM2 (ASN_SCHEMA,   "authzs-yuno",      SDF_WILD_CMD,       0,                  pm_authzs_yuno,  cmd_authzs_yuno, "Get permissions of yuno"),
+SDATACM2 (ASN_SCHEMA,   "ping",             0,                  0,                  0,   cmd_ping,       "Ping command"),
 
 SDATA_END()
 };
@@ -1141,6 +1144,21 @@ PRIVATE json_t *cmd_help(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
         gobj,
         0,
         jn_resp,
+        0,
+        0,
+        kw  // owned
+    );
+}
+
+/***************************************************************************
+ *
+ ***************************************************************************/
+PRIVATE json_t *cmd_ping(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
+{
+    return msg_iev_build_webix(
+        gobj,
+        0,
+        json_sprintf("pong"),
         0,
         0,
         kw  // owned
@@ -4562,7 +4580,7 @@ PRIVATE json_t *cmd_run_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
         "__config__", "__rename_event_name__", "EV_COUNT"
     );
     gobj_subscribe_event(
-        gobj_child_by_name(gobj, "__input_side__", 0),
+        gobj_find_service("__input_side__", TRUE),
         "EV_ON_OPEN",
         kw_sub,
         gobj_counter
@@ -4743,7 +4761,7 @@ PRIVATE json_t *cmd_kill_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
      *  Subcribe al objeto counter a los eventos del router
      */
     gobj_subscribe_event(
-        gobj_child_by_name(gobj, "__input_side__", 0),
+        gobj_find_service("__input_side__", TRUE),
         "EV_ON_CLOSE",
         kw_sub,
         gobj_counter
@@ -8844,7 +8862,7 @@ PRIVATE int ac_stats_yuno_answer(hgobj gobj, const char *event, json_t *kw, hgob
     const char *dst_service = kw_get_str(jn_ievent_id, "dst_service", "", 0);
 
     hgobj gobj_requester = gobj_child_by_name(
-        gobj_child_by_name(gobj, "__input_side__", 0),
+        gobj_find_service("__input_side__", TRUE),
         dst_service,
         0
     );
@@ -8890,7 +8908,7 @@ PRIVATE int ac_command_yuno_answer(hgobj gobj, const char *event, json_t *kw, hg
     }
 
     hgobj gobj_requester = gobj_child_by_name(
-        gobj_child_by_name(gobj, "__input_side__", 0),
+        gobj_find_service("__input_side__", TRUE),
         dst_service,
         0
     );
@@ -9164,7 +9182,7 @@ PRIVATE int ac_on_open(hgobj gobj, const char *event, json_t *kw, hgobj src)
             hgobj gobj_requester = 0;
             if(!empty_string(solicitante)) {
                 gobj_requester = gobj_child_by_name(
-                    gobj_child_by_name(gobj, "__input_side__", 0),
+                    gobj_find_service("__input_side__", TRUE),
                     solicitante,
                     0
                 );
@@ -9318,7 +9336,7 @@ PRIVATE int ac_final_count(hgobj gobj, const char *event, json_t *kw, hgobj src)
 
     const char *requester = kw_get_str(jn_request, "requester", 0, 0);
     hgobj gobj_requester = gobj_child_by_name(
-        gobj_child_by_name(gobj, "__input_side__", 0),
+        gobj_find_service("__input_side__", TRUE),
         requester,
         0
     );

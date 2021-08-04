@@ -251,7 +251,7 @@ PRIVATE char variable_config[]= "\
             ]                                           \n\
         },                                              \n\
         {                                               \n\
-            'name': 'controlcenter_client',             \n\
+            'name': 'controlcenter',                    \n\
             'gclass': 'IEvent_cli',                     \n\
             'autostart': true,                          \n\
             'autoplay': true,                           \n\
@@ -262,7 +262,7 @@ PRIVATE char variable_config[]= "\
             },                                          \n\
             'zchilds': [                                \n\
                 {                                               \n\
-                    'name': '__controlcenter_client__',         \n\
+                    'name': '__controlcenter__',                \n\
                     'gclass': 'IOGate',                         \n\
                     'as_service': true,                         \n\
                     'kw': {                                     \n\
@@ -270,17 +270,17 @@ PRIVATE char variable_config[]= "\
                     },                                          \n\
                     'zchilds': [                                \n\
                         {                                               \n\
-                            'name': '__controlcenter_client__',         \n\
+                            'name': '__controlcenter__',                \n\
                             'gclass': 'Channel',                        \n\
                             'kw': {                                     \n\
                             },                                          \n\
                             'zchilds': [                                \n\
                                 {                                       \n\
-                                    'name': '__controlcenter_client__', \n\
+                                    'name': '__controlcenter__',        \n\
                                     'gclass': 'Prot_header4',           \n\
                                     'zchilds': [                                \n\
                                         {                                       \n\
-                                            'name': '__connex_controlcenter_client__', \n\
+                                            'name': '__connex_controlcenter__', \n\
                                             'gclass': 'Connexs',                \n\
                                             'kw': {                             \n\
                                                 'timeout_between_connections': 10000, \n\

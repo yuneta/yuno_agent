@@ -903,6 +903,18 @@ PRIVATE void mt_create(hgobj gobj)
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
 
     /*----------------------------------------*
+     *  Get node uuid
+     *----------------------------------------*/
+    log_info(0,
+        "gobj",         "%s", gobj_full_name(gobj),
+        "function",     "%s", __FUNCTION__,
+        "msgset",       "%s", MSGSET_INFO,
+        "msg",          "%s", "node uuid",
+        "uuid",         "%s", node_uuid(),
+        NULL
+    );
+
+    /*----------------------------------------*
      *  Check node_owner
      *----------------------------------------*/
     const char *node_owner = gobj_node_owner();

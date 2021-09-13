@@ -905,12 +905,14 @@ PRIVATE void mt_create(hgobj gobj)
     /*----------------------------------------*
      *  Get node uuid
      *----------------------------------------*/
+    generate_node_uuid();
+    const char *uuid = node_uuid();
     log_info(0,
         "gobj",         "%s", gobj_full_name(gobj),
         "function",     "%s", __FUNCTION__,
         "msgset",       "%s", MSGSET_INFO,
         "msg",          "%s", "node uuid",
-        "uuid",         "%s", node_uuid(),
+        "uuid",         "%s", uuid,
         NULL
     );
 

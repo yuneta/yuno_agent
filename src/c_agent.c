@@ -133,6 +133,11 @@ PRIVATE int register_public_services(
 );
 PRIVATE int restart_nodes(hgobj gobj);
 
+PRIVATE json_t *find_public_service(
+    hgobj gobj,
+    const char *service
+);
+
 /***************************************************************************
  *              Resources
  ***************************************************************************/
@@ -6445,31 +6450,19 @@ PRIVATE json_t *get_yuno_config(hgobj gobj, json_t *yuno)
 }
 
 /***************************************************************************
- *  Find a service for client
+ *
  ***************************************************************************/
-PRIVATE json_t *find_service_for_client(
+PRIVATE json_t *find_public_service(
     hgobj gobj,
-    const char *realm_id,
-    const char *service_
+    const char *service
 )
 {
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
     char *resource = "public_services";
 
-    char *service = gbmem_strdup(service_);
-    char *service_yuno_name = strchr(service, '.');     // TODO review: services with . ?
-    if(service_yuno_name) {
-        *service_yuno_name = 0;
-        service_yuno_name++; // yuno_name of service required
-    }
-
-    json_t *kw_find = json_pack("{s:s, s:s}",
-        "realm_id", realm_id,
+    json_t *kw_find = json_pack("{s:s}",
         "service", service
     );
-    if(service_yuno_name) {
-        json_object_set_new(kw_find, "yuno_name", json_string(service_yuno_name));
-    }
 
     json_t *iter_find = gobj_list_nodes(
         priv->resource,
@@ -6480,10 +6473,9 @@ PRIVATE json_t *find_service_for_client(
     );
 
     json_t *hs = json_array_get(iter_find, 0);
-    json_incref(hs);
-    json_decref(iter_find);
-    gbmem_free(service);
 
+    json_incref(hs);
+    JSON_DECREF(iter_find);
     return hs;
 }
 
@@ -6523,7 +6515,7 @@ PRIVATE int write_service_client_connectors(
         if(empty_string(yuno_service)) {
             continue;
         }
-        json_t *hs_service = find_service_for_client(gobj, realm_id_, yuno_service);
+        json_t *hs_service = find_public_service(gobj, yuno_service);
         if(!hs_service) {
             log_error(0,
                 "gobj",             "%s", gobj_full_name(gobj),
@@ -7524,41 +7516,6 @@ PRIVATE int build_release_name(char *bf, int bfsize, json_t *hs_binary, json_t *
 /***************************************************************************
  *
  ***************************************************************************/
-PRIVATE json_t *find_public_service(
-    hgobj gobj,
-    const char *realm_id,
-    const char *yuno_role,
-    const char *yuno_name,
-    const char *service)
-{
-    PRIVATE_DATA *priv = gobj_priv_data(gobj);
-    char *resource = "public_services";
-
-    json_t *kw_find = json_pack("{s:s, s:s, s:s, s:s}",
-        "realm_id", realm_id,
-        "yuno_role", yuno_role,
-        "yuno_name", yuno_name,
-        "service", service
-    );
-
-    json_t *iter_find = gobj_list_nodes(
-        priv->resource,
-        resource,
-        kw_find, // filter
-        json_pack("{s:b, s:b}", "only_id", 1, "with_metadata", 1),
-        gobj
-    );
-
-    json_t *hs = json_array_get(iter_find, 0);
-
-    json_incref(hs);
-    JSON_DECREF(iter_find);
-    return hs;
-}
-
-/***************************************************************************
- *
- ***************************************************************************/
 PRIVATE int get_new_service_port(
     hgobj gobj,
     json_t *hs_realm // NOT owned
@@ -7647,9 +7604,6 @@ PRIVATE int register_public_services(
              */
             json_t *hs_service = find_public_service(
                 gobj,
-                realm_id,
-                yuno_role,
-                yuno_name,
                 service
             );
             if(hs_service) {

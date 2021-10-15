@@ -317,7 +317,7 @@ SDATAPM (ASN_OCTET_STR, "realm_owner",  0,              0,          "Realm Owner
 SDATAPM (ASN_OCTET_STR, "realm_role",   0,              0,          "Realm Role"),
 SDATAPM (ASN_OCTET_STR, "realm_name",   0,              0,          "Realm Name"),
 SDATAPM (ASN_OCTET_STR, "realm_env",    0,              0,          "Environment"),
-SDATAPM (ASN_JSON,      "range_ports",  0,              0,          "Range Ports"),
+SDATAPM (ASN_JSON,      "range_ports",  0,              0,          "Range Ports"), // DEPRECATED
 SDATAPM (ASN_OCTET_STR, "bind_ip",      0,              0,          "Ip to be bind by the Realm services"),
 SDATA_END()
 };
@@ -325,7 +325,7 @@ PRIVATE sdata_desc_t pm_update_realm[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "id",           0,              0,          "Id"),
 SDATAPM (ASN_OCTET_STR, "bind_ip",      0,              0,          "Ip to be bind by the Realm"),
-SDATAPM (ASN_UNSIGNED,  "last_port",    0,              0,          "Last port assigned"),
+SDATAPM (ASN_UNSIGNED,  "last_port",    0,              0,          "Last port assigned"), // DEPRECATED
 SDATA_END()
 };
 PRIVATE sdata_desc_t pm_del_realm[] = {
@@ -857,6 +857,10 @@ SDATA (ASN_JSON,        "agent_environment",SDF_RD,             0,              
 SDATA (ASN_JSON,        "node_variables",   SDF_RD,             0,              "Global to Node json config variables"),
 SDATA (ASN_INTEGER,     "timerStBoot",      SDF_RD,             6*1000,         "Timer to run yunos on boot"),
 SDATA (ASN_INTEGER,     "signal2kill",      SDF_RD,             SIGQUIT,        "Signal to kill yunos"),
+
+SDATA (ASN_JSON,        "range_ports",      SDF_RD,             "[[11100,11199]]", "Range Ports"),
+SDATA (ASN_UNSIGNED,    "last_port",        SDF_WR,             0,              "Last port assigned"),
+
 SDATA (ASN_POINTER,     "user_data",        0,                  0,              "User data"),
 SDATA (ASN_POINTER,     "user_data2",       0,                  0,              "More user data"),
 SDATA (ASN_POINTER,     "subscriber",       0,                  0,              "Subscriber of output-events. Not a child gobj"),
@@ -1615,7 +1619,7 @@ PRIVATE json_t *cmd_replicate_node(hgobj gobj, const char *cmd, json_t *kw, hgob
 //     hsdata hs_realm; rc_instance_t *i_hs;
 //     i_hs = rc_first_instance(iter_realms, (rc_resource_t **)&hs_realm);
 //     while(i_hs) {
-//         json_t *jn_range_ports = SDATA_GET_JSON(hs_realm, "range_ports");
+//         json_t *jn_range_ports = SDATA_GET_JSON(hs_realm xxxx , "range_ports");
 //         char *range_ports = json2uglystr(jn_range_ports);
 //         fprintf(file, "{\"command\": \"%screate-realm domain='%s' range_ports=%s role='%s' name='%s' bind_ip='%s'\"}\n",
 //             upgrade?"-":"",
@@ -2307,7 +2311,7 @@ PRIVATE json_t *cmd_create_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
     const char *realm_role = kw_get_str(kw, "realm_role", "", 0);
     const char *realm_name = kw_get_str(kw, "realm_name", "", 0);
     const char *realm_env = kw_get_str(kw, "realm_env", "", 0);
-    json_t *range_ports = kw_get_list(kw, "range_ports", 0, 0);
+    json_t *range_ports = kw_get_list(kw, "range_ports", 0, KW_EXTRACT); // DEPRECATED
 
     if(empty_string(realm_owner)) {
         return msg_iev_build_webix(
@@ -2350,14 +2354,15 @@ PRIVATE json_t *cmd_create_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         );
     }
     if(!range_ports) {
-        return msg_iev_build_webix(
-            gobj,
-            -1,
-            json_local_sprintf("What realm range ports?"),
-            0,
-            0,
-            kw  // owned
-        );
+        json_decref(range_ports); // DEPRECATED
+        //return msg_iev_build_webix(
+        //    gobj,
+        //    -1,
+        //    json_local_sprintf("What realm range ports?"),
+        //    0,
+        //    0,
+        //    kw  // owned
+        //);
     }
 
     /*------------------------------------------------*
@@ -7522,10 +7527,12 @@ PRIVATE int get_new_service_port(
 )
 {
     uint32_t new_port = 0;
-    json_t *jn_range_ports = SDATA_GET_JSON(hs_realm, "range_ports");
+    //json_t *jn_range_ports = SDATA_GET_JSON(hs_realm, "range_ports"); DEPRECATED
+    json_t *jn_range_ports = gobj_read_json_attr(gobj, "range_ports");
     json_t *jn_port_list = json_expand_integer_list(jn_range_ports);
 
-    uint32_t last_port = SDATA_GET_INT(hs_realm, "last_port");
+    //uint32_t last_port = SDATA_GET_INT(hs_realm, "last_port"); DEPRECATED
+    uint32_t last_port = gobj_read_uint32_attr(gobj, "last_port");
     if(!last_port) {
         new_port = json_list_int(jn_port_list, 0);
     } else {
@@ -7649,15 +7656,15 @@ PRIVATE int register_public_services(
                     continue;
                 }
                 port = get_new_service_port(gobj, hs_realm);
-
-                SDATA_SET_INT(hs_realm, "last_port", port);
-                hs_realm = gobj_update_node(
-                    priv->resource,
-                    "realms",
-                    hs_realm,
-                    json_pack("{s:b, s:b}", "only_id", 1, "with_metadata", 1),
-                    gobj
-                );
+                //SDATA_SET_INT(hs_realm, "last_port", port); DEPRECATED
+                //hs_realm = gobj_update_node(
+                //    priv->resource,
+                //    "realms",
+                //    hs_realm,
+                //    json_pack("{s:b, s:b}", "only_id", 1, "with_metadata", 1),
+                //    gobj
+                //);
+                gobj_write_uint32_attr(gobj, "last_port", port);
             }
 
             /*

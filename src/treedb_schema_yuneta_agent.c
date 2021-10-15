@@ -27,9 +27,9 @@
             │* realm_name               │
             │* realm_env                │
             │  realm_disabled           │
-            │* range_ports              │
+            │* range_ports WARNING deprecated
             │* bind_ip                  │
-            │  last_port                │
+            │  last_port   WARNING deprecated
             │                           │
             │                  yunos {} │ ◀─┐N
             │                           │   │
@@ -146,13 +146,13 @@
 static char treedb_schema_yuneta_agent[]= "\
 {                                                                   \n\
     'id': 'treedb_yuneta_agent',                                    \n\
-    'schema_version': '7',                                          \n\
+    'schema_version': '8',                                          \n\
     'topics': [                                                     \n\
         {                                                           \n\
             'id': 'realms',                                         \n\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
-            'topic_version': '5',                                   \n\
+            'topic_version': '6',                                   \n\
             'pkey2s': '',                                           \n\
             'cols': {                                               \n\
                 'id': {                                             \n\
@@ -228,11 +228,9 @@ static char treedb_schema_yuneta_agent[]= "\
                 },                                                  \n\
                 'range_ports': {                                    \n\
                     'header': 'range_ports',                        \n\
-                    'fillspace': 15,                                \n\
+                    'fillspace': 4,                                 \n\
                     'type': 'blob',                                 \n\
                     'flag': [                                       \n\
-                        'persistent',                               \n\
-                        'required'                                  \n\
                     ]                                               \n\
                 },                                                  \n\
                 'bind_ip': {                                        \n\
@@ -247,10 +245,9 @@ static char treedb_schema_yuneta_agent[]= "\
                 },                                                  \n\
                 'last_port': {                                      \n\
                     'header': 'last_port',                          \n\
-                    'fillspace': 6,                                 \n\
+                    'fillspace': 4,                                 \n\
                     'type': 'integer',                              \n\
                     'flag': [                                       \n\
-                        'persistent'                                \n\
                     ]                                               \n\
                 },                                                  \n\
                 'yunos': {                                          \n\

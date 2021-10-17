@@ -146,13 +146,13 @@
 static char treedb_schema_yuneta_agent[]= "\
 {                                                                   \n\
     'id': 'treedb_yuneta_agent',                                    \n\
-    'schema_version': '8',                                          \n\
+    'schema_version': '9',                                          \n\
     'topics': [                                                     \n\
         {                                                           \n\
             'id': 'realms',                                         \n\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
-            'topic_version': '6',                                   \n\
+            'topic_version': '7',                                   \n\
             'pkey2s': '',                                           \n\
             'cols': {                                               \n\
                 'id': {                                             \n\
@@ -228,7 +228,7 @@ static char treedb_schema_yuneta_agent[]= "\
                 },                                                  \n\
                 'range_ports': {                                    \n\
                     'header': 'range_ports',                        \n\
-                    'fillspace': 4,                                 \n\
+                    'fillspace': 0,                                 \n\
                     'type': 'blob',                                 \n\
                     'flag': [                                       \n\
                     ]                                               \n\
@@ -245,7 +245,7 @@ static char treedb_schema_yuneta_agent[]= "\
                 },                                                  \n\
                 'last_port': {                                      \n\
                     'header': 'last_port',                          \n\
-                    'fillspace': 4,                                 \n\
+                    'fillspace': 0,                                 \n\
                     'type': 'integer',                              \n\
                     'flag': [                                       \n\
                     ]                                               \n\

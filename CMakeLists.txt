@@ -43,10 +43,12 @@ SET (YUNO_SRCS
     src/main.c
     src/yuno_yuneta_agent.c
     src/c_agent.c
+    src/c_pty.c
 )
 SET (YUNO_HDRS
     src/yuno_yuneta_agent.h
     src/c_agent.h
+    src/c_pty.h
 )
 
 ##############################################
@@ -74,6 +76,7 @@ TARGET_LINK_LIBRARIES(yuneta_agent
     lzma        # used by libunwind
     z rt m
     uuid
+    util        # used by c_pty
 )
 
 ##############################################

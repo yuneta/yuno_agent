@@ -204,6 +204,9 @@ PRIVATE char agent_filter_chain_config[]= "\
 
 PRIVATE json_t *cmd_help(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_authzs(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
+PRIVATE json_t *cmd_list_consoles(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
+PRIVATE json_t *cmd_open_console(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
+PRIVATE json_t *cmd_close_console(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 
 PRIVATE json_t *cmd_run_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_kill_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
@@ -274,6 +277,7 @@ PRIVATE json_t *cmd_configs_instances(hgobj gobj, const char *cmd, json_t *kw, h
 PRIVATE json_t *cmd_public_services_instances(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 
 PRIVATE json_t *cmd_ping(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
+PRIVATE json_t *cmd_uuid(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 
 PRIVATE sdata_desc_t pm_help[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
@@ -728,6 +732,18 @@ SDATAPM (ASN_OCTET_STR, "name",         0,              0,          "Snap name")
 SDATA_END()
 };
 
+PRIVATE sdata_desc_t pm_open_console[] = {
+/*-PM----type-----------name------------flag------------default-----description---------- */
+SDATAPM (ASN_OCTET_STR, "name",      0,                 "",         "Name of console"),
+SDATAPM (ASN_OCTET_STR, "process",      0,              "bash",     "Process to execute"),
+SDATA_END()
+};
+PRIVATE sdata_desc_t pm_close_console[] = {
+/*-PM----type-----------name------------flag------------default-----description---------- */
+SDATAPM (ASN_OCTET_STR, "name",      0,                 "",         "Name of console"),
+SDATA_END()
+};
+
 PRIVATE const char *a_help[] = {"h", "?", 0};
 PRIVATE const char *a_edit_config[] = {"EV_EDIT_CONFIG", 0};
 PRIVATE const char *a_view_config[] = {"EV_VIEW_CONFIG", 0};
@@ -752,6 +768,7 @@ PRIVATE const char *a_binaries_instances[] = {"22", 0};
 PRIVATE const char *a_configs_instances[] = {"33", 0};
 PRIVATE const char *a_realms_instances[] = {"44", 0};
 PRIVATE const char *a_public_services_instances[] = {"55", 0};
+PRIVATE const char *a_uuid[] = {"uuid", 0};
 
 PRIVATE sdata_desc_t command_table[] = {
 /*-CMD2--type-----------name----------------flag----------------alias---------------items-----------json_fn---------description---------- */
@@ -759,6 +776,12 @@ SDATACM2 (ASN_SCHEMA,   "help",             0,                  a_help,         
 SDATACM2 (ASN_SCHEMA,   "authzs",           0,                  0,                  pm_authzs,      cmd_authzs,     "Authorization's help"),
 
 SDATACM2 (ASN_SCHEMA,   "",                 0,                  0,                  0,              0,              "\nAgent\n-----------"),
+
+// HACK DANGER backdoor, use Yuneta only in private networks, or public but encrypted and assured connections.
+SDATACM2 (ASN_SCHEMA,    "list-consoles",   0,                  0,                  0,              cmd_list_consoles, "List consoles"),
+SDATACM2 (ASN_SCHEMA,    "open-console",    0,                  0,                  pm_open_console,cmd_open_console, "Open console"),
+SDATACM2 (ASN_SCHEMA,    "close-console",   0,                  0,                  pm_close_console,cmd_close_console,"Close console"),
+
 SDATACM2 (ASN_SCHEMA,   "command-agent",    SDF_WILD_CMD,       0,                  pm_command_agent,cmd_command_agent,"Command to agent. WARNING: parameter's keys are not checked"),
 SDATACM2 (ASN_SCHEMA,   "stats-agent",      SDF_WILD_CMD,       0,                  pm_stats_agent, cmd_stats_agent, "Get statistics of agent"),
 SDATACM2 (ASN_SCHEMA,   "authzs-agent",     SDF_WILD_CMD,       0,                  pm_authzs_agent, cmd_authzs_agent, "Get authzs of agent"),
@@ -841,6 +864,7 @@ SDATACM2 (ASN_SCHEMA,   "command-yuno",     SDF_WILD_CMD,       0,              
 SDATACM2 (ASN_SCHEMA,   "stats-yuno",       SDF_WILD_CMD,       0,                  pm_stats_yuno,  cmd_stats_yuno, "Get statistics of yuno"),
 SDATACM2 (ASN_SCHEMA,   "authzs-yuno",      SDF_WILD_CMD,       0,                  pm_authzs_yuno,  cmd_authzs_yuno, "Get permissions of yuno"),
 SDATACM2 (ASN_SCHEMA,   "ping",             0,                  0,                  0,   cmd_ping,       "Ping command"),
+SDATACM2 (ASN_SCHEMA,   "node-uuid",        0,                  a_uuid,             0,   cmd_uuid,       "Get uuid of node"),
 
 SDATA_END()
 };
@@ -888,6 +912,8 @@ typedef struct _PRIVATE_DATA {
 
     hgobj gobj_tranger;
     json_t *tranger;
+
+    json_t *list_consoles; // Dictionary of console names
 
     hgobj resource;
     hgobj timer;
@@ -1060,6 +1086,8 @@ PRIVATE void mt_create(hgobj gobj)
         }
     }
 
+    priv->list_consoles = json_object();
+
     /*
      *  SERVICE subscription model
      */
@@ -1092,6 +1120,8 @@ PRIVATE void mt_writing(hgobj gobj, const char *path)
 PRIVATE void mt_destroy(hgobj gobj)
 {
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
+
+    JSON_DECREF(priv->list_consoles);
 
     if(priv->audit_file) {
         rotatory_close(priv->audit_file);
@@ -1184,6 +1214,21 @@ PRIVATE json_t *cmd_ping(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
         json_sprintf("pong"),
         0,
         0,
+        kw  // owned
+    );
+}
+
+/***************************************************************************
+ *
+ ***************************************************************************/
+PRIVATE json_t *cmd_uuid(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
+{
+    return msg_iev_build_webix(
+        gobj,
+        0,
+        0,
+        0,
+        json_sprintf("%s", node_uuid()),
         kw  // owned
     );
 }
@@ -1357,7 +1402,7 @@ PRIVATE json_t *cmd_dir_logs(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
         return msg_iev_build_webix(
             gobj,
             -1,
-            json_local_sprintf("'id' required"),
+            json_sprintf("'id' required"),
             0,
             0,
             kw  // owned
@@ -1374,7 +1419,7 @@ PRIVATE json_t *cmd_dir_logs(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
     if(!node) {
         return msg_iev_build_webix(gobj,
             -1,
-            json_local_sprintf("Yuno not found: %s", id),
+            json_sprintf("Yuno not found: %s", id),
             0,
             0,
             kw  // owned
@@ -1421,7 +1466,7 @@ PRIVATE json_t *cmd_dir_local_data(hgobj gobj, const char *cmd, json_t *kw, hgob
         return msg_iev_build_webix(
             gobj,
             -1,
-            json_local_sprintf("'id' required"),
+            json_sprintf("'id' required"),
             0,
             0,
             kw  // owned
@@ -1438,7 +1483,7 @@ PRIVATE json_t *cmd_dir_local_data(hgobj gobj, const char *cmd, json_t *kw, hgob
     if(!node) {
         return msg_iev_build_webix(gobj,
             -1,
-            json_local_sprintf("Yuno not found: %s", id),
+            json_sprintf("Yuno not found: %s", id),
             0,
             0,
             kw  // owned
@@ -1497,7 +1542,7 @@ PRIVATE json_t *cmd_dir_local_data(hgobj gobj, const char *cmd, json_t *kw, hgob
 //     if(jn_attr) {
 //         json_object_set_new(jn_dict, fullpath, jn_attr);
 //     } else {
-//         jn_attr = json_local_sprintf("Invalid json in '%s' file, error '%s'", fullpath, error.text);
+//         jn_attr = json_sprintf("Invalid json in '%s' file, error '%s'", fullpath, error.text);
 //         json_object_set_new(jn_dict, fullpath, jn_attr);
 //     }
 //     return TRUE; // to continue
@@ -1520,7 +1565,7 @@ PRIVATE json_t *cmd_replicate_node(hgobj gobj, const char *cmd, json_t *kw, hgob
 //             return msg_iev_build_webix(
 //                 gobj,
 //                 -1,
-//                 json_local_sprintf("Realm %s not found", realm_id),
+//                 json_sprintf("Realm %s not found", realm_id),
 //                 0,
 //                 0,
 //                 kw  // owned
@@ -1539,7 +1584,7 @@ PRIVATE json_t *cmd_replicate_node(hgobj gobj, const char *cmd, json_t *kw, hgob
 //         return msg_iev_build_webix(
 //             gobj,
 //             -1,
-//             json_local_sprintf("No realms found"),
+//             json_sprintf("No realms found"),
 //             0,
 //             0,
 //             kw  // owned
@@ -1606,7 +1651,7 @@ PRIVATE json_t *cmd_replicate_node(hgobj gobj, const char *cmd, json_t *kw, hgob
 //         return msg_iev_build_webix(
 //             gobj,
 //             -1,
-//             json_local_sprintf("Cannot create '%s' file", path),
+//             json_sprintf("Cannot create '%s' file", path),
 //             0,
 //             0,
 //             kw  // owned
@@ -1872,7 +1917,7 @@ PRIVATE json_t *cmd_replicate_node(hgobj gobj, const char *cmd, json_t *kw, hgob
 //     return msg_iev_build_webix(
 //         gobj,
 //         0,
-//         json_local_sprintf("%d realms replicated in '%s' filename", realm_replicates, path),
+//         json_sprintf("%d realms replicated in '%s' filename", realm_replicates, path),
 //         0,
 //         0,
 //         kw  // owned
@@ -1896,7 +1941,7 @@ PRIVATE json_t *cmd_replicate_binaries(hgobj gobj, const char *cmd, json_t *kw, 
 //             return msg_iev_build_webix(
 //                 gobj,
 //                 -1,
-//                 json_local_sprintf("Binary %s not found", role),
+//                 json_sprintf("Binary %s not found", role),
 //                 0,
 //                 0,
 //                 kw  // owned
@@ -1913,7 +1958,7 @@ PRIVATE json_t *cmd_replicate_binaries(hgobj gobj, const char *cmd, json_t *kw, 
 //         return msg_iev_build_webix(
 //             gobj,
 //             -1,
-//             json_local_sprintf("No binary found"),
+//             json_sprintf("No binary found"),
 //             0,
 //             0,
 //             kw  // owned
@@ -1979,7 +2024,7 @@ PRIVATE json_t *cmd_replicate_binaries(hgobj gobj, const char *cmd, json_t *kw, 
 //         return msg_iev_build_webix(
 //             gobj,
 //             -1,
-//             json_local_sprintf("Cannot create '%s' file", path),
+//             json_sprintf("Cannot create '%s' file", path),
 //             0,
 //             0,
 //             kw  // owned
@@ -2046,7 +2091,7 @@ PRIVATE json_t *cmd_replicate_binaries(hgobj gobj, const char *cmd, json_t *kw, 
 //     return msg_iev_build_webix(
 //         gobj,
 //         0,
-//         json_local_sprintf("%d binaries replicated in '%s' filename", binary_replicates, path),
+//         json_sprintf("%d binaries replicated in '%s' filename", binary_replicates, path),
 //         0,
 //         0,
 //         kw  // owned
@@ -2079,7 +2124,7 @@ PRIVATE json_t *cmd_list_public_services(hgobj gobj, const char *cmd, json_t *kw
     return msg_iev_build_webix(
         gobj,
         0,
-        json_local_sprintf(cmd),
+        json_sprintf("%s", cmd),
         tranger_list_topic_desc(gobj_read_pointer_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
         kw  // owned
@@ -2113,7 +2158,7 @@ PRIVATE json_t *cmd_update_public_service(hgobj gobj, const char *cmd, json_t *k
         return msg_iev_build_webix(
             gobj,
             -1,
-            json_local_sprintf("Select some public service please"),
+            json_sprintf("Select some public service please"),
             0,
             0,
             kw  // owned
@@ -2154,8 +2199,8 @@ PRIVATE json_t *cmd_update_public_service(hgobj gobj, const char *cmd, json_t *k
         gobj,
         result,
         result<0?
-            json_local_sprintf(log_last_message()):
-            json_local_sprintf("Updated"),
+            json_sprintf("%s", log_last_message()):
+            json_sprintf("Updated"),
         tranger_list_topic_desc(gobj_read_pointer_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
         kw  // owned
@@ -2188,7 +2233,7 @@ PRIVATE json_t *cmd_delete_public_service(hgobj gobj, const char *cmd, json_t *k
         return msg_iev_build_webix(
             gobj,
             -1,
-            json_local_sprintf("Select some public service please"),
+            json_sprintf("Select some public service please"),
             0,
             0,
             kw  // owned
@@ -2217,8 +2262,8 @@ PRIVATE json_t *cmd_delete_public_service(hgobj gobj, const char *cmd, json_t *k
         gobj,
         result,
         result<0?
-            json_local_sprintf(log_last_message()):
-            json_local_sprintf("%d public services deleted", idx),
+            json_sprintf("%s", log_last_message()):
+            json_sprintf("%d public services deleted", idx),
         0,
         jn_data,
         kw  // owned
@@ -2250,7 +2295,7 @@ PRIVATE json_t *cmd_list_realms(hgobj gobj, const char *cmd, json_t *kw, hgobj s
     return msg_iev_build_webix(
         gobj,
         0,
-        json_local_sprintf(cmd),
+        json_sprintf("%s", cmd),
         tranger_list_topic_desc(gobj_read_pointer_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
         kw  // owned
@@ -2270,7 +2315,7 @@ PRIVATE json_t *cmd_check_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj s
         return msg_iev_build_webix(
             gobj,
             -1,
-            json_local_sprintf("What realm id?"),
+            json_sprintf("What realm id?"),
             0,
             0,
             kw  // owned
@@ -2292,7 +2337,7 @@ PRIVATE json_t *cmd_check_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj s
     return msg_iev_build_webix(
         gobj,
         ret,
-        ret<0?json_local_sprintf("Not found!"):json_local_sprintf("Exists!"),
+        ret<0?json_sprintf("Not found!"):json_sprintf("Exists!"),
         tranger_list_topic_desc(gobj_read_pointer_attr(priv->resource, "tranger"), resource),
         json_pack("[o]", node), // owned
         kw  // owned
@@ -2317,7 +2362,7 @@ PRIVATE json_t *cmd_create_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         return msg_iev_build_webix(
             gobj,
             -1,
-            json_local_sprintf("What realm owner?"),
+            json_sprintf("What realm owner?"),
             0,
             0,
             kw  // owned
@@ -2327,7 +2372,7 @@ PRIVATE json_t *cmd_create_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         return msg_iev_build_webix(
             gobj,
             -1,
-            json_local_sprintf("What realm role?"),
+            json_sprintf("What realm role?"),
             0,
             0,
             kw  // owned
@@ -2337,7 +2382,7 @@ PRIVATE json_t *cmd_create_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         return msg_iev_build_webix(
             gobj,
             -1,
-            json_local_sprintf("What realm name?"),
+            json_sprintf("What realm name?"),
             0,
             0,
             kw  // owned
@@ -2347,7 +2392,7 @@ PRIVATE json_t *cmd_create_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         return msg_iev_build_webix(
             gobj,
             -1,
-            json_local_sprintf("What realm environment?"),
+            json_sprintf("What realm environment?"),
             0,
             0,
             kw  // owned
@@ -2358,7 +2403,7 @@ PRIVATE json_t *cmd_create_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         //return msg_iev_build_webix(
         //    gobj,
         //    -1,
-        //    json_local_sprintf("What realm range ports?"),
+        //    json_sprintf("What realm range ports?"),
         //    0,
         //    0,
         //    kw  // owned
@@ -2389,7 +2434,7 @@ PRIVATE json_t *cmd_create_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         return msg_iev_build_webix(
             gobj,
             -1,
-            json_local_sprintf(
+            json_sprintf(
                 "Realm already exists"
             ),
             tranger_list_topic_desc(gobj_read_pointer_attr(priv->resource, "tranger"), resource),
@@ -2414,7 +2459,7 @@ PRIVATE json_t *cmd_create_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         return msg_iev_build_webix(
             gobj,
             -1,
-            json_local_sprintf("Cannot create realm: %s", log_last_message()),
+            json_sprintf("Cannot create realm: %s", log_last_message()),
             0,
             0,
             kw  // owned
@@ -2467,7 +2512,7 @@ PRIVATE json_t *cmd_update_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         return msg_iev_build_webix(
             gobj,
             -1,
-            json_local_sprintf("Select some realm please"),
+            json_sprintf("Select some realm please"),
             0,
             0,
             kw  // owned
@@ -2509,8 +2554,8 @@ PRIVATE json_t *cmd_update_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         gobj,
         result,
         result<0?
-            json_local_sprintf(log_last_message()):
-            json_local_sprintf("Updated"),
+            json_sprintf("%s", log_last_message()):
+            json_sprintf("Updated"),
         tranger_list_topic_desc(gobj_read_pointer_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
         kw  // owned
@@ -2543,7 +2588,7 @@ PRIVATE json_t *cmd_delete_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         return msg_iev_build_webix(
             gobj,
             -1,
-            json_local_sprintf("Select some realm please"),
+            json_sprintf("Select some realm please"),
             0,
             0,
             kw  // owned
@@ -2559,7 +2604,7 @@ PRIVATE json_t *cmd_delete_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         int use = json_array_size(yunos);
 
         if(use > 0) {
-            json_t *comment = json_local_sprintf(
+            json_t *comment = json_sprintf(
                 "Cannot delete realm '%s'. Using in %d yunos",
                 kw_get_str(node, "id", "", KW_REQUIRED),
                 use
@@ -2596,8 +2641,8 @@ PRIVATE json_t *cmd_delete_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         gobj,
         0,
         result<0?
-            json_local_sprintf(log_last_message()):
-            json_local_sprintf("%d realms deleted", idx),
+            json_sprintf("%s", log_last_message()):
+            json_sprintf("%d realms deleted", idx),
         0,
         jn_data,
         kw  // owned
@@ -2629,7 +2674,7 @@ PRIVATE json_t *cmd_list_binaries(hgobj gobj, const char *cmd, json_t *kw, hgobj
     return msg_iev_build_webix(
         gobj,
         0,
-        json_local_sprintf(cmd),
+        json_sprintf("%s", cmd),
         tranger_list_topic_desc(gobj_read_pointer_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
         kw  // owned
@@ -2703,7 +2748,7 @@ PRIVATE json_t *cmd_install_binary(hgobj gobj, const char *cmd, json_t *kw, hgob
         return msg_iev_build_webix(
             gobj,
             -1,
-            json_local_sprintf("No data in content64"),
+            json_sprintf("No data in content64"),
             0,
             0,
             kw  // owned
@@ -2724,7 +2769,7 @@ PRIVATE json_t *cmd_install_binary(hgobj gobj, const char *cmd, json_t *kw, hgob
         return msg_iev_build_webix(
             gobj,
             -1,
-            json_local_sprintf(
+            json_sprintf(
                 "It seems a wrong yuno binary"
             ),
             0,
@@ -2759,7 +2804,7 @@ PRIVATE json_t *cmd_install_binary(hgobj gobj, const char *cmd, json_t *kw, hgob
         /*
          *  1 o more records, yuno already stored and without overwrite.
          */
-        json_t *comment = json_local_sprintf(
+        json_t *comment = json_sprintf(
             "Binary already exists: role %s, version %s",
             binary_role, binary_version
         );
@@ -2798,7 +2843,7 @@ PRIVATE json_t *cmd_install_binary(hgobj gobj, const char *cmd, json_t *kw, hgob
         return msg_iev_build_webix(
             gobj,
             -1,
-            json_local_sprintf(
+            json_sprintf(
                 "Cannot create '%s' directory",
                 destination
             ),
@@ -2833,7 +2878,7 @@ PRIVATE json_t *cmd_install_binary(hgobj gobj, const char *cmd, json_t *kw, hgob
         return msg_iev_build_webix(
             gobj,
             -1,
-            json_local_sprintf(
+            json_sprintf(
                 "Cannot copy '%s' to '%s'",
                 path,
                 destination
@@ -2881,7 +2926,7 @@ PRIVATE json_t *cmd_install_binary(hgobj gobj, const char *cmd, json_t *kw, hgob
         return msg_iev_build_webix(
             gobj,
             -1,
-            json_local_sprintf("Cannot create binary: %s", log_last_message()),
+            json_sprintf("Cannot create binary: %s", log_last_message()),
             0,
             0,
             kw  // owned
@@ -2900,7 +2945,7 @@ PRIVATE json_t *cmd_install_binary(hgobj gobj, const char *cmd, json_t *kw, hgob
     return msg_iev_build_webix(
         gobj,
         0,
-        json_local_sprintf("version: %s", kw_get_str(node, "version", "", KW_REQUIRED)),
+        json_sprintf("version: %s", kw_get_str(node, "version", "", KW_REQUIRED)),
         tranger_list_topic_desc(gobj_read_pointer_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
         kw  // owned
@@ -2921,7 +2966,7 @@ PRIVATE json_t *cmd_update_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
         return msg_iev_build_webix(
             gobj,
             -1,
-            json_local_sprintf("'id' required"),
+            json_sprintf("'id' required"),
             0,
             0,
             kw  // owned
@@ -2939,7 +2984,7 @@ PRIVATE json_t *cmd_update_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
         return msg_iev_build_webix(
             gobj,
             -1,
-            json_local_sprintf("Binary not found"),
+            json_sprintf("Binary not found"),
             0,
             0,
             kw  // owned
@@ -2953,7 +2998,7 @@ PRIVATE json_t *cmd_update_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
         return msg_iev_build_webix(
             gobj,
             -1,
-            json_local_sprintf("No data in content64"),
+            json_sprintf("No data in content64"),
             0,
             0,
             kw  // owned
@@ -2975,7 +3020,7 @@ PRIVATE json_t *cmd_update_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
         return msg_iev_build_webix(
             gobj,
             -1,
-            json_local_sprintf(
+            json_sprintf(
                 "It seems a wrong yuno binary: %s", path
             ),
             0,
@@ -3013,7 +3058,7 @@ PRIVATE json_t *cmd_update_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
         return msg_iev_build_webix(
             gobj,
             -1,
-            json_local_sprintf(
+            json_sprintf(
                 "Cannot create '%s' directory",
                 destination
             ),
@@ -3049,7 +3094,7 @@ PRIVATE json_t *cmd_update_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
         return msg_iev_build_webix(
             gobj,
             -1,
-            json_local_sprintf(
+            json_sprintf(
                 "Cannot copy '%s' to '%s'",
                 path,
                 destination
@@ -3099,7 +3144,7 @@ PRIVATE json_t *cmd_update_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
     json_t *webix = msg_iev_build_webix(
         gobj,
         0,
-        json_local_sprintf("version: %s", kw_get_str(node, "version", "", KW_REQUIRED)),
+        json_sprintf("version: %s", kw_get_str(node, "version", "", KW_REQUIRED)),
         tranger_list_topic_desc(gobj_read_pointer_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
         kw  // owned
@@ -3134,7 +3179,7 @@ PRIVATE json_t *cmd_delete_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
         return msg_iev_build_webix(
             gobj,
             -1,
-            json_local_sprintf("Select some binary please"),
+            json_sprintf("Select some binary please"),
             0,
             0,
             kw  // owned
@@ -3149,7 +3194,7 @@ PRIVATE json_t *cmd_delete_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
         json_t *yunos = kw_get_list(node, "yunos", 0, KW_REQUIRED);
         int use = json_array_size(yunos);
         if(use > 0) {
-            json_t *comment = json_local_sprintf(
+            json_t *comment = json_sprintf(
                 "Cannot delete binary '%s'. Using in %d yunos",
                 kw_get_str(node, "id", "", KW_REQUIRED),
                 use
@@ -3206,8 +3251,8 @@ PRIVATE json_t *cmd_delete_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
         gobj,
         result,
         result<0?
-            json_local_sprintf(log_last_message()):
-            json_local_sprintf("%d binaries deleted", idx),
+            json_sprintf("%s", log_last_message()):
+            json_sprintf("%d binaries deleted", idx),
         0,
         jn_data,
         kw  // owned
@@ -3239,7 +3284,7 @@ PRIVATE json_t *cmd_list_configs(hgobj gobj, const char *cmd, json_t *kw, hgobj 
     return msg_iev_build_webix(
         gobj,
         0,
-        json_local_sprintf(cmd),
+        json_sprintf("%s", cmd),
         tranger_list_topic_desc(gobj_read_pointer_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
         kw  // owned
@@ -3259,7 +3304,7 @@ PRIVATE json_t *cmd_create_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
         return msg_iev_build_webix(
             gobj,
             -1,
-            json_local_sprintf("Configuration Id is required"),
+            json_sprintf("Configuration Id is required"),
             0,
             0,
             kw  // owned
@@ -3281,7 +3326,7 @@ PRIVATE json_t *cmd_create_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
             return msg_iev_build_webix(
                 gobj,
                 -1,
-                json_local_sprintf("Bad json in content64"),
+                json_sprintf("Bad json in content64"),
                 0,
                 0,
                 kw  // owned
@@ -3301,7 +3346,7 @@ PRIVATE json_t *cmd_create_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
         return msg_iev_build_webix(
             gobj,
             -1,
-            json_local_sprintf("Configuration version is required"),
+            json_sprintf("Configuration version is required"),
             0,
             0,
             kw  // owned
@@ -3330,7 +3375,7 @@ PRIVATE json_t *cmd_create_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
         return msg_iev_build_webix(
             gobj,
             -1,
-            json_local_sprintf(
+            json_sprintf(
                 "Configuration already exists"
             ),
             tranger_list_topic_desc(gobj_read_pointer_attr(priv->resource, "tranger"), resource),
@@ -3383,7 +3428,7 @@ PRIVATE json_t *cmd_create_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
         return msg_iev_build_webix(
             gobj,
             -1,
-            json_local_sprintf("Cannot create config: %s", log_last_message()),
+            json_sprintf("Cannot create config: %s", log_last_message()),
             0,
             0,
             kw  // owned
@@ -3399,7 +3444,7 @@ PRIVATE json_t *cmd_create_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
     return msg_iev_build_webix(
         gobj,
         0,
-        json_local_sprintf("version: %s", kw_get_str(node, "version", "", KW_REQUIRED)),
+        json_sprintf("version: %s", kw_get_str(node, "version", "", KW_REQUIRED)),
         tranger_list_topic_desc(gobj_read_pointer_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
         kw  // owned
@@ -3423,7 +3468,7 @@ PRIVATE json_t *cmd_update_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
         return msg_iev_build_webix(
             gobj,
             -1,
-            json_local_sprintf("'id' required"),
+            json_sprintf("'id' required"),
             0,
             0,
             kw  // owned
@@ -3446,7 +3491,7 @@ PRIVATE json_t *cmd_update_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
         return msg_iev_build_webix(
             gobj,
             -1,
-            json_local_sprintf("Bad json in content64"),
+            json_sprintf("Bad json in content64"),
             0,
             0,
             kw  // owned
@@ -3472,7 +3517,7 @@ PRIVATE json_t *cmd_update_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
         return msg_iev_build_webix(
             gobj,
             -1,
-            json_local_sprintf(
+            json_sprintf(
                 "Configuration not found"
             ),
             tranger_list_topic_desc(gobj_read_pointer_attr(priv->resource, "tranger"), resource),
@@ -3513,7 +3558,7 @@ PRIVATE json_t *cmd_update_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
     json_t *webix = msg_iev_build_webix(
         gobj,
         0,
-        json_local_sprintf("version: %s", kw_get_str(node, "version", "", KW_REQUIRED)),
+        json_sprintf("version: %s", kw_get_str(node, "version", "", KW_REQUIRED)),
         tranger_list_topic_desc(gobj_read_pointer_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
         kw  // owned
@@ -3548,7 +3593,7 @@ PRIVATE json_t *cmd_delete_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
         return msg_iev_build_webix(
             gobj,
             -1,
-            json_local_sprintf("Select some configuration please"),
+            json_sprintf("Select some configuration please"),
             0,
             0,
             kw  // owned
@@ -3563,7 +3608,7 @@ PRIVATE json_t *cmd_delete_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
         json_t *yunos = kw_get_list(node, "yunos", 0, KW_REQUIRED);
         int use = json_array_size(yunos);
         if(use > 0) {
-            json_t *comment = json_local_sprintf(
+            json_t *comment = json_sprintf(
                 "Cannot delete configuration '%s'. Using in %d yunos",
                 kw_get_str(node, "id", "", KW_REQUIRED),
                 use
@@ -3590,7 +3635,7 @@ PRIVATE json_t *cmd_delete_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
 
         if(gobj_delete_node(
                 priv->resource, resource, node, json_pack("{s:b}", "force", force), src)<0) {
-            json_t *comment = json_local_sprintf(
+            json_t *comment = json_sprintf(
                 "Cannot delete the configuration: %s %s",
                 id, version
             );
@@ -3612,7 +3657,7 @@ PRIVATE json_t *cmd_delete_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
     return msg_iev_build_webix(
         gobj,
         0,
-        json_local_sprintf("%d configurations deleted", idx),
+        json_sprintf("%d configurations deleted", idx),
         0,
         jn_data,
         kw  // owned
@@ -3631,7 +3676,7 @@ PRIVATE json_t *cmd_set_tag(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
     if(!yuno_tag) {
         return msg_iev_build_webix(gobj,
             -1,
-            json_local_sprintf("What tag?"),
+            json_sprintf("What tag?"),
             0,
             0,
             kw  // owned
@@ -3654,7 +3699,7 @@ PRIVATE json_t *cmd_set_tag(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
         return msg_iev_build_webix(
             gobj,
             -1,
-            json_local_sprintf("Select some yuno please"),
+            json_sprintf("Select some yuno please"),
             0,
             0,
             kw  // owned
@@ -3707,7 +3752,7 @@ PRIVATE json_t *cmd_set_multiple(hgobj gobj, const char *cmd, json_t *kw, hgobj 
     if(!kw_has_key(kw, "yuno_multiple")) {
         return msg_iev_build_webix(gobj,
             -210,
-            json_local_sprintf("What multiple?"),
+            json_sprintf("What multiple?"),
             0,
             0,
             kw  // owned
@@ -3732,7 +3777,7 @@ PRIVATE json_t *cmd_set_multiple(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         return msg_iev_build_webix(
             gobj,
             -210,
-            json_local_sprintf("Select some yuno please"),
+            json_sprintf("Select some yuno please"),
             0,
             0,
             kw  // owned
@@ -4117,7 +4162,7 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
     if(!hs_realm) {
         return msg_iev_build_webix(gobj,
             -1,
-            json_local_sprintf(
+            json_sprintf(
                 "Realm not found: '%s' ", realm_id
             ),
             0,
@@ -4131,7 +4176,7 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
      *---------------------------------------------*/
     json_t *hs_binary = find_binary_version(gobj, yuno_role, role_version);
     if(!hs_binary) {
-        json_t *comment = json_local_sprintf(
+        json_t *comment = json_sprintf(
             "Binary '%s%s%s' not found",
             yuno_role,
             empty_string(role_version)?"":"-",
@@ -4157,7 +4202,7 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
         name_version
     );
     if(!hs_configuration) {
-        json_t *comment = json_local_sprintf(
+        json_t *comment = json_sprintf(
             "Yuno '%s.%s': configuration '%s%s%s' not found",
             yuno_role, yuno_name,
             yuno_name,
@@ -4226,7 +4271,7 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
             json_t *webix = msg_iev_build_webix(
                 gobj,
                 -1,
-                json_local_sprintf(
+                json_sprintf(
                     "Yuno already exists"
                 ),
                 tranger_list_topic_desc(gobj_read_pointer_attr(priv->resource, "tranger"), resource),
@@ -4266,7 +4311,7 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
         return msg_iev_build_webix(
             gobj,
             -1,
-            json_local_sprintf("Cannot create yuno: %s", log_last_message()),
+            json_sprintf("Cannot create yuno: %s", log_last_message()),
             0,
             0,
             kw  // owned
@@ -4336,8 +4381,8 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
     json_t *webix = msg_iev_build_webix(gobj,
         result,
         result<0?
-            json_local_sprintf(log_last_message()):
-            json_local_sprintf("Created"),
+            json_sprintf("%s", log_last_message()):
+            json_sprintf("Created"),
         tranger_list_topic_desc(gobj_read_pointer_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
         kw  // owned
@@ -4372,7 +4417,7 @@ json_t* cmd_delete_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
         return msg_iev_build_webix(
             gobj,
             -1,
-            json_local_sprintf("Select some yuno please"),
+            json_sprintf("Select some yuno please"),
             0,
             0,
             kw  // owned
@@ -4386,7 +4431,7 @@ json_t* cmd_delete_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
     json_array_foreach(iter, idx, node) {
         BOOL yuno_running = kw_get_bool(node, "yuno_running", 0, KW_REQUIRED);
         if(yuno_running > 0) {
-            json_t *comment = json_local_sprintf(
+            json_t *comment = json_sprintf(
                 "Cannot delete yuno '%s', it's running",
                 kw_get_str(node, "id", "", KW_REQUIRED)
             );
@@ -4402,7 +4447,7 @@ json_t* cmd_delete_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
         }
         json_int_t __tag__ = kw_get_int(node, "__md_treedb__`__tag__", 0, KW_REQUIRED);
         if(__tag__ && !force) {
-            json_t *comment = json_local_sprintf(
+            json_t *comment = json_sprintf(
                 "Cannot delete yuno '%s', it's tagged (%d)",
                 kw_get_str(node, "id", "", KW_REQUIRED),
                 (int)__tag__
@@ -4456,8 +4501,8 @@ json_t* cmd_delete_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
         gobj,
         result,
         result<0?
-            json_local_sprintf(log_last_message()):
-            json_local_sprintf("%d yunos deleted", deleted),
+            json_sprintf("%s", log_last_message()):
+            json_sprintf("%d yunos deleted", deleted),
         tranger_list_topic_desc(gobj_read_pointer_attr(priv->resource, "tranger"), resource),
         jn_data,
         kw  // owned
@@ -4490,7 +4535,7 @@ PRIVATE json_t *cmd_run_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
         JSON_DECREF(iter);
         return msg_iev_build_webix(gobj,
             -1,
-            json_local_sprintf(
+            json_sprintf(
                 "Yuno not found or already running"
             ),
             0,
@@ -4567,7 +4612,7 @@ PRIVATE json_t *cmd_run_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
         JSON_DECREF(iter);
         return msg_iev_build_webix(gobj,
             -1,
-            json_local_sprintf(
+            json_sprintf(
                 "Yuno not found to run"
             ),
             0,
@@ -4676,7 +4721,7 @@ PRIVATE json_t *cmd_kill_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
         JSON_DECREF(iter);
         return msg_iev_build_webix(gobj,
             -1,
-            json_local_sprintf(
+            json_sprintf(
                 "Yuno not found or already not running"
             ),
             0,
@@ -4726,7 +4771,7 @@ PRIVATE json_t *cmd_kill_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
                 JSON_DECREF(filterlist);
                 return msg_iev_build_webix(gobj,
                     -1,
-                    json_local_sprintf(
+                    json_sprintf(
                         "Can't kill yuno: %s", gobj_get_message_error(gobj)
                     ),
                     0,
@@ -4746,7 +4791,7 @@ PRIVATE json_t *cmd_kill_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
         JSON_DECREF(filterlist);
         return msg_iev_build_webix(gobj,
             -1,
-            json_local_sprintf(
+            json_sprintf(
                 "Yuno not found to kill"
             ),
             0,
@@ -4844,7 +4889,7 @@ PRIVATE json_t *cmd_play_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
         JSON_DECREF(iter);
         return msg_iev_build_webix(gobj,
             -1,
-            json_local_sprintf(
+            json_sprintf(
                 "Yuno not found or already playing"
             ),
             0,
@@ -4914,7 +4959,7 @@ PRIVATE json_t *cmd_play_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
         JSON_DECREF(filterlist);
         return msg_iev_build_webix(gobj,
             0,
-            json_local_sprintf(
+            json_sprintf(
                 "Yuno not found to play"
             ),
             0,
@@ -4927,7 +4972,7 @@ PRIVATE json_t *cmd_play_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
         JSON_DECREF(filterlist);
         return msg_iev_build_webix(gobj,
             0,
-            json_local_sprintf(
+            json_sprintf(
                 "%d yunos found to preplay",
                 total_to_preplayed
             ),
@@ -5028,7 +5073,7 @@ PRIVATE json_t *cmd_pause_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
         JSON_DECREF(iter);
         return msg_iev_build_webix(gobj,
             -1,
-            json_local_sprintf(
+            json_sprintf(
                 "Yuno not found or already in pause"
             ),
             0,
@@ -5084,7 +5129,7 @@ PRIVATE json_t *cmd_pause_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
         JSON_DECREF(iter);
         return msg_iev_build_webix(gobj,
             0,
-            json_local_sprintf(
+            json_sprintf(
                 "Yuno not found to pause"
             ),
             0,
@@ -5097,7 +5142,7 @@ PRIVATE json_t *cmd_pause_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
         JSON_DECREF(filterlist);
         return msg_iev_build_webix(gobj,
             0,
-            json_local_sprintf(
+            json_sprintf(
                 "%d yunos found to prepause",
                 total_to_prepaused
             ),
@@ -5197,7 +5242,7 @@ PRIVATE json_t* cmd_enable_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj s
         JSON_DECREF(iter);
         return msg_iev_build_webix(gobj,
             -1,
-            json_local_sprintf(
+            json_sprintf(
                 "Yuno not found or already enabled"
             ),
             0,
@@ -5268,7 +5313,7 @@ PRIVATE json_t* cmd_disable_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj 
         JSON_DECREF(iter);
         return msg_iev_build_webix(gobj,
             -1,
-            json_local_sprintf(
+            json_sprintf(
                 "Yuno not found or already disabled"
             ),
             0,
@@ -5358,7 +5403,7 @@ PRIVATE json_t *cmd_trace_on_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj
         JSON_DECREF(iter);
         return msg_iev_build_webix(gobj,
             -1,
-            json_local_sprintf(
+            json_sprintf(
                 "Yuno not found or already tracing"
             ),
             0,
@@ -5430,7 +5475,7 @@ PRIVATE json_t* cmd_trace_off_yuno(hgobj gobj, const char* cmd, json_t* kw, hgob
         JSON_DECREF(iter);
         return msg_iev_build_webix(gobj,
             -1,
-            json_local_sprintf(
+            json_sprintf(
                 "Yuno not found or already not tracing"
             ),
             0,
@@ -5491,7 +5536,7 @@ PRIVATE json_t *cmd_command_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         JSON_DECREF(jn_command);
         return msg_iev_build_webix(gobj,
             -1,
-            json_local_sprintf(
+            json_sprintf(
                 "What command?"
             ),
             0,
@@ -5518,7 +5563,7 @@ PRIVATE json_t *cmd_command_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         JSON_DECREF(jn_command);
         return msg_iev_build_webix(gobj,
             -1,
-            json_local_sprintf(
+            json_sprintf(
                 "Yuno not found"
             ),
             0,
@@ -5572,7 +5617,7 @@ PRIVATE json_t *cmd_stats_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
         JSON_DECREF(iter);
         return msg_iev_build_webix(gobj,
             -1,
-            json_local_sprintf(
+            json_sprintf(
                 "Yuno not found"
             ),
             0,
@@ -5623,7 +5668,7 @@ PRIVATE json_t *cmd_authzs_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj s
         JSON_DECREF(iter);
         return msg_iev_build_webix(gobj,
             -1,
-            json_local_sprintf(
+            json_sprintf(
                 "Yuno not found"
             ),
             0,
@@ -5658,7 +5703,7 @@ PRIVATE json_t *cmd_command_agent(hgobj gobj, const char *cmd, json_t *kw, hgobj
     if(empty_string(command)) {
         return msg_iev_build_webix(gobj,
             -1,
-            json_local_sprintf(
+            json_sprintf(
                 "What command?"
             ),
             0,
@@ -5676,7 +5721,7 @@ PRIVATE json_t *cmd_command_agent(hgobj gobj, const char *cmd, json_t *kw, hgobj
         if(!service_gobj) {
             return msg_iev_build_webix(gobj,
                 -1,
-                json_local_sprintf("Service '%s' not found", service),
+                json_sprintf("Service '%s' not found", service),
                 0,
                 0,
                 kw  // owned
@@ -5710,7 +5755,7 @@ PRIVATE json_t *cmd_stats_agent(hgobj gobj, const char *cmd, json_t *kw, hgobj s
         if(!service_gobj) {
             return msg_iev_build_webix(gobj,
                 -1,
-                json_local_sprintf("Service '%s' not found", service),
+                json_sprintf("Service '%s' not found", service),
                 0,
                 0,
                 kw  // owned
@@ -5735,7 +5780,7 @@ PRIVATE json_t *cmd_set_okill(hgobj gobj, const char *cmd, json_t *kw, hgobj src
     gobj_write_int32_attr(gobj, "signal2kill", SIGQUIT);
     return msg_iev_build_webix(gobj,
         0,
-        json_local_sprintf("Set kill mode = ordered (with SIGQUIT)"),
+        json_sprintf("Set kill mode = ordered (with SIGQUIT)"),
         0,
         0,
         kw  // owned
@@ -5750,7 +5795,7 @@ PRIVATE json_t *cmd_set_qkill(hgobj gobj, const char *cmd, json_t *kw, hgobj src
     gobj_write_int32_attr(gobj, "signal2kill", SIGKILL);
     return msg_iev_build_webix(gobj,
         0,
-        json_local_sprintf("Set kill mode = quick (with SIGKILL)"),
+        json_sprintf("Set kill mode = quick (with SIGKILL)"),
         0,
         0,
         kw  // owned
@@ -5771,7 +5816,7 @@ PRIVATE json_t *cmd_check_json(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
     json_check_refcounts(tranger, max_refcount, &result)?0:-1;
     return msg_iev_build_webix(gobj,
         result,
-        json_local_sprintf("check refcounts of tranger: %s", result==0?"Ok":"Bad"),
+        json_sprintf("check refcounts of tranger: %s", result==0?"Ok":"Bad"),
         0,
         0,
         kw  // owned
@@ -5864,7 +5909,7 @@ PRIVATE json_t *cmd_realms_instances(hgobj gobj, const char *cmd, json_t *kw, hg
     return msg_iev_build_webix(
         gobj,
         0,
-        json_local_sprintf(cmd),
+        json_sprintf("%s", cmd),
         tranger_list_topic_desc(gobj_read_pointer_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
         kw  // owned
@@ -5897,7 +5942,7 @@ PRIVATE json_t *cmd_yunos_instances(hgobj gobj, const char *cmd, json_t *kw, hgo
     return msg_iev_build_webix(
         gobj,
         0,
-        json_local_sprintf(cmd),
+        json_sprintf("%s", cmd),
         tranger_list_topic_desc(gobj_read_pointer_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
         kw  // owned
@@ -5930,7 +5975,7 @@ PRIVATE json_t *cmd_binaries_instances(hgobj gobj, const char *cmd, json_t *kw, 
     return msg_iev_build_webix(
         gobj,
         0,
-        json_local_sprintf(cmd),
+        json_sprintf("%s", cmd),
         tranger_list_topic_desc(gobj_read_pointer_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
         kw  // owned
@@ -5963,7 +6008,7 @@ PRIVATE json_t *cmd_configs_instances(hgobj gobj, const char *cmd, json_t *kw, h
     return msg_iev_build_webix(
         gobj,
         0,
-        json_local_sprintf(cmd),
+        json_sprintf("%s", cmd),
         tranger_list_topic_desc(gobj_read_pointer_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
         kw  // owned
@@ -5996,9 +6041,200 @@ PRIVATE json_t *cmd_public_services_instances(hgobj gobj, const char *cmd, json_
     return msg_iev_build_webix(
         gobj,
         0,
-        json_local_sprintf(cmd),
+        json_sprintf("%s", cmd),
         tranger_list_topic_desc(gobj_read_pointer_attr(priv->resource, "tranger"), resource),
         jn_data, // owned
+        kw  // owned
+    );
+}
+
+/***************************************************************************
+ *
+ ***************************************************************************/
+PRIVATE json_t *cmd_list_consoles(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
+{
+    PRIVATE_DATA *priv = gobj_priv_data(gobj);
+
+    /*
+     *  Inform
+     */
+    return msg_iev_build_webix(
+        gobj,
+        0,
+        json_sprintf("==> List consoles of agent: '%s'", node_uuid()),
+        0,
+        json_incref(priv->list_consoles), // owned
+        kw  // owned
+    );
+}
+
+/***************************************************************************
+ *
+ ***************************************************************************/
+PRIVATE json_t *cmd_open_console(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
+{
+    PRIVATE_DATA *priv = gobj_priv_data(gobj);
+
+    const char *name = kw_get_str(kw, "name", "", 0);
+    const char *process = kw_get_str(kw, "process", "bash", 0);
+
+    if(empty_string(name)) {
+        return msg_iev_build_webix(
+            gobj,
+            -1,
+            json_sprintf("What console name?"),
+            0,
+            0,
+            kw  // owned
+        );
+    }
+    if(empty_string(process)) {
+        return msg_iev_build_webix(
+            gobj,
+            -1,
+            json_sprintf("What process?"),
+            0,
+            0,
+            kw  // owned
+        );
+    }
+
+    /*
+     *  Get a iter of matched resources
+     */
+    hgobj gobj_console = 0;
+
+    if(!kw_has_key(priv->list_consoles, name)) {
+        /*
+         *  New console
+         */
+        json_t *jn_console = json_pack("{s:s, s:O}",
+            "process", process,
+            "__md_iev__", kw_get_dict(kw, "__md_iev__", 0, KW_REQUIRED)
+        );
+        if(!jn_console) {
+            return msg_iev_build_webix(
+                gobj,
+                -1,
+                json_sprintf("Open console failed"),
+                0,
+                0,
+                kw  // owned
+            );
+        }
+        json_object_set_new(priv->list_consoles, name, jn_console);
+
+        jn_console = json_pack("{s:s}",
+            "process", process
+        );
+        gobj_console = gobj_create_unique(name, GCLASS_PTY, jn_console, gobj);
+        if(!gobj_console) {
+            return msg_iev_build_webix(
+                gobj,
+                -1,
+                json_sprintf("Cannot open console: '%s'", name),
+                0,
+                0,
+                kw  // owned
+            );
+        }
+        gobj_set_volatil(gobj_console, TRUE);
+        gobj_start(gobj_console);
+
+    } else {
+        // Console already exists
+        json_t *jn_console = kw_get_dict(priv->list_consoles, name, 0, 0);
+        process = kw_get_str(jn_console, "process", "", KW_REQUIRED);
+        gobj_console = gobj_find_unique_gobj(name, FALSE);
+        if(!gobj_console) {
+            return msg_iev_build_webix(
+                gobj,
+                -1,
+                json_sprintf("Console gobj not found: '%s'", name),
+                0,
+                0,
+                kw  // owned
+            );
+        }
+    }
+
+    json_t *jn_console = json_pack("{s:s, s:s}",
+        "name", name,
+        "process", process
+    );
+
+    /*
+     *  Inform
+     */
+    return msg_iev_build_webix(
+        gobj,
+        0,
+        json_sprintf("%s", cmd),
+        0,
+        jn_console, // owned
+        kw  // owned
+    );
+}
+
+/***************************************************************************
+ *
+ ***************************************************************************/
+PRIVATE json_t *cmd_close_console(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
+{
+    PRIVATE_DATA *priv = gobj_priv_data(gobj);
+
+    const char *name = kw_get_str(kw, "name", "", 0);
+
+    if(empty_string(name)) {
+        return msg_iev_build_webix(
+            gobj,
+            -1,
+            json_sprintf("What console name?"),
+            0,
+            0,
+            kw  // owned
+        );
+    }
+
+    json_t *jn_console = kw_get_dict(priv->list_consoles, name, 0, 0);
+    if(!jn_console) {
+        return msg_iev_build_webix(
+            gobj,
+            -1,
+            json_sprintf("Console not found: '%s'", name),
+            0,
+            0,
+            kw  // owned
+        );
+    }
+    json_incref(jn_console);
+    json_object_del(priv->list_consoles, name);
+
+    hgobj gobj_console = gobj_find_unique_gobj(name, FALSE);
+    if(!gobj_console) {
+        json_decref(jn_console);
+        return msg_iev_build_webix(
+            gobj,
+            -1,
+            json_sprintf("Console **gobj** not found: '%s'", name),
+            0,
+            0,
+            kw  // owned
+        );
+    }
+
+    gobj_stop(gobj_console); // volatil, auto-destroy
+    json_decref(jn_console); // TODO informa a los __md_iev__?
+
+    /*
+     *  Inform
+     */
+    return msg_iev_build_webix(
+        gobj,
+        0,
+        json_sprintf("Console closed: '%s'", name),
+        0,
+        0, // owned
         kw  // owned
     );
 }
@@ -7282,7 +7518,7 @@ PRIVATE json_t *cmd_authzs_agent(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         if(!service_gobj) {
             return msg_iev_build_webix(gobj,
                 -1,
-                json_local_sprintf("Service not found: '%s'", service),
+                json_sprintf("Service not found: '%s'", service),
                 0,
                 0,
                 kw  // owned
@@ -7774,7 +8010,7 @@ PRIVATE int ac_edit_config(hgobj gobj, const char *event, json_t *kw, hgobj src)
             event,
             msg_iev_build_webix(gobj,
                 -1,
-                json_local_sprintf("'id' required"),
+                json_sprintf("'id' required"),
                 0,
                 0,
                 kw  // owned
@@ -7851,7 +8087,7 @@ PRIVATE int ac_view_config(hgobj gobj, const char *event, json_t *kw, hgobj src)
             event,
             msg_iev_build_webix(gobj,
                 -1,
-                json_local_sprintf("'id' required"),
+                json_sprintf("'id' required"),
                 0,
                 0,
                 kw  // owned
@@ -7938,7 +8174,7 @@ PRIVATE int ac_edit_yuno_config(hgobj gobj, const char *event, json_t *kw, hgobj
             event,
             msg_iev_build_webix(gobj,
                 -1,
-                json_local_sprintf(
+                json_sprintf(
                     "Yuno not found"
                 ),
                 0,
@@ -7955,7 +8191,7 @@ PRIVATE int ac_edit_yuno_config(hgobj gobj, const char *event, json_t *kw, hgobj
             event,
             msg_iev_build_webix(gobj,
                 -1,
-                json_local_sprintf("Select only one yuno please"),
+                json_sprintf("Select only one yuno please"),
                 0,
                 0,
                 kw  // owned
@@ -7980,7 +8216,7 @@ PRIVATE int ac_edit_yuno_config(hgobj gobj, const char *event, json_t *kw, hgobj
             event,
             msg_iev_build_webix(gobj,
                 -1,
-                json_local_sprintf("Yuno without configuration"),
+                json_sprintf("Yuno without configuration"),
                 0,
                 0,
                 kw  // owned
@@ -7995,7 +8231,7 @@ PRIVATE int ac_edit_yuno_config(hgobj gobj, const char *event, json_t *kw, hgobj
             event,
             msg_iev_build_webix(gobj,
                 -1,
-                json_local_sprintf("Yuno with too much configurations. Not supported"),
+                json_sprintf("Yuno with too much configurations. Not supported"),
                 0,
                 0,
                 kw  // owned
@@ -8053,7 +8289,7 @@ PRIVATE int ac_view_yuno_config(hgobj gobj, const char *event, json_t *kw, hgobj
             event,
             msg_iev_build_webix(gobj,
                 -1,
-                json_local_sprintf(
+                json_sprintf(
                     "Yuno not found"
                 ),
                 0,
@@ -8070,7 +8306,7 @@ PRIVATE int ac_view_yuno_config(hgobj gobj, const char *event, json_t *kw, hgobj
             event,
             msg_iev_build_webix(gobj,
                 -1,
-                json_local_sprintf("Select only one yuno please"),
+                json_sprintf("Select only one yuno please"),
                 0,
                 0,
                 kw  // owned
@@ -8095,7 +8331,7 @@ PRIVATE int ac_view_yuno_config(hgobj gobj, const char *event, json_t *kw, hgobj
             event,
             msg_iev_build_webix(gobj,
                 -1,
-                json_local_sprintf("Yuno without configuration"),
+                json_sprintf("Yuno without configuration"),
                 0,
                 0,
                 kw  // owned
@@ -8110,7 +8346,7 @@ PRIVATE int ac_view_yuno_config(hgobj gobj, const char *event, json_t *kw, hgobj
             event,
             msg_iev_build_webix(gobj,
                 -1,
-                json_local_sprintf("Yuno with too much configurations. Not supported"),
+                json_sprintf("Yuno with too much configurations. Not supported"),
                 0,
                 0,
                 kw  // owned
@@ -8155,7 +8391,7 @@ PRIVATE int ac_read_json(hgobj gobj, const char *event, json_t *kw, hgobj src)
             event,
             msg_iev_build_webix(gobj,
                 -1,
-                json_local_sprintf("filename required"),
+                json_sprintf("filename required"),
                 0,
                 0,
                 kw  // owned
@@ -8169,7 +8405,7 @@ PRIVATE int ac_read_json(hgobj gobj, const char *event, json_t *kw, hgobj src)
             event,
             msg_iev_build_webix(gobj,
                 -1,
-                json_local_sprintf("File '%s' not found", filename),
+                json_sprintf("File '%s' not found", filename),
                 0,
                 0,
                 kw  // owned
@@ -8184,7 +8420,7 @@ PRIVATE int ac_read_json(hgobj gobj, const char *event, json_t *kw, hgobj src)
             event,
             msg_iev_build_webix(gobj,
                 -1,
-                json_local_sprintf("Cannot open '%s', %s", filename, strerror(errno)),
+                json_sprintf("Cannot open '%s', %s", filename, strerror(errno)),
                 0,
                 0,
                 kw  // owned
@@ -8203,7 +8439,7 @@ PRIVATE int ac_read_json(hgobj gobj, const char *event, json_t *kw, hgobj src)
             event,
             msg_iev_build_webix(gobj,
                 -1,
-                json_local_sprintf("No memory"),
+                json_sprintf("No memory"),
                 0,
                 0,
                 kw  // owned
@@ -8222,7 +8458,7 @@ PRIVATE int ac_read_json(hgobj gobj, const char *event, json_t *kw, hgobj src)
             event,
             msg_iev_build_webix(gobj,
                 -1,
-                json_local_sprintf("Error with file '%s': %s", filename, strerror(err)),
+                json_sprintf("Error with file '%s': %s", filename, strerror(err)),
                 0,
                 0,
                 kw  // owned
@@ -8274,7 +8510,7 @@ PRIVATE int ac_read_file(hgobj gobj, const char *event, json_t *kw, hgobj src)
             event,
             msg_iev_build_webix(gobj,
                 -1,
-                json_local_sprintf("filename required"),
+                json_sprintf("filename required"),
                 0,
                 0,
                 kw  // owned
@@ -8288,7 +8524,7 @@ PRIVATE int ac_read_file(hgobj gobj, const char *event, json_t *kw, hgobj src)
             event,
             msg_iev_build_webix(gobj,
                 -1,
-                json_local_sprintf("File '%s' not found", filename),
+                json_sprintf("File '%s' not found", filename),
                 0,
                 0,
                 kw  // owned
@@ -8304,7 +8540,7 @@ PRIVATE int ac_read_file(hgobj gobj, const char *event, json_t *kw, hgobj src)
             event,
             msg_iev_build_webix(gobj,
                 -1,
-                json_local_sprintf("Cannot open '%s', %s", filename, strerror(errno)),
+                json_sprintf("Cannot open '%s', %s", filename, strerror(errno)),
                 0,
                 0,
                 kw  // owned
@@ -8322,7 +8558,7 @@ PRIVATE int ac_read_file(hgobj gobj, const char *event, json_t *kw, hgobj src)
             event,
             msg_iev_build_webix(gobj,
                 -1,
-                json_local_sprintf("No memory"),
+                json_sprintf("No memory"),
                 0,
                 0,
                 kw  // owned
@@ -8341,7 +8577,7 @@ PRIVATE int ac_read_file(hgobj gobj, const char *event, json_t *kw, hgobj src)
             event,
             msg_iev_build_webix(gobj,
                 -1,
-                json_local_sprintf("Error with file '%s': %s", filename, strerror(err)),
+                json_sprintf("Error with file '%s': %s", filename, strerror(err)),
                 0,
                 0,
                 kw  // owned
@@ -8393,7 +8629,7 @@ PRIVATE int ac_read_binary_file(hgobj gobj, const char *event, json_t *kw, hgobj
             event,
             msg_iev_build_webix(gobj,
                 -200,
-                json_local_sprintf("filename required"),
+                json_sprintf("filename required"),
                 0,
                 0,
                 kw  // owned
@@ -8407,7 +8643,7 @@ PRIVATE int ac_read_binary_file(hgobj gobj, const char *event, json_t *kw, hgobj
             event,
             msg_iev_build_webix(gobj,
                 -201,
-                json_local_sprintf("File '%s' not found", filename),
+                json_sprintf("File '%s' not found", filename),
                 0,
                 0,
                 kw  // owned
@@ -8423,7 +8659,7 @@ PRIVATE int ac_read_binary_file(hgobj gobj, const char *event, json_t *kw, hgobj
             event,
             msg_iev_build_webix(gobj,
                 -205,
-                json_local_sprintf("File '%s' too large. Maximum supported size is %ld", filename, max_size),
+                json_sprintf("File '%s' too large. Maximum supported size is %ld", filename, max_size),
                 0,
                 0,
                 kw  // owned
@@ -8439,7 +8675,7 @@ PRIVATE int ac_read_binary_file(hgobj gobj, const char *event, json_t *kw, hgobj
             event,
             msg_iev_build_webix(gobj,
                 -202,
-                json_local_sprintf("Cannot open '%s', %s", filename, strerror(errno)),
+                json_sprintf("Cannot open '%s', %s", filename, strerror(errno)),
                 0,
                 0,
                 kw  // owned
@@ -8455,7 +8691,7 @@ PRIVATE int ac_read_binary_file(hgobj gobj, const char *event, json_t *kw, hgobj
             event,
             msg_iev_build_webix(gobj,
                 -203,
-                json_local_sprintf("No memory"),
+                json_sprintf("No memory"),
                 0,
                 0,
                 kw  // owned
@@ -8474,7 +8710,7 @@ PRIVATE int ac_read_binary_file(hgobj gobj, const char *event, json_t *kw, hgobj
             event,
             msg_iev_build_webix(gobj,
                 -204,
-                json_local_sprintf("Error with file '%s': %s", filename, strerror(err)),
+                json_sprintf("Error with file '%s': %s", filename, strerror(err)),
                 0,
                 0,
                 kw  // owned
@@ -8543,7 +8779,7 @@ PRIVATE int ac_read_running_keys(hgobj gobj, const char *event, json_t *kw, hgob
             event,
             msg_iev_build_webix(gobj,
                 -1,
-                json_local_sprintf(
+                json_sprintf(
                     "Yuno not found"
                 ),
                 0,
@@ -8560,7 +8796,7 @@ PRIVATE int ac_read_running_keys(hgobj gobj, const char *event, json_t *kw, hgob
             event,
             msg_iev_build_webix(gobj,
                 -1,
-                json_local_sprintf("Select only one yuno please"),
+                json_sprintf("Select only one yuno please"),
                 0,
                 0,
                 kw  // owned
@@ -8631,7 +8867,7 @@ PRIVATE int ac_read_running_bin(hgobj gobj, const char *event, json_t *kw, hgobj
             event,
             msg_iev_build_webix(gobj,
                 -1,
-                json_local_sprintf(
+                json_sprintf(
                     "Yuno not found"
                 ),
                 0,
@@ -8648,7 +8884,7 @@ PRIVATE int ac_read_running_bin(hgobj gobj, const char *event, json_t *kw, hgobj
             event,
             msg_iev_build_webix(gobj,
                 -1,
-                json_local_sprintf("Select only one yuno please"),
+                json_sprintf("Select only one yuno please"),
                 0,
                 0,
                 kw  // owned
@@ -9333,7 +9569,7 @@ PRIVATE int ac_final_count(hgobj gobj, const char *event, json_t *kw, hgobj src)
 
     BOOL ok = (max_count>0 && max_count==cur_count);
 
-    json_t *jn_comment = json_local_sprintf("%s%s (%d raised, %d reached)\n",
+    json_t *jn_comment = json_sprintf("%s%s (%d raised, %d reached)\n",
         ok?"OK: ":"",
         info,
         max_count,

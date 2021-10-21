@@ -10,6 +10,7 @@
 #pragma once
 
 #include <yuneta.h>
+#include "c_pty.h"
 
 /**rst**
 

@@ -6058,6 +6058,11 @@ PRIVATE json_t *cmd_list_consoles(hgobj gobj, const char *cmd, json_t *kw, hgobj
 {
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
 
+    /*----------------------------------------*
+     *  Check AUTHZS
+     *----------------------------------------*/
+    // TODO
+
     /*
      *  Inform
      */
@@ -6077,6 +6082,11 @@ PRIVATE json_t *cmd_list_consoles(hgobj gobj, const char *cmd, json_t *kw, hgobj
 PRIVATE json_t *cmd_open_console(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
 {
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
+
+    /*----------------------------------------*
+     *  Check AUTHZS
+     *----------------------------------------*/
+    // TODO
 
     const char *name = kw_get_str(kw, "name", "", 0);
     const char *process = kw_get_str(kw, "process", "bash", 0);
@@ -6221,6 +6231,11 @@ PRIVATE json_t *cmd_open_console(hgobj gobj, const char *cmd, json_t *kw, hgobj 
 PRIVATE json_t *cmd_close_console(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
 {
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
+
+    /*----------------------------------------*
+     *  Check AUTHZS
+     *----------------------------------------*/
+    // TODO
 
     const char *name = kw_get_str(kw, "name", "", 0);
 

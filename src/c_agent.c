@@ -137,6 +137,7 @@ PRIVATE json_t *find_public_service(
     hgobj gobj,
     const char *service
 );
+PRIVATE int delete_console(hgobj gobj, const char *name, BOOL from_command);
 
 /***************************************************************************
  *              Resources
@@ -734,8 +735,9 @@ SDATA_END()
 
 PRIVATE sdata_desc_t pm_open_console[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
-SDATAPM (ASN_OCTET_STR, "name",      0,                 "",         "Name of console"),
+SDATAPM (ASN_OCTET_STR, "name",         0,              "",         "Name of console"),
 SDATAPM (ASN_OCTET_STR, "process",      0,              "bash",     "Process to execute"),
+SDATAPM (ASN_BOOLEAN,   "hold_open",    0,              0,          "True to not close pty on client disconnection"),
 SDATA_END()
 };
 PRIVATE sdata_desc_t pm_close_console[] = {
@@ -6078,6 +6080,7 @@ PRIVATE json_t *cmd_open_console(hgobj gobj, const char *cmd, json_t *kw, hgobj 
 
     const char *name = kw_get_str(kw, "name", "", 0);
     const char *process = kw_get_str(kw, "process", "bash", 0);
+    BOOL hold_open = kw_get_bool(kw, "hold_open", 0, KW_WILD_NUMBER);
 
     if(empty_string(name)) {
         return msg_iev_build_webix(
@@ -6120,8 +6123,11 @@ PRIVATE json_t *cmd_open_console(hgobj gobj, const char *cmd, json_t *kw, hgobj 
             );
         }
 
-        json_t *jn_console = json_pack("{s:s, s:O}",
+        json_t *jn_console = json_pack("{s:s, s:s, s:s, s:b, s:O}",
             "process", process,
+            "route_service", gobj_name(gobj_nearest_top_unique(src)),
+            "route_child", gobj_name(src),
+            "hold_open", hold_open,
             "__md_iev__", kw_get_dict(kw, "__md_iev__", 0, KW_REQUIRED)
         );
         if(!jn_console) {
@@ -6134,13 +6140,13 @@ PRIVATE json_t *cmd_open_console(hgobj gobj, const char *cmd, json_t *kw, hgobj 
                 kw  // owned
             );
         }
-        json_object_set_new(priv->list_consoles, name, jn_console);
 
-        jn_console = json_pack("{s:s}",
+        json_t *kw_pty = json_pack("{s:s}",
             "process", process
         );
-        gobj_console = gobj_create_unique(name, GCLASS_PTY, jn_console, gobj);
+        gobj_console = gobj_create_unique(name, GCLASS_PTY, kw_pty, gobj);
         if(!gobj_console) {
+            json_decref(jn_console);
             return msg_iev_build_webix(
                 gobj,
                 -1,
@@ -6151,12 +6157,24 @@ PRIVATE json_t *cmd_open_console(hgobj gobj, const char *cmd, json_t *kw, hgobj 
             );
         }
         gobj_set_volatil(gobj_console, TRUE);
+
+        json_object_set(priv->list_consoles, name, jn_console); // save in local list
+
+        char name_[NAME_MAX];
+        snprintf(name_, sizeof(name_), "consoles`%s", name);
+        gobj_kw_get_user_data( // save in input gate
+            src,
+            name_,
+            jn_console, // owned
+            KW_CREATE
+        );
+
         gobj_start(gobj_console);
 
     } else {
         // Console already exists
         json_t *jn_console = kw_get_dict(priv->list_consoles, name, 0, 0);
-        process = kw_get_str(jn_console, "process", "", KW_REQUIRED);
+        process = kw_get_str(jn_console, "process", "", KW_REQUIRED); // saved process has prevalence
         gobj_console = gobj_find_unique_gobj(name, FALSE);
         if(!gobj_console) {
             return msg_iev_build_webix(
@@ -6168,6 +6186,15 @@ PRIVATE json_t *cmd_open_console(hgobj gobj, const char *cmd, json_t *kw, hgobj 
                 kw  // owned
             );
         }
+
+        char name_[NAME_MAX];
+        snprintf(name_, sizeof(name_), "consoles`%s", name);
+        gobj_kw_get_user_data( // save in input gate
+            src,
+            name_,
+            json_incref(jn_console), // owned
+            KW_CREATE
+        );
     }
 
     json_t *jn_console = json_pack("{s:s, s:s}",
@@ -6223,25 +6250,16 @@ PRIVATE json_t *cmd_close_console(hgobj gobj, const char *cmd, json_t *kw, hgobj
     /*
      *  Borra la consola
      */
-    json_incref(jn_console);
-    json_object_del(priv->list_consoles, name);
-
-    hgobj gobj_console = gobj_find_unique_gobj(name, FALSE);
-    if(!gobj_console) {
-        json_decref(jn_console);
+    if(delete_console(gobj, name, TRUE)<0) {
         return msg_iev_build_webix(
             gobj,
             -1,
-            json_sprintf("Console **gobj** not found: '%s'", name),
+            json_sprintf("Error closing console: '%s'", name),
             0,
             0,
             kw  // owned
         );
     }
-
-    gobj_stop(gobj_console); // volatil, auto-destroy
-
-    json_decref(jn_console); // TODO informa a los __md_iev__?
 
     /*
      *  Inform
@@ -6265,6 +6283,91 @@ PRIVATE json_t *cmd_close_console(hgobj gobj, const char *cmd, json_t *kw, hgobj
 
 
 
+
+/***************************************************************************
+ *  from_command TRUE you must delete entry in input gate
+ *  from_command FALSE cames from disconnection, the input gate will delete it
+ ***************************************************************************/
+PRIVATE int delete_console(hgobj gobj, const char *name, BOOL from_command)
+{
+    PRIVATE_DATA *priv = gobj_priv_data(gobj);
+
+    json_t *jn_console = kw_get_dict(priv->list_consoles, name, 0, 0);
+    hgobj gobj_console = gobj_find_unique_gobj(name, FALSE);
+
+    if(!jn_console) {
+        log_error(0,
+            "gobj",         "%s", gobj_full_name(gobj),
+            "function",     "%s", __FUNCTION__,
+            "msgset",       "%s", MSGSET_INTERNAL_ERROR,
+            "msg",          "%s", "no console conf found",
+            "name",         "%s", name,
+            NULL
+        );
+        if(gobj_console) {
+            gobj_stop(gobj_console); // volatil, auto-destroy
+        }
+        return -1;
+    }
+
+    if(!gobj_console) {
+        log_error(0,
+            "gobj",         "%s", gobj_full_name(gobj),
+            "function",     "%s", __FUNCTION__,
+            "msgset",       "%s", MSGSET_INTERNAL_ERROR,
+            "msg",          "%s", "no console gobj found",
+            "name",         "%s", name,
+            NULL
+        );
+        json_object_del(priv->list_consoles, name);
+        return -1;
+    }
+
+    BOOL hold_open = kw_get_bool(jn_console, "hold_open", 0, KW_REQUIRED);
+
+    if(from_command) {
+        gobj_stop(gobj_console); // volatil, auto-destroy
+
+        const char *route_service = kw_get_str(jn_console, "route_service", "", KW_REQUIRED);
+        const char *route_child = kw_get_str(jn_console,  "route_child", "", KW_REQUIRED);
+
+        hgobj gobj_route_service = gobj_find_service(route_service, TRUE);
+        hgobj gobj_input_gate = gobj_child_by_name(gobj_route_service, route_child, 0);
+
+        json_t *jn_consoles = gobj_kw_get_user_data(gobj_input_gate, "consoles", 0, 0);
+        if(jn_consoles) {
+            json_object_del(jn_consoles, name);
+        }
+
+        json_object_del(priv->list_consoles, name);
+
+    } else {
+        // From disconnection
+        if(!hold_open) {
+            gobj_stop(gobj_console); // volatil, auto-destroy
+            json_object_del(priv->list_consoles, name);
+        }
+    }
+
+    return 0;
+}
+
+/***************************************************************************
+ *
+ ***************************************************************************/
+PRIVATE int delete_consoles_on_disconnection(hgobj gobj, json_t *jn_consoles_)
+{
+    const char *name; json_t *jn_console_;
+    json_object_foreach(jn_consoles_, name, jn_console_) {
+        BOOL hold_open = kw_get_bool(jn_console_, "hold_open", 0, KW_REQUIRED);
+        if(hold_open) {
+            continue;
+        }
+        delete_console(gobj, name, FALSE);
+    }
+
+    return 0;
+}
 
 /***************************************************************************
  *      Execute command
@@ -9481,6 +9584,11 @@ PRIVATE int ac_on_close(hgobj gobj, const char *event, json_t *kw, hgobj src)
 
     if(!yuno) {
         // Must be yuneta_cli or a yuno refused!.
+        json_t *jn_consoles = gobj_kw_get_user_data(src, "consoles", 0, KW_EXTRACT);
+        if(jn_consoles) {
+            delete_consoles_on_disconnection(gobj, jn_consoles);
+            json_decref(jn_consoles);
+        }
         KW_DECREF(kw);
         return 0;
     }

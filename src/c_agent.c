@@ -6319,7 +6319,7 @@ PRIVATE int delete_console(hgobj gobj, const char *name, BOOL from_command)
             "name",         "%s", name,
             NULL
         );
-        json_object_del(priv->list_consoles, name);
+        json_object_del(priv->list_consoles, name); // delete in local list
         return -1;
     }
 
@@ -6328,24 +6328,36 @@ PRIVATE int delete_console(hgobj gobj, const char *name, BOOL from_command)
     if(from_command) {
         gobj_stop(gobj_console); // volatil, auto-destroy
 
+        // delete in input gate
         const char *route_service = kw_get_str(jn_console, "route_service", "", KW_REQUIRED);
         const char *route_child = kw_get_str(jn_console,  "route_child", "", KW_REQUIRED);
-
         hgobj gobj_route_service = gobj_find_service(route_service, TRUE);
-        hgobj gobj_input_gate = gobj_child_by_name(gobj_route_service, route_child, 0);
-
-        json_t *jn_consoles = gobj_kw_get_user_data(gobj_input_gate, "consoles", 0, 0);
-        if(jn_consoles) {
-            json_object_del(jn_consoles, name);
+        if(gobj_route_service) {
+            hgobj gobj_input_gate = gobj_child_by_name(gobj_route_service, route_child, 0);
+            if(gobj_input_gate) {
+                log_error(0,
+                    "gobj",         "%s", gobj_full_name(gobj),
+                    "function",     "%s", __FUNCTION__,
+                    "msgset",       "%s", MSGSET_INTERNAL_ERROR,
+                    "msg",          "%s", "no route child found",
+                    "service",      "%s", route_service,
+                    "child",        "%s", route_child,
+                    NULL
+                );
+            }
+            json_t *jn_consoles = gobj_kw_get_user_data(gobj_input_gate, "consoles", 0, 0);
+            if(jn_consoles) {
+                json_object_del(jn_consoles, name);
+            }
         }
 
-        json_object_del(priv->list_consoles, name);
+        json_object_del(priv->list_consoles, name); // delete in local list
 
     } else {
         // From disconnection
         if(!hold_open) {
             gobj_stop(gobj_console); // volatil, auto-destroy
-            json_object_del(priv->list_consoles, name);
+            json_object_del(priv->list_consoles, name); // delete in local list
         }
     }
 

@@ -884,6 +884,7 @@ SDATA (ASN_INTEGER,     "signal2kill",      SDF_RD,             SIGQUIT,        
 
 SDATA (ASN_JSON,        "range_ports",      SDF_RD,             "[[11100,11199]]", "Range Ports"),
 SDATA (ASN_UNSIGNED,    "last_port",        SDF_WR,             0,              "Last port assigned"),
+SDATA (ASN_UNSIGNED,    "max_consoles",     SDF_WR,             10,             "Maximum consoles opened"),
 
 SDATA (ASN_POINTER,     "user_data",        0,                  0,              "User data"),
 SDATA (ASN_POINTER,     "user_data2",       0,                  0,              "More user data"),
@@ -6108,6 +6109,17 @@ PRIVATE json_t *cmd_open_console(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         /*
          *  New console
          */
+        if(kw_size(priv->list_consoles) > gobj_read_uint32_attr(gobj, "max_consoles")) {
+            return msg_iev_build_webix(
+                gobj,
+                -1,
+                json_sprintf("Too much consoles opened: %d", kw_size(priv->list_consoles)),
+                0,
+                0,
+                kw  // owned
+            );
+        }
+
         json_t *jn_console = json_pack("{s:s, s:O}",
             "process", process,
             "__md_iev__", kw_get_dict(kw, "__md_iev__", 0, KW_REQUIRED)
@@ -6169,7 +6181,7 @@ PRIVATE json_t *cmd_open_console(hgobj gobj, const char *cmd, json_t *kw, hgobj 
     return msg_iev_build_webix(
         gobj,
         0,
-        json_sprintf("%s", cmd),
+        json_sprintf("Console opened"),
         0,
         jn_console, // owned
         kw  // owned
@@ -6207,6 +6219,10 @@ PRIVATE json_t *cmd_close_console(hgobj gobj, const char *cmd, json_t *kw, hgobj
             kw  // owned
         );
     }
+
+    /*
+     *  Borra la consola
+     */
     json_incref(jn_console);
     json_object_del(priv->list_consoles, name);
 
@@ -6224,6 +6240,7 @@ PRIVATE json_t *cmd_close_console(hgobj gobj, const char *cmd, json_t *kw, hgobj
     }
 
     gobj_stop(gobj_console); // volatil, auto-destroy
+
     json_decref(jn_console); // TODO informa a los __md_iev__?
 
     /*

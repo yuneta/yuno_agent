@@ -29,6 +29,7 @@
 /***************************************************************************
  *              Prototypes
  ***************************************************************************/
+PRIVATE void on_close_cb(uv_handle_t* handle);
 PRIVATE BOOL fd_set_cloexec(const int fd);
 PRIVATE BOOL fd_duplicate(int fd, uv_pipe_t *pipe);
 PRIVATE void on_alloc_cb(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf);
@@ -81,8 +82,11 @@ typedef struct _PRIVATE_DATA {
     char uv_req_write_active;
     uv_write_t uv_req_write;
 
-    uv_pipe_t in;   // Duplicated fd of pty, use for put data into terminal
-    uv_pipe_t out;  // Duplicated fd of pty, use for get the output of the terminal
+    uv_pipe_t uv_in;   // Duplicated fd of pty, use for put data into terminal
+    uv_pipe_t uv_out;  // Duplicated fd of pty, use for get the output of the terminal
+    char uv_handler_in_active;
+    char uv_handler_out_active;
+
     pid_t pty;      // file descriptor of pseudoterminal
     int pid;        // child pid
 
@@ -259,13 +263,13 @@ PRIVATE int mt_start(hgobj gobj)
         return -1;
     }
 
-    uv_pipe_init(yuno_uv_event_loop(), &priv->in, 0);
-    uv_pipe_init(yuno_uv_event_loop(), &priv->out, 0);
+    uv_pipe_init(yuno_uv_event_loop(), &priv->uv_in, 0);
+    uv_pipe_init(yuno_uv_event_loop(), &priv->uv_out, 0);
 
-    priv->in.data = gobj;
-    priv->out.data = gobj;
+    priv->uv_in.data = gobj;
+    priv->uv_out.data = gobj;
 
-    if (!fd_duplicate(master, &priv->in) || !fd_duplicate(master, &priv->out)) {
+    if (!fd_duplicate(master, &priv->uv_in) || !fd_duplicate(master, &priv->uv_out)) {
         log_error(0,
             "gobj",         "%s", gobj_full_name(gobj),
             "function",     "%s", __FUNCTION__,
@@ -281,14 +285,17 @@ PRIVATE int mt_start(hgobj gobj)
         return -1;
     }
 
+    priv->uv_handler_in_active = TRUE;
+    priv->uv_handler_out_active = TRUE;
+
     priv->pty = master;     // file descriptor of pseudoterminal
     priv->pid = pid;        // child pid
 
     if(gobj_trace_level(gobj) & TRACE_UV) {
-        trace_msg(">>> uv_read_start tcp p=%p", &priv->out);
+        trace_msg(">>> uv_read_start tcp p=%p", &priv->uv_out);
     }
     priv->uv_read_active = 1;
-    uv_read_start((uv_stream_t*)&priv->out, on_alloc_cb, on_read_cb);
+    uv_read_start((uv_stream_t*)&priv->uv_out, on_alloc_cb, on_read_cb);
 
     return 0;
 }
@@ -301,28 +308,31 @@ PRIVATE int mt_stop(hgobj gobj)
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
 
     if(priv->uv_read_active) {
-        uv_read_stop((uv_stream_t *)&priv->out);
+        uv_read_stop((uv_stream_t *)&priv->uv_out);
         priv->uv_read_active = 0;
     }
 
     if(gobj_trace_level(gobj) & TRACE_UV) {
-        trace_msg(">>> uv_close pty p=%p", &priv->in);
+        trace_msg(">>> uv_close pty p=%p", &priv->uv_in);
     }
-    uv_close((uv_handle_t *)&priv->in, 0);
+    uv_close((uv_handle_t *)&priv->uv_in, on_close_cb);
 
     if(gobj_trace_level(gobj) & TRACE_UV) {
-        trace_msg(">>> uv_close pty p=%p", &priv->out);
+        trace_msg(">>> uv_close pty p=%p", &priv->uv_out);
     }
-    uv_close((uv_handle_t *)&priv->out, 0);
+    uv_close((uv_handle_t *)&priv->uv_out, on_close_cb);
 
     if(priv->pty != -1) {
         close(priv->pty);
         priv->pty = -1;
     }
-    uv_kill(priv->pid, SIGKILL);
 
-    if(gobj_is_volatil(gobj)) {
-        gobj_destroy(gobj);
+    if(priv->pid > 0) {
+        if(uv_kill(priv->pid, 0) == 0) {
+            uv_kill(priv->pid, SIGKILL);
+            waitpid(priv->pid, NULL, 0);
+        }
+        priv->pid = -1;
     }
 
     return 0;
@@ -337,6 +347,44 @@ PRIVATE int mt_stop(hgobj gobj)
 
 
 
+
+/***************************************************************************
+ *  Only NOW you can destroy this gobj,
+ *  when uv has released the handler.
+ ***************************************************************************/
+PRIVATE void on_close_cb(uv_handle_t* handle)
+{
+    hgobj gobj = handle->data;
+    PRIVATE_DATA *priv = gobj_priv_data(gobj);
+
+    if((uv_handle_t *)handle == (uv_handle_t *)&priv->uv_in) {
+        if(gobj_trace_level(gobj) & TRACE_UV) {
+            trace_msg("<<< on_close_cb pty p=%p", &priv->uv_in);
+        }
+        priv->uv_handler_in_active = 0;
+    } else if((uv_handle_t *)handle == (uv_handle_t *)&priv->uv_out) {
+        if(gobj_trace_level(gobj) & TRACE_UV) {
+            trace_msg("<<< on_close_cb pty p=%p", &priv->uv_out);
+        }
+        priv->uv_handler_out_active = 0;
+    } else {
+        log_error(0,
+            "gobj",         "%s", gobj_full_name(gobj),
+            "function",     "%s", __FUNCTION__,
+            "msgset",       "%s", MSGSET_LIBUV_ERROR,
+            "msg",          "%s", "handler UNKNOWN",
+            NULL
+        );
+    }
+
+    if(!priv->uv_handler_in_active && !priv->uv_handler_out_active) {
+        if(gobj_is_volatil(gobj)) {
+            gobj_destroy(gobj);
+        } else {
+            gobj_publish_event(gobj, "EV_STOPPED", 0);
+        }
+    }
+}
 
 /***************************************************************************
  *
@@ -395,7 +443,7 @@ PRIVATE void on_read_cb(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf)
     if(gobj_trace_level(gobj) & TRACE_UV) {
         trace_msg("<<< on_read_cb %d pty p=%p",
             nread,
-            &priv->out
+            &priv->uv_out
         );
     }
 
@@ -462,7 +510,7 @@ PRIVATE void on_write_cb(uv_write_t* req, int status)
 
     if(gobj_trace_level(gobj) & TRACE_UV) {
         trace_msg(">>> on_write_cb tcp p=%p",
-            &priv->in
+            &priv->uv_in
         );
     }
 
@@ -504,11 +552,11 @@ PRIVATE int write_data_to_pty(hgobj gobj, GBUFFER *gbuf)
     };
     uint32_t trace = gobj_trace_level(gobj);
     if((trace & TRACE_UV)) {
-        trace_msg(">>> uv_write pty p=%p, send %d\n", (uv_stream_t *)&priv->in, ln);
+        trace_msg(">>> uv_write pty p=%p, send %d\n", (uv_stream_t *)&priv->uv_in, ln);
     }
     int ret = uv_write(
         &priv->uv_req_write,
-        (uv_stream_t*)&priv->in,
+        (uv_stream_t*)&priv->uv_in,
         b,
         1,
         on_write_cb

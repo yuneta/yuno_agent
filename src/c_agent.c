@@ -6555,8 +6555,8 @@ PRIVATE int delete_console(hgobj gobj, const char *name)
 
     const char *route; json_t *jn_route; void *n;
     json_object_foreach_safe(jn_routes, n, route, jn_route) {
-        const char *route_service = kw_get_str(jn_routes, "route_service", "", KW_REQUIRED);
-        const char *route_child = kw_get_str(jn_routes,  "route_child", "", KW_REQUIRED);
+        const char *route_service = kw_get_str(jn_route, "route_service", "", KW_REQUIRED);
+        const char *route_child = kw_get_str(jn_route,  "route_child", "", KW_REQUIRED);
         hgobj gobj_route_service = gobj_find_service(route_service, TRUE);
         if(gobj_route_service) {
             hgobj gobj_input_gate = gobj_child_by_name(gobj_route_service, route_child, 0);
@@ -6589,17 +6589,18 @@ PRIVATE int delete_console(hgobj gobj, const char *name)
 /***************************************************************************
  *  From input gate
  ***************************************************************************/
-PRIVATE int delete_consoles_on_disconnection(hgobj gobj, hgobj src)
+PRIVATE int delete_consoles_on_disconnection(hgobj gobj, json_t *kw, hgobj src_)
 {
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
 
-    json_t *consoles = gobj_kw_get_user_data(src, "consoles", 0, 0);
+    hgobj gobj_channel = (hgobj)(size_t)kw_get_int(kw, "__temp__`channel_gobj", 0, KW_REQUIRED);
+    json_t *consoles = gobj_kw_get_user_data(gobj_channel, "consoles", 0, 0);
     if(!consoles) {
         return 0;
     }
 
-    const char *route_service = gobj_name(gobj_nearest_top_unique(src));
-    const char *route_child = gobj_name(src);
+    const char *route_service = gobj_name(gobj_nearest_top_unique(gobj_channel));
+    const char *route_child = gobj_name(gobj_channel);
 
     const char *name; json_t *jn_;
     json_object_foreach(consoles, name, jn_) {
@@ -9831,7 +9832,7 @@ PRIVATE int ac_on_close(hgobj gobj, const char *event, json_t *kw, hgobj src)
 
     if(!yuno) {
         // Must be yuneta_cli or a yuno refused!.
-        delete_consoles_on_disconnection(gobj, src);
+        delete_consoles_on_disconnection(gobj, kw, src);
         KW_DECREF(kw);
         return 0;
     }

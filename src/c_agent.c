@@ -139,7 +139,13 @@ PRIVATE json_t *find_public_service(
 );
 PRIVATE int delete_console(hgobj gobj, const char *name);
 PRIVATE int add_console_in_input_gate(hgobj gobj, const char *name, hgobj src);
-PRIVATE int add_console_route(hgobj gobj, json_t *jn_console, hgobj src, json_t *kw);
+PRIVATE int add_console_route(
+    hgobj gobj,
+    const char *name,
+    json_t *jn_console,
+    hgobj src,
+    json_t *kw
+);
 PRIVATE int remove_console_route(
     hgobj gobj,
     const char *name,
@@ -6217,11 +6223,9 @@ PRIVATE json_t *cmd_open_console(hgobj gobj, const char *cmd, json_t *kw, hgobj 
             "routes"
         );
 
-        add_console_route(gobj, jn_console, src, kw);
+        add_console_route(gobj, name, jn_console, src, kw);
 
         json_object_set(priv->list_consoles, name, jn_console); // save in local list
-
-        add_console_in_input_gate(gobj, name, src);
 
         json_decref(jn_console);
 
@@ -6243,18 +6247,28 @@ PRIVATE json_t *cmd_open_console(hgobj gobj, const char *cmd, json_t *kw, hgobj 
                 kw  // owned
             );
         }
-        if(add_console_route(gobj, jn_console, src, kw)<0) {
-            return msg_iev_build_webix(
-                gobj,
-                -1,
-                json_sprintf("Console already open: '%s'", name),
-                0,
-                0,
-                kw  // owned
-            );
+        int ret = add_console_route(gobj, name, jn_console, src, kw);
+        if(ret < 0) {
+            if(ret == -2) {
+                return msg_iev_build_webix(
+                    gobj,
+                    -1,
+                    json_sprintf("Console already open: '%s'", name),
+                    0,
+                    0,
+                    kw  // owned
+                );
+            } else {
+                return msg_iev_build_webix(
+                    gobj,
+                    -1,
+                    json_sprintf("Error opening console: '%s'", name),
+                    0,
+                    0,
+                    kw  // owned
+                );
+            }
         }
-
-        add_console_in_input_gate(gobj, name, src);
     }
 
     /*
@@ -6354,20 +6368,29 @@ PRIVATE json_t *cmd_close_console(hgobj gobj, const char *cmd, json_t *kw, hgobj
 /***************************************************************************
  *
  ***************************************************************************/
-PRIVATE int add_console_route(hgobj gobj, json_t *jn_console_, hgobj src, json_t *kw)
+PRIVATE int add_console_route(
+    hgobj gobj,
+    const char *name,
+    json_t *jn_console_,
+    hgobj src,
+    json_t *kw
+)
 {
     json_t *jn_routes = kw_get_dict(jn_console_, "routes", 0, KW_REQUIRED);
 
     const char *route_service = gobj_name(gobj_nearest_top_unique(src));
     const char *route_child = gobj_name(src);
 
-    char name_[NAME_MAX];
-    snprintf(name_, sizeof(name_), "%s.%s", route_service, route_child);
+    char route_name[NAME_MAX];
+    snprintf(route_name, sizeof(route_name), "%s.%s", route_service, route_child);
 
-    if(kw_has_key(jn_routes, name_)) {
-        return -1;
+    if(kw_has_key(jn_routes, route_name)) {
+        return -2;
     }
 
+    /*
+     *  add in local list
+     */
     json_t *jn_route = json_pack("{s:s, s:s, s:O}",
         "route_service", route_service,
         "route_child", route_child,
@@ -6387,11 +6410,17 @@ PRIVATE int add_console_route(hgobj gobj, json_t *jn_console_, hgobj src, json_t
         return -1;
     }
 
-    return json_object_set_new(jn_routes, name_, jn_route);
+
+    json_object_set_new(jn_routes, route_name, jn_route);
+
+    /*
+     *  add in input gate
+     */
+    return add_console_in_input_gate(gobj, name, src);
 }
 
 /***************************************************************************
- *
+ *  Delete route in local list and input gate
  ***************************************************************************/
 PRIVATE int remove_console_route(
     hgobj gobj,
@@ -6405,58 +6434,59 @@ PRIVATE int remove_console_route(
     json_t *jn_console_ = kw_get_dict(priv->list_consoles, name, 0, 0);
     json_t *jn_routes = kw_get_dict(jn_console_, "routes", 0, KW_REQUIRED);
 
-    char name_[NAME_MAX];
-    snprintf(name_, sizeof(name_), "%s.%s", route_service, route_child);
+    char route_name[NAME_MAX];
+    snprintf(route_name, sizeof(route_name), "%s.%s", route_service, route_child);
 
-    if(!kw_has_key(jn_routes, name_)) {
+    /*
+     *  delete in local list
+     */
+    if(kw_has_key(jn_routes, route_name)) {
+        json_object_del(jn_routes, route_name);
+    } else {
         log_error(0,
             "gobj",         "%s", gobj_full_name(gobj),
             "function",     "%s", __FUNCTION__,
             "msgset",       "%s", MSGSET_INTERNAL_ERROR,
-            "msg",          "%s", "route not exist",
-            "name",         "%s", name_,
+            "msg",          "%s", "route not exist in local list",
+            "name",         "%s", route_name,
             NULL
         );
-        return -1;
     }
 
-    json_object_del(jn_routes, name_);
-
-    // delete in input gate
+    /*
+     *  delete in input gate
+     */
     hgobj gobj_route_service = gobj_find_service(route_service, TRUE);
     if(gobj_route_service) {
         hgobj gobj_input_gate = gobj_child_by_name(gobj_route_service, route_child, 0);
-        if(!gobj_input_gate) {
+        if(gobj_input_gate) {
+            json_t *consoles = gobj_kw_get_user_data(gobj_input_gate, "consoles", 0, 0);
+            if(consoles) {
+                json_object_del(consoles, route_name);
+            } else {
+                log_error(0,
+                    "gobj",         "%s", gobj_full_name(gobj),
+                    "function",     "%s", __FUNCTION__,
+                    "msgset",       "%s", MSGSET_INTERNAL_ERROR,
+                    "msg",          "%s", "no route found in child gobj",
+                    "route_name",   "%s", route_name,
+                    "service",      "%s", route_service,
+                    "child",        "%s", route_child,
+                    NULL
+                );
+            }
+        } else {
             log_error(0,
                 "gobj",         "%s", gobj_full_name(gobj),
                 "function",     "%s", __FUNCTION__,
                 "msgset",       "%s", MSGSET_INTERNAL_ERROR,
-                "msg",          "%s", "no route child found",
+                "msg",          "%s", "no route child gobj found",
                 "service",      "%s", route_service,
                 "child",        "%s", route_child,
                 NULL
             );
         }
-        json_t *consoles = gobj_kw_get_user_data(gobj_input_gate, "consoles", 0, 0);
-        if(consoles) {
-            json_object_del(consoles, name);
-        }
     }
-
-    return 0;
-}
-
-/***************************************************************************
- *
- ***************************************************************************/
-PRIVATE int delete_input_gate_in_local_list(hgobj gobj, const char *name, json_t *jn_console_)
-{
-    PRIVATE_DATA *priv = gobj_priv_data(gobj);
-
-    json_t *jn_console = kw_get_dict(priv->list_consoles, name, 0, 0);
-
-    json_object_set_new(jn_console, "route_service", json_string(""));
-    json_object_set_new(jn_console, "route_child", json_string(""));
 
     return 0;
 }
@@ -6481,56 +6511,15 @@ PRIVATE int add_console_in_input_gate(hgobj gobj, const char *name, hgobj src)
 /***************************************************************************
  *
  ***************************************************************************/
-PRIVATE int delete_console_routes(hgobj gobj, const char *name)
+PRIVATE int delete_console(hgobj gobj, const char *name)
 {
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
 
-    json_t *jn_console = kw_get_dict(priv->list_consoles, name, 0, 0);
-    json_t *jn_routes = kw_get_dict(jn_console, "routes", 0, KW_REQUIRED);
+    /*
+     *  delete in local list
+     */
+    json_t *jn_console = kw_get_dict(priv->list_consoles, name, 0, KW_EXTRACT);
 
-    const char *route; json_t *jn_route; void *n;
-    json_object_foreach_safe(jn_routes, n, route, jn_route) {
-        const char *route_service = kw_get_str(jn_routes, "route_service", "", KW_REQUIRED);
-        const char *route_child = kw_get_str(jn_routes,  "route_child", "", KW_REQUIRED);
-        hgobj gobj_route_service = gobj_find_service(route_service, TRUE);
-        if(gobj_route_service) {
-            hgobj gobj_input_gate = gobj_child_by_name(gobj_route_service, route_child, 0);
-            if(!gobj_input_gate) {
-                log_error(0,
-                    "gobj",         "%s", gobj_full_name(gobj),
-                    "function",     "%s", __FUNCTION__,
-                    "msgset",       "%s", MSGSET_INTERNAL_ERROR,
-                    "msg",          "%s", "no route child found",
-                    "service",      "%s", route_service,
-                    "child",        "%s", route_child,
-                    NULL
-                );
-                continue;
-            }
-            json_t *jn_consoles = gobj_kw_get_user_data(gobj_input_gate, "consoles", 0, 0);
-            if(jn_consoles) {
-                json_object_del(jn_consoles, name);
-            }
-
-        }
-
-        // delete in input gate
-        json_object_del(jn_routes, route);
-    }
-
-    return 0;
-}
-
-/***************************************************************************
- *  from_command TRUE you must delete entry in input gate
- *  from_command FALSE cames from disconnection, the input gate will delete it
- *  Force TRUE delete although hold_open is true
- ***************************************************************************/
-PRIVATE int delete_console(hgobj gobj, const char *name, BOOL from_command, BOOL force)
-{
-    PRIVATE_DATA *priv = gobj_priv_data(gobj);
-
-    json_t *jn_console = kw_get_dict(priv->list_consoles, name, 0, 0);
     hgobj gobj_console = gobj_find_unique_gobj(name, FALSE);
 
     if(!jn_console) {
@@ -6557,35 +6546,42 @@ PRIVATE int delete_console(hgobj gobj, const char *name, BOOL from_command, BOOL
             "name",         "%s", name,
             NULL
         );
-        if(!from_command) {
-            delete_console_routes(gobj, name); // delete all routes
-        }
-        json_object_del(priv->list_consoles, name); // delete in local list
-        return -1;
     }
 
-    BOOL hold_open = kw_get_bool(jn_console, "hold_open", 0, KW_REQUIRED);
-    if(force) {
-        hold_open = FALSE;
+    /*
+     *  delete routes in input gates
+     */
+    json_t *jn_routes = kw_get_dict(jn_console, "routes", 0, KW_REQUIRED);
+
+    const char *route; json_t *jn_route; void *n;
+    json_object_foreach_safe(jn_routes, n, route, jn_route) {
+        const char *route_service = kw_get_str(jn_routes, "route_service", "", KW_REQUIRED);
+        const char *route_child = kw_get_str(jn_routes,  "route_child", "", KW_REQUIRED);
+        hgobj gobj_route_service = gobj_find_service(route_service, TRUE);
+        if(gobj_route_service) {
+            hgobj gobj_input_gate = gobj_child_by_name(gobj_route_service, route_child, 0);
+            if(!gobj_input_gate) {
+                log_error(0,
+                    "gobj",         "%s", gobj_full_name(gobj),
+                    "function",     "%s", __FUNCTION__,
+                    "msgset",       "%s", MSGSET_INTERNAL_ERROR,
+                    "msg",          "%s", "no route child found",
+                    "service",      "%s", route_service,
+                    "child",        "%s", route_child,
+                    NULL
+                );
+                continue;
+            }
+            json_t *consoles = gobj_kw_get_user_data(gobj_input_gate, "consoles", 0, 0);
+            if(consoles) {
+                json_object_del(consoles, name);
+            }
+
+        }
     }
 
-    if(from_command) {
-        // From command
-        if(!hold_open) {
-            gobj_stop(gobj_console); // volatil, auto-destroy
-        }
-        // TODO delete_console_routes(gobj, name, jn_console); // delete in input gate
-        json_object_del(priv->list_consoles, name); // delete in local list
-
-    } else {
-        // From disconnection
-        if(!hold_open) {
-            gobj_stop(gobj_console); // volatil, auto-destroy
-            json_object_del(priv->list_consoles, name); // delete in local list
-        } else {
-            delete_input_gate_in_local_list(gobj, name, jn_console);
-        }
-    }
+    gobj_stop(gobj_console); // volatil, auto-destroy
+    json_decref(jn_console);
 
     return 0;
 }

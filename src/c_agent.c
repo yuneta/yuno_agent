@@ -920,6 +920,17 @@ PRIVATE const trace_level_t s_user_trace_level[16] = {
 {0, 0},
 };
 
+/*---------------------------------------------*
+ *      GClass authz levels
+ *---------------------------------------------*/
+
+PRIVATE sdata_desc_t authz_table[] = {
+/*-AUTHZ-- type---------name----------------flag----alias---items---description--*/
+SDATAAUTHZ (ASN_SCHEMA, "open-console",     0,      0,      0,      "Permission to open console"),
+SDATAAUTHZ (ASN_SCHEMA, "close-console",    0,      0,      0,      "Permission to close console"),
+SDATAAUTHZ (ASN_SCHEMA, "list-consoles",    0,      0,      0,      "Permission to list consoles"),
+SDATA_END()
+};
 
 /*---------------------------------------------*
  *              Private data
@@ -6076,7 +6087,17 @@ PRIVATE json_t *cmd_list_consoles(hgobj gobj, const char *cmd, json_t *kw, hgobj
     /*----------------------------------------*
      *  Check AUTHZS
      *----------------------------------------*/
-    // TODO
+    const char *permission = "list-consoles";
+    if(!gobj_user_has_authz(gobj, permission, kw_incref(kw), src)) {
+        return msg_iev_build_webix(
+            gobj,
+            -1,
+            json_sprintf("No permission to '%s'", permission),
+            0,
+            0,
+            kw  // owned
+        );
+    }
 
     /*----------------------------------------*
      *  List consoles
@@ -6145,7 +6166,17 @@ PRIVATE json_t *cmd_open_console(hgobj gobj, const char *cmd, json_t *kw, hgobj 
     /*----------------------------------------*
      *  Check AUTHZS
      *----------------------------------------*/
-    // TODO
+    const char *permission = "open-console";
+    if(!gobj_user_has_authz(gobj, permission, kw_incref(kw), src)) {
+        return msg_iev_build_webix(
+            gobj,
+            -1,
+            json_sprintf("No permission to '%s'", permission),
+            0,
+            0,
+            kw  // owned
+        );
+    }
 
     /*----------------------------------------*
      *  Open console
@@ -6294,7 +6325,18 @@ PRIVATE json_t *cmd_close_console(hgobj gobj, const char *cmd, json_t *kw, hgobj
     /*----------------------------------------*
      *  Check AUTHZS
      *----------------------------------------*/
-    // TODO
+    const char *permission = "close-console";
+    if(!gobj_user_has_authz(gobj, permission, kw_incref(kw), src)) {
+        return msg_iev_build_webix(
+            gobj,
+            -1,
+            json_sprintf("No permission to '%s'", permission),
+            0,
+            0,
+            kw  // owned
+        );
+    }
+
 
     /*----------------------------------------*
      *  Close console
@@ -9983,6 +10025,33 @@ PRIVATE int ac_final_count(hgobj gobj, const char *event, json_t *kw, hgobj src)
 /***************************************************************************
  *
  ***************************************************************************/
+PRIVATE int ac_tty_open(hgobj gobj, const char *event, json_t *kw, hgobj src)
+{
+    KW_DECREF(kw);
+    return 0;
+}
+
+/***************************************************************************
+ *
+ ***************************************************************************/
+PRIVATE int ac_tty_close(hgobj gobj, const char *event, json_t *kw, hgobj src)
+{
+    KW_DECREF(kw);
+    return 0;
+}
+
+/***************************************************************************
+ *
+ ***************************************************************************/
+PRIVATE int ac_tty_data(hgobj gobj, const char *event, json_t *kw, hgobj src)
+{
+    KW_DECREF(kw);
+    return 0;
+}
+
+/***************************************************************************
+ *
+ ***************************************************************************/
 PRIVATE int ac_timeout(hgobj gobj, const char *event, json_t *kw, hgobj src)
 {
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
@@ -10024,6 +10093,9 @@ PRIVATE const EVENT input_events[] = {
     // bottom input
     {"EV_ON_OPEN",          0,  0,  0},
     {"EV_ON_CLOSE",         0,  0,  0},
+    {"EV_TTY_DATA",         0,  0,  0},
+    {"EV_TTY_OPEN",         0,  0,  0},
+    {"EV_TTY_CLOSE",        0,  0,  0},
     {"EV_TIMEOUT",          0,  0,  0},
     {"EV_FINAL_COUNT",      0,  0,  0},
     {"EV_STOPPED",          0,  0,  0},
@@ -10062,6 +10134,9 @@ PRIVATE EV_ACTION ST_IDLE[] = {
     {"EV_ON_OPEN",              ac_on_open,             0},
     {"EV_ON_CLOSE",             ac_on_close,            0},
     {"EV_FINAL_COUNT",          ac_final_count,         0},
+    {"EV_TTY_DATA",             ac_tty_data,            0},
+    {"EV_TTY_OPEN",             ac_tty_open,            0},
+    {"EV_TTY_CLOSE",            ac_tty_close,           0},
     {"EV_TIMEOUT",              ac_timeout,             0},
     {"EV_STOPPED",              0,                      0},
     {0,0,0}
@@ -10165,7 +10240,7 @@ PRIVATE GCLASS _gclass = {
     lmt,
     tattr_desc,
     sizeof(PRIVATE_DATA),
-    0,  // acl
+    authz_table,  // acl
     s_user_trace_level,
     command_table,  // command_table
     0,  // gcflag

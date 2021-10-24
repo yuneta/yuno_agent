@@ -297,6 +297,9 @@ PRIVATE int mt_start(hgobj gobj)
     priv->uv_read_active = 1;
     uv_read_start((uv_stream_t*)&priv->uv_out, on_alloc_cb, on_read_cb);
 
+    json_t *kw_on_open = json_object();
+    gobj_publish_event(gobj, "EV_TTY_OPEN", kw_on_open);
+
     return 0;
 }
 
@@ -378,6 +381,9 @@ PRIVATE void on_close_cb(uv_handle_t* handle)
     }
 
     if(!priv->uv_handler_in_active && !priv->uv_handler_out_active) {
+        json_t *kw_on_close = json_object();
+        gobj_publish_event(gobj, "EV_TTY_CLOSE", kw_on_close);
+
         if(gobj_is_volatil(gobj)) {
             gobj_destroy(gobj);
         } else {
@@ -495,7 +501,7 @@ PRIVATE void on_read_cb(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf)
     json_t *kw = json_pack("{s:I}",
         "gbuffer", (json_int_t)(size_t)gbuf
     );
-    gobj_publish_event(gobj, "EV_ON_MESSAGE", kw);
+    gobj_publish_event(gobj, "EV_TTY_DATA", kw);
 }
 
 /***************************************************************************
@@ -602,7 +608,7 @@ PRIVATE int write_data_to_pty(hgobj gobj, GBUFFER *gbuf)
 /***************************************************************************
  *
  ***************************************************************************/
-PRIVATE int ac_send_message(hgobj gobj, const char *event, json_t *kw, hgobj src)
+PRIVATE int ac_write_tty(hgobj gobj, const char *event, json_t *kw, hgobj src)
 {
     GBUFFER *gbuf = (GBUFFER *)(size_t)kw_get_int(kw, "gbuffer", 0, FALSE);
 
@@ -617,13 +623,15 @@ PRIVATE int ac_send_message(hgobj gobj, const char *event, json_t *kw, hgobj src
  ***************************************************************************/
 PRIVATE const EVENT input_events[] = {
     // top input
-    {"EV_SEND_MESSAGE",     0,  0,  ""},
+    {"EV_WRITE_TTY",    0,  0,  ""},
     // bottom input
     // internal
     {NULL, 0, 0, ""}
 };
 PRIVATE const EVENT output_events[] = {
-    {"EV_ON_MESSAGE",   0,  0,  ""},
+    {"EV_TTY_DATA",     0,  0,  ""},
+    {"EV_TTY_OPEN",     0,  0,  ""},
+    {"EV_TTY_CLOSE",    0,  0,  ""},
     {NULL, 0, 0, ""}
 };
 PRIVATE const char *state_names[] = {
@@ -632,7 +640,7 @@ PRIVATE const char *state_names[] = {
 };
 
 PRIVATE EV_ACTION ST_IDLE[] = {
-    {"EV_SEND_MESSAGE",     ac_send_message,    0},
+    {"EV_WRITE_TTY",    ac_write_tty,   0},
     {0,0,0}
 };
 

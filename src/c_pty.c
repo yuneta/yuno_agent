@@ -48,7 +48,7 @@ PRIVATE sdata_desc_t tattr_desc[] = {
 /*-ATTR-type------------name--------------------flag--------default-description---------- */
 SDATA (ASN_OCTET_STR,   "process",              SDF_RD,     "bash", "Process to execute in pseudo terminal"),
 SDATA (ASN_UNSIGNED,    "rows",                 SDF_RD,     24,     "Rows"),
-SDATA (ASN_UNSIGNED,    "columns",              SDF_RD,     80,     "Columns"),
+SDATA (ASN_UNSIGNED,    "cols",                 SDF_RD,     80,     "Columns"),
 SDATA (ASN_OCTET_STR,   "cwd",                  SDF_RD,     "",     "Current work directory"),
 SDATA (ASN_POINTER,     "user_data",            0,          0,      "user data"),
 SDATA (ASN_POINTER,     "user_data2",           0,          0,      "more user data"),
@@ -74,8 +74,8 @@ PRIVATE const trace_level_t s_user_trace_level[16] = {
 #define BFINPUT_SIZE (2*1024)
 
 typedef struct _PRIVATE_DATA {
-    uint64_t *pRows;
-    uint64_t *pColumns;
+    int rows;
+    int cols;
     char *argv[2]; // HACK Command or process without arguments
 
     char uv_read_active;
@@ -90,6 +90,7 @@ typedef struct _PRIVATE_DATA {
     pid_t pty;      // file descriptor of pseudoterminal
     int pid;        // child pid
 
+    char slave_name[PATH_MAX+1];
     char bfinput[BFINPUT_SIZE];
 } PRIVATE_DATA;
 
@@ -114,16 +115,14 @@ PRIVATE void mt_create(hgobj gobj)
     priv->argv[0] = (char *)gbmem_strdup(process);
     priv->argv[1] = 0;
 
-    priv->pRows = gobj_danger_attr_ptr(gobj, "rows");
-    priv->pColumns = gobj_danger_attr_ptr(gobj, "columns");
-
     priv->pty = -1;
 
     /*
      *  Do copy of heavy used parameters, for quick access.
      *  HACK The writable attributes must be repeated in mt_writing method.
      */
-    //SET_PRIV(tx_ready_event_name,       gobj_read_str_attr)
+    SET_PRIV(rows,      gobj_read_uint32_attr)
+    SET_PRIV(cols,      gobj_read_uint32_attr)
 
     hgobj subscriber = (hgobj)gobj_read_pointer_attr(gobj, "subscriber");
     if(!subscriber)
@@ -175,12 +174,12 @@ PRIVATE int mt_start(hgobj gobj)
     uv_disable_stdio_inheritance();
 
     struct winsize size = {
-        *priv->pRows,
-        *priv->pColumns,
+        priv->rows,
+        priv->cols,
         0,
         0
     };
-    pid = forkpty(&master, NULL, NULL, &size);
+    pid = forkpty(&master, priv->slave_name, NULL, &size);
     if (pid < 0) {
         log_error(0,
             "gobj",         "%s", gobj_full_name(gobj),
@@ -297,7 +296,13 @@ PRIVATE int mt_start(hgobj gobj)
     priv->uv_read_active = 1;
     uv_read_start((uv_stream_t*)&priv->uv_out, on_alloc_cb, on_read_cb);
 
-    json_t *kw_on_open = json_object();
+    json_t *kw_on_open = json_pack("{s:s, s:s, s:s, s:i, s:i}",
+        "name", gobj_name(gobj),
+        "process", priv->argv[0],
+        "slave_name", priv->slave_name,
+        "rows", (int)priv->rows,
+        "cols", (int)priv->cols
+    );
     gobj_publish_event(gobj, "EV_TTY_OPEN", kw_on_open);
 
     return 0;
@@ -381,7 +386,11 @@ PRIVATE void on_close_cb(uv_handle_t* handle)
     }
 
     if(!priv->uv_handler_in_active && !priv->uv_handler_out_active) {
-        json_t *kw_on_close = json_object();
+        json_t *kw_on_close = json_pack("{s:s, s:s, s:s}",
+            "name", gobj_name(gobj),
+            "process", priv->argv[0],
+            "slave_name", priv->slave_name
+        );
         gobj_publish_event(gobj, "EV_TTY_CLOSE", kw_on_close);
 
         if(gobj_is_volatil(gobj)) {
@@ -483,25 +492,26 @@ PRIVATE void on_read_cb(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf)
         );
     }
 
-    // TODO: check is nread is greater than maximum block, and create a overflowable buf
-    GBUFFER *gbuf = gbuf_create(nread, nread, 0,0);
+    GBUFFER *gbuf = gbuf_string2base64(buf->base, nread);
     if(!gbuf) {
         log_error(0,
             "gobj",         "%s", gobj_full_name(gobj),
             "function",     "%s", __FUNCTION__,
             "msgset",       "%s", MSGSET_MEMORY_ERROR,
-            "msg",          "%s", "no memory for gbuf",
-            "size",         "%d", nread,
+            "msg",          "%s", "Pty encode to base64 faild",
             NULL
         );
         return;
     }
-    gbuf_append(gbuf, buf->base, nread);
 
-    json_t *kw = json_pack("{s:I}",
-        "gbuffer", (json_int_t)(size_t)gbuf
+    json_t *kw = json_pack("{s:s, s:s, s:s, s:s}",
+        "name", gobj_name(gobj),
+        "process", priv->argv[0],
+        "slave_name", priv->slave_name,
+        "conten64", gbuf_cur_rd_pointer(gbuf)
     );
     gobj_publish_event(gobj, "EV_TTY_DATA", kw);
+    gbuf_decref(gbuf);
 }
 
 /***************************************************************************
@@ -610,9 +620,11 @@ PRIVATE int write_data_to_pty(hgobj gobj, GBUFFER *gbuf)
  ***************************************************************************/
 PRIVATE int ac_write_tty(hgobj gobj, const char *event, json_t *kw, hgobj src)
 {
-    GBUFFER *gbuf = (GBUFFER *)(size_t)kw_get_int(kw, "gbuffer", 0, FALSE);
+    const char *content64 = kw_get_str(kw, "content64", 0, 0);
+    GBUFFER *gbuf = gbuf_decodebase64string(content64);
 
     write_data_to_pty(gobj, gbuf);
+    gbuf_decref(gbuf);
 
     JSON_DECREF(kw);
     return 0;

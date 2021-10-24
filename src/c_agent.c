@@ -561,6 +561,12 @@ SDATAPM (ASN_BOOLEAN,   "yuno_disabled",0,              0,          "Yuno disabl
 SDATA_END()
 };
 
+PRIVATE sdata_desc_t pm_write_tty[] = {
+/*-PM----type-----------name------------flag------------default-----description---------- */
+SDATAPM (ASN_OCTET_STR, "name",         0,              0,          "Name of console"),
+SDATAPM (ASN_OCTET_STR, "content64",    0,              0,          "Content64 data to write to tty"),
+SDATA_END()
+};
 PRIVATE sdata_desc_t pm_read_json[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "filename",      0,              0,         "Filename to read"),
@@ -771,6 +777,7 @@ PRIVATE const char *a_read_file[] = {"EV_READ_FILE", 0};
 PRIVATE const char *a_read_binary_file[] = {"EV_READ_BINARY_FILE", 0};
 PRIVATE const char *a_read_running_keys[] = {"EV_READ_RUNNING_KEYS", 0};
 PRIVATE const char *a_read_running_bin[] = {"EV_READ_RUNNING_BIN", 0};
+PRIVATE const char *a_write_tty[] = {"EV_WRITE_TTY", 0};
 
 PRIVATE const char *a_top_yunos[] = {"t", 0};
 
@@ -811,6 +818,7 @@ SDATACM2 (ASN_SCHEMA,   "dir-yuneta",       0,                  0,              
 SDATACM2 (ASN_SCHEMA,   "dir-realms",       0,                  0,                  pm_dir,         cmd_dir_realms, "List /yuneta/realms directory"),
 SDATACM2 (ASN_SCHEMA,   "dir-repos",        0,                  0,                  pm_dir,         cmd_dir_repos,  "List /yuneta/repos directory"),
 SDATACM2 (ASN_SCHEMA,   "dir-store",        0,                  0,                  pm_dir,         cmd_dir_store,  "List /yuneta/store directory"),
+SDATACM2 (ASN_SCHEMA,   "write-tty",        0,                  a_write_tty,        pm_write_tty,   0,              "Write data to tty"),
 SDATACM2 (ASN_SCHEMA,   "read-json",        0,                  a_read_json,        pm_read_json,   0,              "Read json file"),
 SDATACM2 (ASN_SCHEMA,   "read-file",        0,                  a_read_file,        pm_read_file,   0,              "Read a text file"),
 SDATACM2 (ASN_SCHEMA,   "read-binary-file", 0,                  a_read_binary_file, pm_read_binary_file, 0,         "Read a binary file (encoded in base64)"),
@@ -6231,6 +6239,7 @@ PRIVATE json_t *cmd_open_console(hgobj gobj, const char *cmd, json_t *kw, hgobj 
          */
         json_t *kw_pty = json_pack("{s:s}",
             "process", process
+            // TODO get and pass rows,cols
         );
         gobj_console = gobj_create_unique(name, GCLASS_PTY, kw_pty, gobj);
         if(!gobj_console) {
@@ -10027,6 +10036,50 @@ PRIVATE int ac_final_count(hgobj gobj, const char *event, json_t *kw, hgobj src)
  ***************************************************************************/
 PRIVATE int ac_tty_open(hgobj gobj, const char *event, json_t *kw, hgobj src)
 {
+    PRIVATE_DATA *priv = gobj_priv_data(gobj);
+
+    const char *name; json_t *jn_console;
+    json_object_foreach(priv->list_consoles, name, jn_console) {
+        json_t *jn_routes = kw_get_dict(jn_console, "routes", 0, KW_REQUIRED);
+
+        const char *route_name; json_t *jn_route;
+        json_object_foreach(jn_routes, route_name, jn_route) {
+            const char *route_service = kw_get_str(jn_route, "route_service", "", KW_REQUIRED);
+            const char *route_child = kw_get_str(jn_route,  "route_child", "", KW_REQUIRED);
+            hgobj gobj_route_service = gobj_find_service(route_service, TRUE);
+            if(!gobj_route_service) {
+                continue;
+            }
+            hgobj gobj_input_gate = gobj_child_by_name(gobj_route_service, route_child, 0);
+            if(!gobj_input_gate) {
+                log_error(0,
+                    "gobj",         "%s", gobj_full_name(gobj),
+                    "function",     "%s", __FUNCTION__,
+                    "msgset",       "%s", MSGSET_INTERNAL_ERROR,
+                    "msg",          "%s", "no route child found",
+                    "service",      "%s", route_service,
+                    "child",        "%s", route_child,
+                    NULL
+                );
+                continue;
+            }
+
+            gobj_send_event(
+                gobj_input_gate,
+                "EV_TTY_OPEN",
+                msg_iev_build_webix2(gobj,
+                    0,  // result
+                    0,  // comment
+                    0,  // schema
+                    json_incref(kw), // owned
+                    json_incref(jn_route),  // owned
+                    ""
+                ),
+                gobj
+            );
+        }
+    }
+
     KW_DECREF(kw);
     return 0;
 }
@@ -10036,6 +10089,55 @@ PRIVATE int ac_tty_open(hgobj gobj, const char *event, json_t *kw, hgobj src)
  ***************************************************************************/
 PRIVATE int ac_tty_close(hgobj gobj, const char *event, json_t *kw, hgobj src)
 {
+    PRIVATE_DATA *priv = gobj_priv_data(gobj);
+
+    if(gobj_is_shutdowning()) {
+        KW_DECREF(kw);
+        return 0;
+    }
+
+    const char *name; json_t *jn_console;
+    json_object_foreach(priv->list_consoles, name, jn_console) {
+        json_t *jn_routes = kw_get_dict(jn_console, "routes", 0, KW_REQUIRED);
+
+        const char *route_name; json_t *jn_route;
+        json_object_foreach(jn_routes, route_name, jn_route) {
+            const char *route_service = kw_get_str(jn_route, "route_service", "", KW_REQUIRED);
+            const char *route_child = kw_get_str(jn_route,  "route_child", "", KW_REQUIRED);
+            hgobj gobj_route_service = gobj_find_service(route_service, TRUE);
+            if(!gobj_route_service) {
+                continue;
+            }
+            hgobj gobj_input_gate = gobj_child_by_name(gobj_route_service, route_child, 0);
+            if(!gobj_input_gate) {
+                log_error(0,
+                    "gobj",         "%s", gobj_full_name(gobj),
+                    "function",     "%s", __FUNCTION__,
+                    "msgset",       "%s", MSGSET_INTERNAL_ERROR,
+                    "msg",          "%s", "no route child found",
+                    "service",      "%s", route_service,
+                    "child",        "%s", route_child,
+                    NULL
+                );
+                continue;
+            }
+
+            gobj_send_event(
+                gobj_input_gate,
+                "EV_TTY_CLOSE",
+                msg_iev_build_webix2(gobj,
+                    0,  // result
+                    0,  // comment
+                    0,  // schema
+                    json_incref(kw), // owned
+                    json_incref(jn_route),  // owned
+                    ""
+                ),
+                gobj
+            );
+        }
+    }
+
     KW_DECREF(kw);
     return 0;
 }
@@ -10045,8 +10147,109 @@ PRIVATE int ac_tty_close(hgobj gobj, const char *event, json_t *kw, hgobj src)
  ***************************************************************************/
 PRIVATE int ac_tty_data(hgobj gobj, const char *event, json_t *kw, hgobj src)
 {
+    PRIVATE_DATA *priv = gobj_priv_data(gobj);
+
+    const char *name; json_t *jn_console;
+    json_object_foreach(priv->list_consoles, name, jn_console) {
+        json_t *jn_routes = kw_get_dict(jn_console, "routes", 0, KW_REQUIRED);
+
+        const char *route_name; json_t *jn_route;
+        json_object_foreach(jn_routes, route_name, jn_route) {
+            const char *route_service = kw_get_str(jn_route, "route_service", "", KW_REQUIRED);
+            const char *route_child = kw_get_str(jn_route,  "route_child", "", KW_REQUIRED);
+            hgobj gobj_route_service = gobj_find_service(route_service, TRUE);
+            if(!gobj_route_service) {
+                continue;
+            }
+            hgobj gobj_input_gate = gobj_child_by_name(gobj_route_service, route_child, 0);
+            if(!gobj_input_gate) {
+                log_error(0,
+                    "gobj",         "%s", gobj_full_name(gobj),
+                    "function",     "%s", __FUNCTION__,
+                    "msgset",       "%s", MSGSET_INTERNAL_ERROR,
+                    "msg",          "%s", "no route child found",
+                    "service",      "%s", route_service,
+                    "child",        "%s", route_child,
+                    NULL
+                );
+                continue;
+            }
+
+            gobj_send_event(
+                gobj_input_gate,
+                "EV_TTY_DATA",
+                msg_iev_build_webix2(gobj,
+                    0,  // result
+                    0,  // comment
+                    0,  // schema
+                    json_incref(kw), // owned
+                    json_incref(jn_route),  // owned
+                    ""
+                ),
+                gobj
+            );
+        }
+    }
+
     KW_DECREF(kw);
     return 0;
+}
+
+/***************************************************************************
+ *
+ ***************************************************************************/
+PRIVATE int ac_write_tty(hgobj gobj, const char *event, json_t *kw, hgobj src)
+{
+    const char *name= kw_get_str(kw, "name", 0, 0);
+    const char *content64 = kw_get_str(kw, "content64", 0, 0);
+    if(empty_string(content64)) {
+        return gobj_send_event(
+            src,
+            event,
+            msg_iev_build_webix(gobj,
+                -1,
+                json_sprintf("content64 required"),
+                0,
+                0,
+                kw  // owned
+            ),
+            gobj
+        );
+    }
+
+    hgobj gobj_console = gobj_find_unique_gobj(name, FALSE);
+    if(!gobj_console) {
+        return gobj_send_event(
+            src,
+            event,
+            msg_iev_build_webix(gobj,
+                -1,
+                json_sprintf("console not found: '%s'", name),
+                0,
+                0,
+                kw  // owned
+            ),
+            gobj
+        );
+    }
+
+    gobj_send_event(gobj_console, "EV_WRITE_TTY", json_incref(kw), gobj);
+
+    /*
+     *  Inform
+     */
+    return gobj_send_event(
+        src,
+        event,
+        msg_iev_build_webix(gobj,
+            0,
+            0,
+            0,
+            json_object(), // owned
+            kw  // owned
+        ),
+        gobj
+    );
 }
 
 /***************************************************************************
@@ -10137,6 +10340,7 @@ PRIVATE EV_ACTION ST_IDLE[] = {
     {"EV_TTY_DATA",             ac_tty_data,            0},
     {"EV_TTY_OPEN",             ac_tty_open,            0},
     {"EV_TTY_CLOSE",            ac_tty_close,           0},
+    {"EV_WRITE_TTY",            ac_write_tty,           0},
     {"EV_TIMEOUT",              ac_timeout,             0},
     {"EV_STOPPED",              0,                      0},
     {0,0,0}

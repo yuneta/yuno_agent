@@ -508,7 +508,7 @@ PRIVATE void on_read_cb(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf)
         "name", gobj_name(gobj),
         "process", priv->argv[0],
         "slave_name", priv->slave_name,
-        "conten64", gbuf_cur_rd_pointer(gbuf)
+        "content64", gbuf_cur_rd_pointer(gbuf)
     );
     gobj_publish_event(gobj, "EV_TTY_DATA", kw);
     gbuf_decref(gbuf);

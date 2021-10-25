@@ -6390,7 +6390,8 @@ PRIVATE json_t *cmd_close_console(hgobj gobj, const char *cmd, json_t *kw, hgobj
         const char *route_child = gobj_name(src);
         ret = remove_console_route(gobj, name, route_service, route_child);
     } else {
-        ret = delete_console(gobj, name);
+        hgobj gobj_console = gobj_find_unique_gobj(name, FALSE);
+        gobj_stop(gobj_console); // volatil, auto-destroy
     }
 
     /*
@@ -6588,17 +6589,6 @@ PRIVATE int delete_console(hgobj gobj, const char *name)
         return -1;
     }
 
-    if(!gobj_console) {
-        log_error(0,
-            "gobj",         "%s", gobj_full_name(gobj),
-            "function",     "%s", __FUNCTION__,
-            "msgset",       "%s", MSGSET_INTERNAL_ERROR,
-            "msg",          "%s", "no console gobj found",
-            "name",         "%s", name,
-            NULL
-        );
-    }
-
     /*
      *  delete routes in input gates
      */
@@ -6631,7 +6621,9 @@ PRIVATE int delete_console(hgobj gobj, const char *name)
         }
     }
 
-    gobj_stop(gobj_console); // volatil, auto-destroy
+    if(gobj_console) {
+        gobj_stop(gobj_console); // volatil, auto-destroy
+    }
     json_decref(jn_console);
 
     return 0;
@@ -10096,8 +10088,8 @@ PRIVATE int ac_tty_close(hgobj gobj, const char *event, json_t *kw, hgobj src)
         return 0;
     }
 
-    const char *name; json_t *jn_console;
-    json_object_foreach(priv->list_consoles, name, jn_console) {
+    const char *name; json_t *jn_console; void *n;
+    json_object_foreach_safe(priv->list_consoles, n, name, jn_console) {
         json_t *jn_routes = kw_get_dict(jn_console, "routes", 0, KW_REQUIRED);
 
         const char *route_name; json_t *jn_route;
@@ -10136,6 +10128,9 @@ PRIVATE int ac_tty_close(hgobj gobj, const char *event, json_t *kw, hgobj src)
                 gobj
             );
         }
+
+
+
     }
 
     KW_DECREF(kw);

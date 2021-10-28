@@ -90,7 +90,7 @@ typedef struct _PRIVATE_DATA {
     pid_t pty;      // file descriptor of pseudoterminal
     int pid;        // child pid
 
-    char slave_name[PATH_MAX+1];
+    char slave_name[NAME_MAX+1];
     char bfinput[BFINPUT_SIZE];
 } PRIVATE_DATA;
 

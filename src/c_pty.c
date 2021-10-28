@@ -468,6 +468,7 @@ PRIVATE void on_read_cb(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf)
             "function",     "%s", __FUNCTION__,
             "msgset",       "%s", MSGSET_LIBUV_ERROR,
             "msg",          "%s", "read FAILED",
+            "error",        "%d", nread,
             "uv_error",     "%s", uv_err_name(nread),
             NULL
         );
@@ -621,6 +622,18 @@ PRIVATE int write_data_to_pty(hgobj gobj, GBUFFER *gbuf)
 PRIVATE int ac_write_tty(hgobj gobj, const char *event, json_t *kw, hgobj src)
 {
     const char *content64 = kw_get_str(kw, "content64", 0, 0);
+    if(empty_string(content64)) {
+        log_error(0,
+            "gobj",         "%s", gobj_full_name(gobj),
+            "function",     "%s", __FUNCTION__,
+            "msgset",       "%s", MSGSET_INTERNAL_ERROR,
+            "msg",          "%s", "content64 empty",
+            NULL
+        );
+        JSON_DECREF(kw);
+        return -1;
+    }
+
     GBUFFER *gbuf = gbuf_decodebase64string(content64);
 
     write_data_to_pty(gobj, gbuf);

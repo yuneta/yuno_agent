@@ -137,7 +137,6 @@ PRIVATE json_t *find_public_service(
     hgobj gobj,
     const char *service
 );
-PRIVATE int delete_console(hgobj gobj, const char *name);
 PRIVATE int add_console_in_input_gate(hgobj gobj, const char *name, hgobj src);
 PRIVATE int add_console_route(
     hgobj gobj,
@@ -6390,7 +6389,7 @@ PRIVATE json_t *cmd_close_console(hgobj gobj, const char *cmd, json_t *kw, hgobj
         const char *route_child = gobj_name(src);
         ret = remove_console_route(gobj, name, route_service, route_child);
     } else {
-        hgobj gobj_console = gobj_find_unique_gobj(name, FALSE);
+        hgobj gobj_console = gobj_find_unique_gobj(name, TRUE);
         gobj_stop(gobj_console); // volatil, auto-destroy
     }
 
@@ -6645,8 +6644,8 @@ PRIVATE int delete_consoles_on_disconnection(hgobj gobj, json_t *kw, hgobj src_)
     const char *route_service = gobj_name(gobj_nearest_top_unique(gobj_channel));
     const char *route_child = gobj_name(gobj_channel);
 
-    const char *name; json_t *jn_;
-    json_object_foreach(consoles, name, jn_) {
+    const char *name; json_t *jn_; void *n;
+    json_object_foreach_safe(consoles, n, name, jn_) {
         json_t *jn_console = kw_get_dict(priv->list_consoles, name, 0, 0);
 
         BOOL hold_open = kw_get_bool(jn_console, "hold_open", 0, KW_REQUIRED);
@@ -10030,8 +10029,8 @@ PRIVATE int ac_tty_open(hgobj gobj, const char *event, json_t *kw, hgobj src)
 {
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
 
-    const char *name; json_t *jn_console;
-    json_object_foreach(priv->list_consoles, name, jn_console) {
+    json_t *jn_console = kw_get_dict(priv->list_consoles, gobj_name(src), 0, KW_REQUIRED);
+    if(jn_console) {
         json_t *jn_routes = kw_get_dict(jn_console, "routes", 0, KW_REQUIRED);
 
         const char *route_name; json_t *jn_route;
@@ -10088,8 +10087,8 @@ PRIVATE int ac_tty_close(hgobj gobj, const char *event, json_t *kw, hgobj src)
         return 0;
     }
 
-    const char *name; json_t *jn_console; void *n;
-    json_object_foreach_safe(priv->list_consoles, n, name, jn_console) {
+    json_t *jn_console = kw_get_dict(priv->list_consoles, gobj_name(src), 0, KW_REQUIRED|KW_EXTRACT);
+    if(jn_console) {
         json_t *jn_routes = kw_get_dict(jn_console, "routes", 0, KW_REQUIRED);
 
         const char *route_name; json_t *jn_route;
@@ -10129,8 +10128,7 @@ PRIVATE int ac_tty_close(hgobj gobj, const char *event, json_t *kw, hgobj src)
             );
         }
 
-
-
+        json_decref(jn_console);
     }
 
     KW_DECREF(kw);
@@ -10144,8 +10142,8 @@ PRIVATE int ac_tty_data(hgobj gobj, const char *event, json_t *kw, hgobj src)
 {
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
 
-    const char *name; json_t *jn_console;
-    json_object_foreach(priv->list_consoles, name, jn_console) {
+    json_t *jn_console = kw_get_dict(priv->list_consoles, gobj_name(src), 0, KW_REQUIRED);
+    if(jn_console) {
         json_t *jn_routes = kw_get_dict(jn_console, "routes", 0, KW_REQUIRED);
 
         const char *route_name; json_t *jn_route;

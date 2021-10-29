@@ -10087,7 +10087,7 @@ PRIVATE int ac_tty_close(hgobj gobj, const char *event, json_t *kw, hgobj src)
         return 0;
     }
 
-    json_t *jn_console = kw_get_dict(priv->list_consoles, gobj_name(src), 0, KW_REQUIRED|KW_EXTRACT);
+    json_t *jn_console = kw_get_dict(priv->list_consoles, gobj_name(src), 0, KW_EXTRACT);
     if(jn_console) {
         json_t *jn_routes = kw_get_dict(jn_console, "routes", 0, KW_REQUIRED);
 
@@ -10226,7 +10226,11 @@ PRIVATE int ac_write_tty(hgobj gobj, const char *event, json_t *kw, hgobj src)
         );
     }
 
-    gobj_send_event(gobj_console, "EV_WRITE_TTY", json_incref(kw), gobj);
+    GBUFFER *gbuf = gbuf_decodebase64string(content64);
+    json_t *kw_tty = json_pack("{s:I}",
+        "gbuffer", (json_int_t)(size_t)gbuf
+    );
+    gobj_send_event(gobj_console, "EV_WRITE_TTY", kw_tty, gobj);
 
     /*
      *  Inform

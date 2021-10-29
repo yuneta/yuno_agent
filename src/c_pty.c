@@ -173,7 +173,7 @@ PRIVATE int mt_start(hgobj gobj)
         return -1;
     }
 
-    uv_disable_stdio_inheritance();
+    //uv_disable_stdio_inheritance();
 
     BOOL tty_empty = (empty_string(priv->argv[0]))?TRUE:FALSE;
 
@@ -366,10 +366,11 @@ PRIVATE int mt_start(hgobj gobj)
         uv_read_start((uv_stream_t*)&priv->uv_out, on_alloc_cb, on_read_cb);
     }
 
-    json_t *kw_on_open = json_pack("{s:s, s:s, s:s, s:i, s:i}",
+    json_t *kw_on_open = json_pack("{s:s, s:s, s:s, s:i, s:i, s:i}",
         "name", gobj_name(gobj),
         "process", priv->argv[0],
         "slave_name", priv->slave_name,
+        "fd", master,
         "rows", (int)priv->rows,
         "cols", (int)priv->cols
     );
@@ -419,12 +420,9 @@ PRIVATE int mt_stop(hgobj gobj)
     }
 
     if(priv->pid > 0) {
-trace_msg("🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋 1111");
         if(uv_kill(priv->pid, 0) == 0) {
-trace_msg("🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋 2222");
-            uv_kill(priv->pid, SIGUSR1); //SIGUSR1); //  SIGKILL); // TODO
+            uv_kill(priv->pid, SIGKILL);
             waitpid(priv->pid, NULL, 0);
-trace_msg("🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋 3333");
         }
         priv->pid = -1;
     }
@@ -447,13 +445,9 @@ trace_msg("🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋�
  ***************************************************************************/
 PRIVATE void catcher(int signum)
 {
-printf("🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋 %d\n", signum);
-printf("🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋 %d\n", signum);
-printf("🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋 %d\n", signum);
     switch (signum) {
         case SIGUSR1:
             //exit(0);
-printf("🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋🙋 SIGUSR1 %d\n", signum);
             break;
         default:
             break;
@@ -729,25 +723,11 @@ PRIVATE int write_data_to_pty(hgobj gobj, GBUFFER *gbuf)
  ***************************************************************************/
 PRIVATE int ac_write_tty(hgobj gobj, const char *event, json_t *kw, hgobj src)
 {
-    const char *content64 = kw_get_str(kw, "content64", 0, 0);
-    if(empty_string(content64)) {
-        log_error(0,
-            "gobj",         "%s", gobj_full_name(gobj),
-            "function",     "%s", __FUNCTION__,
-            "msgset",       "%s", MSGSET_INTERNAL_ERROR,
-            "msg",          "%s", "content64 empty",
-            NULL
-        );
-        JSON_DECREF(kw);
-        return -1;
-    }
-
-    GBUFFER *gbuf = gbuf_decodebase64string(content64);
+    GBUFFER *gbuf = (GBUFFER *)(size_t)kw_get_int(kw, "gbuffer", 0, TRUE);
 
     write_data_to_pty(gobj, gbuf);
-    gbuf_decref(gbuf);
 
-    JSON_DECREF(kw);
+    KW_DECREF(kw);
     return 0;
 }
 

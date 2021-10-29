@@ -353,6 +353,22 @@ PRIVATE int mt_start(hgobj gobj)
             return -1;
         }
         priv->uv_handler_out_active = TRUE;
+
+    } else {
+        struct termios tio;
+
+        tcgetattr(master, &tio);
+
+        tio.c_iflag &= ~(IXON|IXOFF|ICRNL|INLCR|IGNCR|IMAXBEL|ISTRIP);
+        tio.c_iflag |= IGNBRK;
+        tio.c_oflag &= ~(OPOST|ONLCR|OCRNL|ONLRET);
+        tio.c_lflag &= ~(IEXTEN|ICANON|ECHO|ECHOE|ECHONL|ECHOCTL|ECHOPRT|
+            ECHOKE|ISIG);
+        tio.c_cc[VMIN] = 1;
+        tio.c_cc[VTIME] = 0;
+        if (tcsetattr(master, TCSANOW, &tio) == 0) {
+            tcflush(master, TCOFLUSH);
+        }
     }
 
     priv->pty = master;     // file descriptor of pseudoterminal

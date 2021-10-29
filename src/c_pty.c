@@ -392,7 +392,7 @@ PRIVATE int mt_stop(hgobj gobj)
     if(priv->uv_handler_in_active) {
         if(gobj_trace_level(gobj) & TRACE_UV) {
             trace_msg(">>> uv_close(cb %d) pty in p=%p",
-                gobj_is_imminent_destroy(gobj),
+                !gobj_is_imminent_destroy(gobj),
                 &priv->uv_in
             );
         }
@@ -403,7 +403,7 @@ PRIVATE int mt_stop(hgobj gobj)
     if(priv->uv_handler_out_active) {
         if(gobj_trace_level(gobj) & TRACE_UV) {
             trace_msg(">>> uv_close(cb %d) pty out p=%p",
-                gobj_is_imminent_destroy(gobj),
+                !gobj_is_imminent_destroy(gobj),
                 &priv->uv_out
             );
         }

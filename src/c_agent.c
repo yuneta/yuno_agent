@@ -10232,21 +10232,8 @@ PRIVATE int ac_write_tty(hgobj gobj, const char *event, json_t *kw, hgobj src)
     );
     gobj_send_event(gobj_console, "EV_WRITE_TTY", kw_tty, gobj);
 
-    /*
-     *  Inform
-     */
-    return gobj_send_event(
-        src,
-        event,
-        msg_iev_build_webix(gobj,
-            0,
-            0,
-            0,
-            json_object(), // owned
-            kw  // owned
-        ),
-        gobj
-    );
+    KW_DECREF(kw);
+    return 0;
 }
 
 /***************************************************************************
@@ -10296,6 +10283,7 @@ PRIVATE const EVENT input_events[] = {
     {"EV_TTY_DATA",         0,  0,  0},
     {"EV_TTY_OPEN",         0,  0,  0},
     {"EV_TTY_CLOSE",        0,  0,  0},
+    {"EV_WRITE_TTY",        0,  0,  0},
     {"EV_TIMEOUT",          0,  0,  0},
     {"EV_FINAL_COUNT",      0,  0,  0},
     {"EV_STOPPED",          0,  0,  0},

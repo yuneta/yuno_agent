@@ -49,6 +49,7 @@ PRIVATE int write_data_to_pty(hgobj gobj, GBUFFER *gbuf);
 PRIVATE sdata_desc_t tattr_desc[] = {
 /*-ATTR-type------------name--------------------flag--------default-description---------- */
 SDATA (ASN_OCTET_STR,   "process",              SDF_RD,     "bash", "Process to execute in pseudo terminal"),
+SDATA (ASN_BOOLEAN,     "no_output",            0,          0,      "Mirror, only input"),
 SDATA (ASN_UNSIGNED,    "rows",                 SDF_RD,     24,     "Rows"),
 SDATA (ASN_UNSIGNED,    "cols",                 SDF_RD,     80,     "Columns"),
 SDATA (ASN_OCTET_STR,   "cwd",                  SDF_RD,     "",     "Current work directory"),
@@ -176,6 +177,7 @@ PRIVATE int mt_start(hgobj gobj)
     //uv_disable_stdio_inheritance();
 
     BOOL tty_empty = (empty_string(priv->argv[0]))?TRUE:FALSE;
+    BOOL no_output = gobj_read_bool_attr(gobj, "no_output");
 
     struct winsize size = {
         priv->rows,
@@ -329,7 +331,7 @@ PRIVATE int mt_start(hgobj gobj)
         priv->uv_handler_in_active = TRUE;
     }
 
-    if(!tty_empty) {
+    if(!no_output) {
         uv_pipe_init(yuno_uv_event_loop(), &priv->uv_out, 0);
         priv->uv_out.data = gobj;
 
@@ -353,22 +355,6 @@ PRIVATE int mt_start(hgobj gobj)
             return -1;
         }
         priv->uv_handler_out_active = TRUE;
-
-    } else {
-        struct termios tio;
-
-        tcgetattr(master, &tio);
-
-        tio.c_iflag &= ~(IXON|IXOFF|ICRNL|INLCR|IGNCR|IMAXBEL|ISTRIP);
-        tio.c_iflag |= IGNBRK;
-        tio.c_oflag &= ~(OPOST|ONLCR|OCRNL|ONLRET);
-        tio.c_lflag &= ~(IEXTEN|ICANON|ECHO|ECHOE|ECHONL|ECHOCTL|ECHOPRT|
-            ECHOKE|ISIG);
-        tio.c_cc[VMIN] = 1;
-        tio.c_cc[VTIME] = 0;
-        if (tcsetattr(master, TCSANOW, &tio) == 0) {
-            tcflush(master, TCOFLUSH);
-        }
     }
 
     priv->pty = master;     // file descriptor of pseudoterminal
@@ -613,11 +599,11 @@ PRIVATE void on_read_cb(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf)
 
     GBUFFER *gbuf = gbuf_string2base64(buf->base, nread);
     if(!gbuf) {
-        log_error(0,
+        log_error(LOG_OPT_TRACE_STACK,
             "gobj",         "%s", gobj_full_name(gobj),
             "function",     "%s", __FUNCTION__,
             "msgset",       "%s", MSGSET_MEMORY_ERROR,
-            "msg",          "%s", "Pty encode to base64 faild",
+            "msg",          "%s", "gbuf_string2base64() FAILED",
             NULL
         );
         return;

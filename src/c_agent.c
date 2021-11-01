@@ -381,7 +381,7 @@ SDATA_END()
 };
 PRIVATE sdata_desc_t pm_authzs_agent[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
-SDATAPM (ASN_UNSIGNED,  "authz",        0,              0,          "permission to search"),
+SDATAPM (ASN_OCTET_STR, "authz",        0,              0,          "permission to search"),
 SDATAPM (ASN_OCTET_STR, "service",      0,              0,          "Service of agent where list the permissions"),
 SDATA_END()
 };
@@ -757,6 +757,8 @@ PRIVATE sdata_desc_t pm_open_console[] = {
 SDATAPM (ASN_OCTET_STR, "name",         0,              "",         "Name of console"),
 SDATAPM (ASN_OCTET_STR, "process",      0,              "bash",     "Process to execute"),
 SDATAPM (ASN_BOOLEAN,   "hold_open",    0,              0,          "True to not close pty on client disconnection"),
+SDATAPM (ASN_UNSIGNED,  "cx",           0,              "80",       "Columns"),
+SDATAPM (ASN_UNSIGNED,  "cy",           0,              "24",       "Rows"),
 SDATA_END()
 };
 PRIVATE sdata_desc_t pm_close_console[] = {
@@ -6191,6 +6193,8 @@ PRIVATE json_t *cmd_open_console(hgobj gobj, const char *cmd, json_t *kw, hgobj 
     const char *name = kw_get_str(kw, "name", "", 0);
     const char *process = kw_get_str(kw, "process", "bash", 0);
     BOOL hold_open = kw_get_bool(kw, "hold_open", 0, KW_WILD_NUMBER);
+    int cx = kw_get_int(kw, "cx", 80, KW_WILD_NUMBER);
+    int cy = kw_get_int(kw, "cy", 24, KW_WILD_NUMBER);
 
     if(empty_string(name)) {
         return msg_iev_build_webix(
@@ -6236,9 +6240,10 @@ PRIVATE json_t *cmd_open_console(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         /*
          *  Create pseudoterminal
          */
-        json_t *kw_pty = json_pack("{s:s}",
-            "process", process
-            // TODO get and pass rows,cols
+        json_t *kw_pty = json_pack("{s:s, s:i, s:i}",
+            "process", process,
+            "cols", cx,
+            "rows", cy
         );
         gobj_console = gobj_create_unique(name, GCLASS_PTY, kw_pty, gobj);
         if(!gobj_console) {

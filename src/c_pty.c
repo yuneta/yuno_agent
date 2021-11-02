@@ -368,10 +368,11 @@ PRIVATE int mt_start(hgobj gobj)
         uv_read_start((uv_stream_t*)&priv->uv_out, on_alloc_cb, on_read_cb);
     }
 
-    json_t *kw_on_open = json_pack("{s:s, s:s, s:s, s:i, s:i, s:i}",
+    json_t *kw_on_open = json_pack("{s:s, s:s, s:s, s:s, s:i, s:i, s:i}",
         "name", gobj_name(gobj),
         "process", priv->argv[0],
         "slave_name", priv->slave_name,
+        "cwd", gobj_read_str_attr(gobj, "cwd"),
         "fd", master,
         "rows", (int)priv->rows,
         "cols", (int)priv->cols

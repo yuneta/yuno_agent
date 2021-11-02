@@ -18,7 +18,7 @@
 "Si quieres vivir en mi reino tienes que cumplir unas reglas."\
 "De lo contrario, vive como un standalone." \
 
-#define APP_VERSION     "4.20.6"
+#define APP_VERSION     "4.21.0"
 #define APP_DATETIME    __DATE__ " " __TIME__
 #define APP_SUPPORT     "<niyamaka at yuneta.io>"
 

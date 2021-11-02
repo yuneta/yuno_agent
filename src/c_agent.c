@@ -756,6 +756,7 @@ PRIVATE sdata_desc_t pm_open_console[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "name",         0,              "",         "Name of console"),
 SDATAPM (ASN_OCTET_STR, "process",      0,              "bash",     "Process to execute"),
+SDATAPM (ASN_OCTET_STR, "cwd",          0,              0,          "Current work directory"),
 SDATAPM (ASN_BOOLEAN,   "hold_open",    0,              0,          "True to not close pty on client disconnection"),
 SDATAPM (ASN_UNSIGNED,  "cx",           0,              "80",       "Columns"),
 SDATAPM (ASN_UNSIGNED,  "cy",           0,              "24",       "Rows"),
@@ -6192,6 +6193,7 @@ PRIVATE json_t *cmd_open_console(hgobj gobj, const char *cmd, json_t *kw, hgobj 
      *----------------------------------------*/
     const char *name = kw_get_str(kw, "name", "", 0);
     const char *process = kw_get_str(kw, "process", "bash", 0);
+    const char *cwd = kw_get_str(kw, "cwd", "/home/yuneta", 0);
     BOOL hold_open = kw_get_bool(kw, "hold_open", 0, KW_WILD_NUMBER);
     int cx = kw_get_int(kw, "cx", 80, KW_WILD_NUMBER);
     int cy = kw_get_int(kw, "cy", 24, KW_WILD_NUMBER);
@@ -6240,8 +6242,9 @@ PRIVATE json_t *cmd_open_console(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         /*
          *  Create pseudoterminal
          */
-        json_t *kw_pty = json_pack("{s:s, s:i, s:i}",
+        json_t *kw_pty = json_pack("{s:s, s:s, s:i, s:i}",
             "process", process,
+            "cwd", cwd,
             "cols", cx,
             "rows", cy
         );
@@ -6653,7 +6656,7 @@ PRIVATE int delete_consoles_on_disconnection(hgobj gobj, json_t *kw, hgobj src_)
     json_object_foreach_safe(consoles, n, name, jn_) {
         json_t *jn_console = kw_get_dict(priv->list_consoles, name, 0, 0);
 
-        BOOL hold_open = kw_get_bool(jn_console, "hold_open", 0, KW_REQUIRED);
+        BOOL hold_open = kw_get_bool(jn_console, "hold_open", 0, 0);
         if(hold_open) {
             remove_console_route(gobj, name, route_service, route_child);
         } else {
@@ -10096,8 +10099,8 @@ PRIVATE int ac_tty_close(hgobj gobj, const char *event, json_t *kw, hgobj src)
     if(jn_console) {
         json_t *jn_routes = kw_get_dict(jn_console, "routes", 0, KW_REQUIRED);
 
-        const char *route_name; json_t *jn_route;
-        json_object_foreach(jn_routes, route_name, jn_route) {
+        const char *route_name; json_t *jn_route; void *n;
+        json_object_foreach_safe(jn_routes, n, route_name, jn_route) {
             const char *route_service = kw_get_str(jn_route, "route_service", "", KW_REQUIRED);
             const char *route_child = kw_get_str(jn_route,  "route_child", "", KW_REQUIRED);
             hgobj gobj_route_service = gobj_find_service(route_service, TRUE);
@@ -10116,6 +10119,12 @@ PRIVATE int ac_tty_close(hgobj gobj, const char *event, json_t *kw, hgobj src)
                     NULL
                 );
                 continue;
+            }
+
+            json_t *consoles = gobj_kw_get_user_data(gobj_input_gate, "consoles", 0, 0);
+
+            if(consoles) {
+                json_object_del(consoles, gobj_name(src));
             }
 
             gobj_send_event(

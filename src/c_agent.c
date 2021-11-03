@@ -133,10 +133,6 @@ PRIVATE int register_public_services(
 );
 PRIVATE int restart_nodes(hgobj gobj);
 
-PRIVATE json_t *find_public_service(
-    hgobj gobj,
-    const char *service
-);
 PRIVATE int add_console_in_input_gate(hgobj gobj, const char *name, hgobj src);
 PRIVATE int add_console_route(
     hgobj gobj,
@@ -7113,6 +7109,7 @@ PRIVATE json_t *get_yuno_config(hgobj gobj, json_t *yuno)
  ***************************************************************************/
 PRIVATE json_t *find_public_service(
     hgobj gobj,
+    const char *yuno_id,
     const char *service
 )
 {
@@ -7122,6 +7119,9 @@ PRIVATE json_t *find_public_service(
     json_t *kw_find = json_pack("{s:s}",
         "service", service
     );
+    if(!empty_string(yuno_id)) {
+        json_object_set_new(kw_find, "yuno_id", json_string(yuno_id));
+    }
 
     json_t *iter_find = gobj_list_nodes(
         priv->resource,
@@ -7139,6 +7139,47 @@ PRIVATE json_t *find_public_service(
 }
 
 /***************************************************************************
+ *  Find a service for client
+ ***************************************************************************/
+PRIVATE json_t *find_service_for_client(
+    hgobj gobj,
+    const char *service_
+)
+{
+    PRIVATE_DATA *priv = gobj_priv_data(gobj);
+    char *resource = "public_services";
+
+    char *service = gbmem_strdup(service_);
+    char *service_yuno_name = strchr(service, '.');     // TODO review: services with . ?
+    if(service_yuno_name) {
+        *service_yuno_name = 0;
+        service_yuno_name++; // yuno_name of service required
+    }
+
+    json_t *kw_find = json_pack("{s:s}",
+        "service", service
+    );
+    if(service_yuno_name) {
+        json_object_set_new(kw_find, "yuno_name", json_string(service_yuno_name));
+    }
+
+    json_t *iter_find = gobj_list_nodes(
+        priv->resource,
+        resource,
+        kw_find, // filter
+        json_pack("{s:b}", "only-id", 1),
+        gobj
+    );
+
+    json_t *hs = json_array_get(iter_find, 0);
+    json_incref(hs);
+    json_decref(iter_find);
+    gbmem_free(service);
+
+    return hs;
+}
+
+/***************************************************************************
  *
  ***************************************************************************/
 PRIVATE int write_service_client_connectors(
@@ -7150,6 +7191,7 @@ PRIVATE int write_service_client_connectors(
     const char *realm_id_ = kw_get_str(yuno, "realm_id`0", "", KW_REQUIRED);
     const char *yuno_role_ = kw_get_str(yuno, "yuno_role", "", KW_REQUIRED);
     const char *yuno_name_ = kw_get_str(yuno, "yuno_name", "", KW_REQUIRED);
+    const char *yuno_id_ = kw_get_str(yuno, "id", "", KW_REQUIRED);
 
     json_t *hs_binary = get_yuno_binary(gobj, yuno);
     json_t *jn_required_services = kw_get_dict_value(
@@ -7174,7 +7216,7 @@ PRIVATE int write_service_client_connectors(
         if(empty_string(yuno_service)) {
             continue;
         }
-        json_t *hs_service = find_public_service(gobj, yuno_service);
+        json_t *hs_service = find_service_for_client(gobj, yuno_service);
         if(!hs_service) {
             log_error(0,
                 "gobj",             "%s", gobj_full_name(gobj),
@@ -7182,6 +7224,7 @@ PRIVATE int write_service_client_connectors(
                 "msgset",           "%s", MSGSET_SERVICE_ERROR,
                 "msg",              "%s", "required service NOT FOUND",
                 "required service", "%s", yuno_service,
+                "required yuno_id", "%s", yuno_id_,
                 "realm_id",         "%s", realm_id_,
                 "yuno_role",        "%s", yuno_role_,
                 "yuno_name",        "%s", yuno_name_,
@@ -7197,6 +7240,7 @@ PRIVATE int write_service_client_connectors(
                 "msgset",           "%s", MSGSET_SERVICE_ERROR,
                 "msg",              "%s", "service connector NULL",
                 "required service", "%s", yuno_service,
+                "required yuno_id", "%s", yuno_id_,
                 "realm_id",         "%s", realm_id_,
                 "yuno_role",        "%s", yuno_role_,
                 "yuno_name",        "%s", yuno_name_,
@@ -8265,6 +8309,7 @@ PRIVATE int register_public_services(
              */
             json_t *hs_service = find_public_service(
                 gobj,
+                yuno_id,
                 service
             );
             if(hs_service) {

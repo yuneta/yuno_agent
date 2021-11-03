@@ -174,7 +174,7 @@ PRIVATE int mt_start(hgobj gobj)
         return -1;
     }
 
-    //uv_disable_stdio_inheritance();
+    uv_disable_stdio_inheritance(); // like ttyd
 
     BOOL tty_empty = (empty_string(priv->argv[0]))?TRUE:FALSE;
     BOOL no_output = gobj_read_bool_attr(gobj, "no_output");

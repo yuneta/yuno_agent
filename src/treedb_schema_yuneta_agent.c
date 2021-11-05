@@ -146,7 +146,7 @@
 static char treedb_schema_yuneta_agent[]= "\
 {                                                                   \n\
     'id': 'treedb_yuneta_agent',                                    \n\
-    'schema_version': '9',                                          \n\
+    'schema_version': '10',                                          \n\
     'topics': [                                                     \n\
         {                                                           \n\
             'id': 'realms',                                         \n\
@@ -274,7 +274,7 @@ static char treedb_schema_yuneta_agent[]= "\
             'id': 'yunos',                                          \n\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
-            'topic_version': '6',                                   \n\
+            'topic_version': '7',                                   \n\
             'tkey': '',                                             \n\
             'pkey2s': 'yuno_release',                               \n\
             'cols': {                                               \n\
@@ -290,7 +290,7 @@ static char treedb_schema_yuneta_agent[]= "\
                 },                                                  \n\
                 'realm_id': {                                       \n\
                     'header': 'realm_id',                           \n\
-                    'fillspace': 28,                                \n\
+                    'fillspace': 30,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
                         'fkey'                                      \n\
@@ -307,7 +307,7 @@ static char treedb_schema_yuneta_agent[]= "\
                 },                                                  \n\
                 'yuno_name': {                                      \n\
                     'header': 'yuno_name',                          \n\
-                    'fillspace': 16,                                \n\
+                    'fillspace': 22,                                \n\
                     'type': 'string',                               \n\
                     'flag': [                                       \n\
                         'persistent',                               \n\

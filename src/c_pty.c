@@ -368,9 +368,10 @@ PRIVATE int mt_start(hgobj gobj)
         uv_read_start((uv_stream_t*)&priv->uv_out, on_alloc_cb, on_read_cb);
     }
 
-    json_t *kw_on_open = json_pack("{s:s, s:s, s:s, s:s, s:i, s:i, s:i}",
+    json_t *kw_on_open = json_pack("{s:s, s:s, s:s, s:s, s:s, s:i, s:i, s:i}",
         "name", gobj_name(gobj),
         "process", priv->argv[0],
+        "uuid", node_uuid(),
         "slave_name", priv->slave_name,
         "cwd", gobj_read_str_attr(gobj, "cwd"),
         "fd", master,
@@ -491,9 +492,10 @@ PRIVATE void on_close_cb(uv_handle_t* handle)
     }
 
     if(!priv->uv_handler_in_active && !priv->uv_handler_out_active) {
-        json_t *kw_on_close = json_pack("{s:s, s:s, s:s}",
+        json_t *kw_on_close = json_pack("{s:s, s:s, s:s, s:s}}",
             "name", gobj_name(gobj),
             "process", priv->argv[0],
+            "uuid", node_uuid(),
             "slave_name", priv->slave_name
         );
         gobj_publish_event(gobj, "EV_TTY_CLOSE", kw_on_close);

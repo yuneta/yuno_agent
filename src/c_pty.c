@@ -564,7 +564,7 @@ PRIVATE void on_read_cb(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf)
 
     if(gobj_trace_level(gobj) & TRACE_UV) {
         trace_msg("<<< on_read_cb %d pty out p=%p",
-            nread,
+            (int)nread,
             &priv->uv_out
         );
     }
@@ -676,7 +676,7 @@ PRIVATE int write_data_to_pty(hgobj gobj, GBUFFER *gbuf)
     };
     uint32_t trace = gobj_trace_level(gobj);
     if((trace & TRACE_UV)) {
-        trace_msg(">>> uv_write pty in p=%p, send %d\n", (uv_stream_t *)&priv->uv_in, ln);
+        trace_msg(">>> uv_write pty in p=%p, send %d\n", (uv_stream_t *)&priv->uv_in, (int)ln);
     }
     int ret = uv_write(
         &priv->uv_req_write,

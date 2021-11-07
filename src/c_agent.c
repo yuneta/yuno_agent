@@ -269,7 +269,6 @@ PRIVATE json_t *cmd_stats_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
 PRIVATE json_t *cmd_authzs_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_command_agent(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_stats_agent(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
-PRIVATE json_t *cmd_authzs_agent(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_set_okill(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_set_qkill(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
 PRIVATE json_t *cmd_check_json(hgobj gobj, const char *cmd, json_t *kw, hgobj src);
@@ -359,7 +358,8 @@ SDATA_END()
 
 PRIVATE sdata_desc_t pm_authzs[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
-SDATAPM (ASN_OCTET_STR, "authz",        0,              0,          "authz about you want help"),
+SDATAPM (ASN_OCTET_STR, "authz",        0,              0,          "permission to search"),
+SDATAPM (ASN_OCTET_STR, "service",      0,              0,          "Service where to search the permission. If empty print all service's permissions"),
 SDATA_END()
 };
 
@@ -373,12 +373,6 @@ PRIVATE sdata_desc_t pm_stats_agent[] = {
 /*-PM----type-----------name------------flag------------default-----description---------- */
 SDATAPM (ASN_OCTET_STR, "stats",        0,              0,          "Statistic to be executed in agent"),
 SDATAPM (ASN_OCTET_STR, "service",      0,              0,          "Service of agent where execute the statistic"),
-SDATA_END()
-};
-PRIVATE sdata_desc_t pm_authzs_agent[] = {
-/*-PM----type-----------name------------flag------------default-----description---------- */
-SDATAPM (ASN_OCTET_STR, "authz",        0,              0,          "permission to search"),
-SDATAPM (ASN_OCTET_STR, "service",      0,              0,          "Service of agent where list the permissions"),
 SDATA_END()
 };
 PRIVATE sdata_desc_t pm_running_keys[] = {
@@ -795,7 +789,7 @@ PRIVATE const char *a_uuid[] = {"uuid", 0};
 PRIVATE sdata_desc_t command_table[] = {
 /*-CMD2--type-----------name----------------flag----------------alias---------------items-----------json_fn---------description---------- */
 SDATACM2 (ASN_SCHEMA,   "help",             0,                  a_help,             pm_help,        cmd_help,       "Command's help"),
-SDATACM2 (ASN_SCHEMA,   "authzs",           0,                  0,                  pm_authzs,      cmd_authzs,     "Authorization's help"),
+SDATACM2 (ASN_SCHEMA,   "authzs",           SDF_WILD_CMD,       0,                  pm_authzs,      cmd_authzs,     "Authorization's help"),
 
 SDATACM2 (ASN_SCHEMA,   "",                 0,                  0,                  0,              0,              "\nAgent\n-----------"),
 
@@ -806,7 +800,6 @@ SDATACM2 (ASN_SCHEMA,    "close-console",   0,                  0,              
 
 SDATACM2 (ASN_SCHEMA,   "command-agent",    SDF_WILD_CMD,       0,                  pm_command_agent,cmd_command_agent,"Command to agent. WARNING: parameter's keys are not checked"),
 SDATACM2 (ASN_SCHEMA,   "stats-agent",      SDF_WILD_CMD,       0,                  pm_stats_agent, cmd_stats_agent, "Get statistics of agent"),
-SDATACM2 (ASN_SCHEMA,   "authzs-agent",     SDF_WILD_CMD,       0,                  pm_authzs_agent, cmd_authzs_agent, "Get authzs of agent"),
 SDATACM2 (ASN_SCHEMA,   "set-ordered-kill", 0,                  0,                  0,              cmd_set_okill,  "Kill yunos with SIGQUIT, ordered kill"),
 SDATACM2 (ASN_SCHEMA,   "set-quick-kill",   0,                  0,                  0,              cmd_set_qkill,  "Kill yunos with SIGKILL, quick kill"),
 SDATACM2 (ASN_SCHEMA,   "",                 0,                  0,                  0,              0,              "\nYuneta tree\n-----------"),
@@ -7963,41 +7956,6 @@ PRIVATE int stats_to_yuno(hgobj gobj, json_t *yuno, const char* stats, json_t* k
     );
     JSON_DECREF(webix);
     return 0;
-}
-
-/***************************************************************************
- *
- ***************************************************************************/
-PRIVATE json_t *cmd_authzs_agent(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
-{
-    const char *authz = kw_get_str(kw, "authz", "", 0);
-    const char *service = kw_get_str(kw, "service", "", 0);
-
-    hgobj service_gobj = 0;
-
-    if(!empty_string(service)) {
-        service_gobj = gobj_find_service(service, FALSE);
-        if(!service_gobj) {
-            return msg_iev_build_webix(gobj,
-                -1,
-                json_sprintf("Service not found: '%s'", service),
-                0,
-                0,
-                kw  // owned
-            );
-        }
-    }
-
-    if(empty_string(authz)) {
-        return gobj_authzs(
-            service_gobj // Can be null
-        );
-    } else {
-        return gobj_authz(
-            service_gobj, // Can be null
-            authz
-        );
-    }
 }
 
 /***************************************************************************

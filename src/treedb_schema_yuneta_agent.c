@@ -61,6 +61,7 @@
             │  yuno_startdate           │
             │  _channel_gobj            │
             │  solicitante              │
+            │  launch_id                │
             │                           │
             │         configurations {} │ ◀─────────┐N
             │                           │           │
@@ -146,7 +147,7 @@
 static char treedb_schema_yuneta_agent[]= "\
 {                                                                   \n\
     'id': 'treedb_yuneta_agent',                                    \n\
-    'schema_version': '10',                                          \n\
+    'schema_version': '11',                                         \n\
     'topics': [                                                     \n\
         {                                                           \n\
             'id': 'realms',                                         \n\
@@ -274,7 +275,7 @@ static char treedb_schema_yuneta_agent[]= "\
             'id': 'yunos',                                          \n\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
-            'topic_version': '7',                                   \n\
+            'topic_version': '8',                                   \n\
             'tkey': '',                                             \n\
             'pkey2s': 'yuno_release',                               \n\
             'cols': {                                               \n\
@@ -448,6 +449,13 @@ static char treedb_schema_yuneta_agent[]= "\
                     'header': 'solicitante',                        \n\
                     'fillspace': 6,                                 \n\
                     'type': 'string',                               \n\
+                    'flag': [                                       \n\
+                    ]                                               \n\
+                },                                                  \n\
+                'launch_id': {                                      \n\
+                    'header': 'launch_id',                          \n\
+                    'fillspace': 10,                                \n\
+                    'type': 'integer',                              \n\
                     'flag': [                                       \n\
                     ]                                               \n\
                 },                                                  \n\

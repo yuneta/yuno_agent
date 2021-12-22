@@ -9080,7 +9080,10 @@ PRIVATE int ac_read_binary_file(hgobj gobj, const char *event, json_t *kw, hgobj
             event,
             msg_iev_build_webix(gobj,
                 -205,
-                json_sprintf("File '%s' too large. Maximum supported size is %ld", filename, max_size),
+                json_sprintf("File '%s' too large. Maximum supported size is %zu",
+                    filename,
+                    max_size
+                ),
                 0,
                 0,
                 kw  // owned

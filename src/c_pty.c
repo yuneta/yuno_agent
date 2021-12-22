@@ -179,8 +179,6 @@ PRIVATE int mt_start(hgobj gobj)
     BOOL tty_empty = (empty_string(priv->argv[0]))?TRUE:FALSE;
     BOOL no_output = gobj_read_bool_attr(gobj, "no_output");
 
-    // TODO pasar export TERM=linux en env
-
     struct winsize size = {
         priv->rows,
         priv->cols,
@@ -203,6 +201,9 @@ PRIVATE int mt_start(hgobj gobj)
     } else if (pid == 0) {
         // Child
         setsid();
+
+        putenv("TERM=linux");
+
         const char *cwd = gobj_read_str_attr(gobj, "cwd");
         if(!empty_string(cwd)) {
             chdir(cwd);

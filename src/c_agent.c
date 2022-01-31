@@ -2769,7 +2769,7 @@ PRIVATE json_t *cmd_install_binary(hgobj gobj, const char *cmd, json_t *kw, hgob
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
     char *resource = "binaries";
 
-    const char *id = kw_get_str(kw, "id", 0, 0);
+    const char *id = kw_get_str(kw, "id", "", 0);
 
     const char *content64 = kw_get_str(kw, "content64", "", 0);
     if(empty_string(content64)) {
@@ -2783,6 +2783,16 @@ PRIVATE json_t *cmd_install_binary(hgobj gobj, const char *cmd, json_t *kw, hgob
         );
     }
     GBUFFER *gbuf_content = gbuf_decodebase64string(content64);
+    if(!gbuf_content) {
+        return msg_iev_build_webix(
+            gobj,
+            -1,
+            json_sprintf("Bad data in content64"),
+            0,
+            0,
+            kw  // owned
+        );
+    }
     char path[NAME_MAX];
     yuneta_realm_file(path, sizeof(path), "temp", id, TRUE);
     gbuf2file(
@@ -2989,7 +2999,7 @@ PRIVATE json_t *cmd_update_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
     char *resource = "binaries";
 
     // TODO permite hacer update solo al binario activo!, con las config igual creo.
-    const char *id = kw_get_str(kw, "id", 0, 0);
+    const char *id = kw_get_str(kw, "id", "", 0);
     if(!id) {
         return msg_iev_build_webix(
             gobj,
@@ -3033,6 +3043,17 @@ PRIVATE json_t *cmd_update_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
         );
     }
     GBUFFER *gbuf_content = gbuf_decodebase64string(content64);
+    if(!gbuf_content) {
+        json_decref(node);
+        return msg_iev_build_webix(
+            gobj,
+            -1,
+            json_sprintf("Bad data in content64"),
+            0,
+            0,
+            kw  // owned
+        );
+    }
     char path[NAME_MAX];
     yuneta_realm_file(path, sizeof(path), "temp", role, TRUE);
     gbuf2file(
@@ -10247,6 +10268,20 @@ PRIVATE int ac_write_tty(hgobj gobj, const char *event, json_t *kw, hgobj src)
     }
 
     GBUFFER *gbuf = gbuf_decodebase64string(content64);
+    if(!gbuf) {
+        return gobj_send_event(
+            src,
+            event,
+            msg_iev_build_webix(gobj,
+                -1,
+                json_sprintf("bad data: '%s'", name),
+                0,
+                0,
+                kw  // owned
+            ),
+            gobj
+        );
+    }
     json_t *kw_tty = json_pack("{s:I}",
         "gbuffer", (json_int_t)(size_t)gbuf
     );

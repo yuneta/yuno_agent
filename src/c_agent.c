@@ -10237,51 +10237,49 @@ PRIVATE int ac_write_tty(hgobj gobj, const char *event, json_t *kw, hgobj src)
     const char *name= kw_get_str(kw, "name", 0, 0);
     const char *content64 = kw_get_str(kw, "content64", 0, 0);
     if(empty_string(content64)) {
-        return gobj_send_event(
-            src,
-            event,
-            msg_iev_build_webix(gobj,
-                -1,
-                json_sprintf("content64 required"),
-                0,
-                0,
-                kw  // owned
-            ),
-            gobj
+        log_error(0,
+            "gobj",         "%s", gobj_full_name(gobj),
+            "function",     "%s", __FUNCTION__,
+            "msgset",       "%s", MSGSET_PROTOCOL_ERROR,
+            "msg",          "%s", "content64 required",
+            "name",         "%s", name,
+            NULL
         );
+        gobj_send_event(src, "EV_DROP", 0, gobj);
+        KW_DECREF(kw);
+        return 0;
     }
 
     hgobj gobj_console = gobj_find_unique_gobj(name, FALSE);
     if(!gobj_console) {
-        return gobj_send_event(
-            src,
-            event,
-            msg_iev_build_webix(gobj,
-                -1,
-                json_sprintf("console not found: '%s'", name),
-                0,
-                0,
-                kw  // owned
-            ),
-            gobj
+        log_error(0,
+            "gobj",         "%s", gobj_full_name(gobj),
+            "function",     "%s", __FUNCTION__,
+            "msgset",       "%s", MSGSET_PROTOCOL_ERROR,
+            "msg",          "%s", "console not found",
+            "name",         "%s", name,
+            NULL
         );
+        gobj_send_event(src, "EV_DROP", 0, gobj);
+        KW_DECREF(kw);
+        return 0;
     }
 
     GBUFFER *gbuf = gbuf_decodebase64string(content64);
     if(!gbuf) {
-        return gobj_send_event(
-            src,
-            event,
-            msg_iev_build_webix(gobj,
-                -1,
-                json_sprintf("bad data: '%s'", name),
-                0,
-                0,
-                kw  // owned
-            ),
-            gobj
+        log_error(0,
+            "gobj",         "%s", gobj_full_name(gobj),
+            "function",     "%s", __FUNCTION__,
+            "msgset",       "%s", MSGSET_PROTOCOL_ERROR,
+            "msg",          "%s", "Bad data",
+            "name",         "%s", name,
+            NULL
         );
+        gobj_send_event(src, "EV_DROP", 0, gobj);
+        KW_DECREF(kw);
+        return 0;
     }
+
     json_t *kw_tty = json_pack("{s:I}",
         "gbuffer", (json_int_t)(size_t)gbuf
     );

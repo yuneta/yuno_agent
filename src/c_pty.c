@@ -674,9 +674,9 @@ PRIVATE int write_data_to_pty(hgobj gobj, GBUFFER *gbuf)
     size_t ln = gbuf_chunk(gbuf); // TODO y si ln es 0??????????
 
     char *bf = gbuf_get(gbuf, ln);
-    if(ln >= 6) {
-        const char *bracket_paste_mode = "\e[200~";
-        int xl = strlen(bracket_paste_mode);
+    const char *bracket_paste_mode = "\e[200~";
+    int xl = strlen(bracket_paste_mode);
+    if(ln >= xl) {
         if(memcmp(bf, bracket_paste_mode, xl)==0) {
             bf += xl;
             ln -= xl;

@@ -1221,6 +1221,7 @@ PRIVATE json_t *cmd_help(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
 {
     KW_INCREF(kw);
     json_t *jn_resp = gobj_build_cmds_doc(gobj, kw);
+
     return msg_iev_build_webix(
         gobj,
         0,

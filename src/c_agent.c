@@ -4253,9 +4253,9 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
     );
     if(!hs_configuration) {
         json_t *comment = json_sprintf(
-            "Yuno '%s.%s': configuration '%s%s%s' not found",
+            "Yuno '%s.%s': configuration not found '%s.%s%s%s.json' ",
             yuno_role, yuno_name,
-            yuno_name,
+            yuno_role, yuno_name,
             empty_string(name_version)?"":"-",
             empty_string(name_version)?"":name_version
         );

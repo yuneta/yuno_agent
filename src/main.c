@@ -237,7 +237,6 @@ PRIVATE char variable_config[]= "\
                                         {                                               \n\
                                             'name': 'wss-(^^__range__^^)',              \n\
                                             'gclass': 'GWebSocket',                     \n\
-                                            'no_autostart': true,                       \n\
                                             'kw': {                                     \n\
                                                 'iamServer': true                       \n\
                                             }                                           \n\

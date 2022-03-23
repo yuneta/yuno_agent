@@ -393,7 +393,6 @@ int main(int argc, char *argv[])
 //     gobj_set_gclass_trace(GCLASS_AGENT, "ev_kw", TRUE);
 //     gobj_set_gclass_trace(GCLASS_COUNTER, "machine", TRUE);
 //     gobj_set_gclass_trace(GCLASS_COUNTER, "ev_kw", TRUE);
-//     gobj_set_gclass_trace(GCLASS_RESOURCE, "sql", TRUE);
 
 //      gobj_set_gclass_trace(GCLASS_TCP0, "traffic", TRUE);
 

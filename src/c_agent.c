@@ -768,6 +768,7 @@ PRIVATE const char *a_read_json[] = {"EV_READ_JSON", 0};
 PRIVATE const char *a_read_file[] = {"EV_READ_FILE", 0};
 PRIVATE const char *a_read_binary_file[] = {"EV_READ_BINARY_FILE", 0};
 PRIVATE const char *a_read_running_keys[] = {"EV_READ_RUNNING_KEYS", 0};
+PRIVATE const char *a_read_running_keys2[] = {"EV_READ_RUNNING_KEYS2", 0};
 PRIVATE const char *a_read_running_bin[] = {"EV_READ_RUNNING_BIN", 0};
 PRIVATE const char *a_write_tty[] = {"EV_WRITE_TTY", 0};
 
@@ -814,6 +815,7 @@ SDATACM2 (ASN_SCHEMA,   "read-json",        0,                  a_read_json,    
 SDATACM2 (ASN_SCHEMA,   "read-file",        0,                  a_read_file,        pm_read_file,   0,              "Read a text file"),
 SDATACM2 (ASN_SCHEMA,   "read-binary-file", 0,                  a_read_binary_file, pm_read_binary_file, 0,         "Read a binary file (encoded in base64)"),
 SDATACM2 (ASN_SCHEMA,   "running-keys",     0,                  a_read_running_keys,pm_running_keys,0,              "Read yuno running parameters"),
+SDATACM2 (ASN_SCHEMA,   "running-keys2",    0,                  a_read_running_keys2,pm_running_keys,0,             "Read yuno running parameters"),
 SDATACM2 (ASN_SCHEMA,   "running-bin",      0,                  a_read_running_bin, pm_running_keys,0,              "Read yuno running bin path"),
 SDATACM2 (ASN_SCHEMA,   "check-json",       0,                  0,                  pm_check_json,  cmd_check_json, "Check json refcounts"),
 SDATACM2 (ASN_SCHEMA,   "",                 0,                  0,                  0,              0,              "\nDeploy\n------"),
@@ -2183,7 +2185,7 @@ PRIVATE json_t *cmd_update_public_service(hgobj gobj, const char *cmd, json_t *k
     );
 
     if(json_array_size(iter)==0) {
-        JSON_DECREF(iter);
+        JSON_DECREF(iter)
         return msg_iev_build_webix(
             gobj,
             -1,
@@ -2258,7 +2260,7 @@ PRIVATE json_t *cmd_delete_public_service(hgobj gobj, const char *cmd, json_t *k
     );
 
     if(json_array_size(iter)==0) {
-        JSON_DECREF(iter);
+        JSON_DECREF(iter)
         return msg_iev_build_webix(
             gobj,
             -1,
@@ -2285,7 +2287,7 @@ PRIVATE json_t *cmd_delete_public_service(hgobj gobj, const char *cmd, json_t *k
         }
     }
 
-    JSON_DECREF(iter);
+    JSON_DECREF(iter)
 
     return msg_iev_build_webix(
         gobj,
@@ -2471,7 +2473,7 @@ PRIVATE json_t *cmd_create_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
             kw  // owned
         );
     }
-    JSON_DECREF(iter);
+    JSON_DECREF(iter)
 
     /*
      *  Add to database
@@ -2537,7 +2539,7 @@ PRIVATE json_t *cmd_update_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
     );
 
     if(json_array_size(iter)==0) {
-        JSON_DECREF(iter);
+        JSON_DECREF(iter)
         return msg_iev_build_webix(
             gobj,
             -1,
@@ -2613,7 +2615,7 @@ PRIVATE json_t *cmd_delete_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
     );
 
     if(json_array_size(iter)==0) {
-        JSON_DECREF(iter);
+        JSON_DECREF(iter)
         return msg_iev_build_webix(
             gobj,
             -1,
@@ -2638,7 +2640,7 @@ PRIVATE json_t *cmd_delete_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
                 kw_get_str(node, "id", "", KW_REQUIRED),
                 use
             );
-            JSON_DECREF(iter);
+            JSON_DECREF(iter)
             return msg_iev_build_webix(
                 gobj,
                 -1,
@@ -2664,7 +2666,7 @@ PRIVATE json_t *cmd_delete_realm(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         }
     }
 
-    JSON_DECREF(iter);
+    JSON_DECREF(iter)
 
     return msg_iev_build_webix(
         gobj,
@@ -2847,7 +2849,7 @@ PRIVATE json_t *cmd_install_binary(hgobj gobj, const char *cmd, json_t *kw, hgob
             "Binary already exists: role %s, version %s",
             binary_role, binary_version
         );
-        JSON_DECREF(iter);
+        JSON_DECREF(iter)
         json_t *msg_webix = msg_iev_build_webix(
             gobj,
             -1,
@@ -2859,7 +2861,7 @@ PRIVATE json_t *cmd_install_binary(hgobj gobj, const char *cmd, json_t *kw, hgob
         JSON_DECREF(jn_basic_info);
         return msg_webix;
     }
-    JSON_DECREF(iter);
+    JSON_DECREF(iter)
 
     /*------------------------------------------------*
      *      Store in filesystem
@@ -3225,7 +3227,7 @@ PRIVATE json_t *cmd_delete_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
     );
 
     if(json_array_size(iter)==0) {
-        JSON_DECREF(iter);
+        JSON_DECREF(iter)
         return msg_iev_build_webix(
             gobj,
             -1,
@@ -3249,7 +3251,7 @@ PRIVATE json_t *cmd_delete_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
                 kw_get_str(node, "id", "", KW_REQUIRED),
                 use
             );
-            JSON_DECREF(iter);
+            JSON_DECREF(iter)
             return msg_iev_build_webix(
                 gobj,
                 -1,
@@ -3295,7 +3297,7 @@ PRIVATE json_t *cmd_delete_binary(hgobj gobj, const char *cmd, json_t *kw, hgobj
         }
     }
 
-    JSON_DECREF(iter);
+    JSON_DECREF(iter)
 
     return msg_iev_build_webix(
         gobj,
@@ -3433,7 +3435,7 @@ PRIVATE json_t *cmd_create_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
             kw  // owned
         );
     }
-    JSON_DECREF(iter);
+    JSON_DECREF(iter)
 
     /*------------------------------------------------*
      *      Create record
@@ -3563,7 +3565,7 @@ PRIVATE json_t *cmd_update_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
     );
     if(json_array_size(iter)!=1) {
         JSON_DECREF(jn_config);
-        JSON_DECREF(iter);
+        JSON_DECREF(iter)
         return msg_iev_build_webix(
             gobj,
             -1,
@@ -3597,7 +3599,7 @@ PRIVATE json_t *cmd_update_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
         json_pack("{s:b, s:b}", "only_id", 1, "with_metadata", 1),
         src
     );
-    JSON_DECREF(iter);
+    JSON_DECREF(iter)
 
     /*
      *  Inform
@@ -3639,7 +3641,7 @@ PRIVATE json_t *cmd_delete_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
     );
 
     if(json_array_size(iter)==0) {
-        JSON_DECREF(iter);
+        JSON_DECREF(iter)
         return msg_iev_build_webix(
             gobj,
             -1,
@@ -3663,7 +3665,7 @@ PRIVATE json_t *cmd_delete_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
                 kw_get_str(node, "id", "", KW_REQUIRED),
                 use
             );
-            JSON_DECREF(iter);
+            JSON_DECREF(iter)
             return msg_iev_build_webix(
                 gobj,
                 -1,
@@ -3689,7 +3691,7 @@ PRIVATE json_t *cmd_delete_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
                 "Cannot delete the configuration: %s %s",
                 id, version
             );
-            JSON_DECREF(iter);
+            JSON_DECREF(iter)
             return msg_iev_build_webix(
                 gobj,
                 -1,
@@ -3702,7 +3704,7 @@ PRIVATE json_t *cmd_delete_config(hgobj gobj, const char *cmd, json_t *kw, hgobj
         json_array_append_new(jn_data, json_string(id));
     }
 
-    JSON_DECREF(iter);
+    JSON_DECREF(iter)
 
     return msg_iev_build_webix(
         gobj,
@@ -3745,7 +3747,7 @@ PRIVATE json_t *cmd_set_tag(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
     );
 
     if(json_array_size(iter)==0) {
-        JSON_DECREF(iter);
+        JSON_DECREF(iter)
         return msg_iev_build_webix(
             gobj,
             -1,
@@ -3823,7 +3825,7 @@ PRIVATE json_t *cmd_set_multiple(hgobj gobj, const char *cmd, json_t *kw, hgobj 
     );
 
     if(json_array_size(iter)==0) {
-        JSON_DECREF(iter);
+        JSON_DECREF(iter)
         return msg_iev_build_webix(
             gobj,
             -210,
@@ -3923,7 +3925,7 @@ PRIVATE json_t *cmd_top_yunos(hgobj gobj, const char *cmd, json_t *kw, hgobj src
             json_array_append(jn_data, webix?yuno2multiselect(node):node);
         }
     }
-    JSON_DECREF(iter);
+    JSON_DECREF(iter)
 
     json_t *schema = webix?
         0:tranger_list_topic_desc(gobj_read_pointer_attr(priv->resource, "tranger"), resource)
@@ -3950,7 +3952,7 @@ PRIVATE json_t *yunos2multilselect(
     json_array_foreach(iter, idx, node) {
         json_array_append(jn_data, yuno2multiselect(node));
     }
-    JSON_DECREF(iter);
+    JSON_DECREF(iter)
 
     return jn_data;
 }
@@ -4463,7 +4465,7 @@ json_t* cmd_delete_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
     );
 
     if(json_array_size(iter)==0) {
-        JSON_DECREF(iter);
+        JSON_DECREF(iter)
         return msg_iev_build_webix(
             gobj,
             -1,
@@ -4485,7 +4487,7 @@ json_t* cmd_delete_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
                 "Cannot delete yuno '%s', it's running",
                 kw_get_str(node, "id", "", KW_REQUIRED)
             );
-            JSON_DECREF(iter);
+            JSON_DECREF(iter)
             return msg_iev_build_webix(
                 gobj,
                 -1,
@@ -4502,7 +4504,7 @@ json_t* cmd_delete_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
                 kw_get_str(node, "id", "", KW_REQUIRED),
                 (int)__tag__
             );
-            JSON_DECREF(iter);
+            JSON_DECREF(iter)
             return msg_iev_build_webix(
                 gobj,
                 -1,
@@ -4534,7 +4536,7 @@ json_t* cmd_delete_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
             deleted++;
         }
     }
-    JSON_DECREF(iter);
+    JSON_DECREF(iter)
 
     /*
      *  Inform
@@ -4582,7 +4584,7 @@ PRIVATE json_t *cmd_run_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
         src
     );
     if(json_array_size(iter)==0) {
-        JSON_DECREF(iter);
+        JSON_DECREF(iter)
         return msg_iev_build_webix(gobj,
             -1,
             json_sprintf(
@@ -4659,7 +4661,7 @@ PRIVATE json_t *cmd_run_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
 
     if(!total_run) {
         JSON_DECREF(filterlist);
-        JSON_DECREF(iter);
+        JSON_DECREF(iter)
         return msg_iev_build_webix(gobj,
             -1,
             json_sprintf(
@@ -4768,7 +4770,7 @@ PRIVATE json_t *cmd_kill_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
         src
     );
     if(json_array_size(iter)==0) {
-        JSON_DECREF(iter);
+        JSON_DECREF(iter)
         return msg_iev_build_webix(gobj,
             -1,
             json_sprintf(
@@ -4817,7 +4819,7 @@ PRIVATE json_t *cmd_kill_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
                 if(force) {
                     gobj_write_int32_attr(gobj, "signal2kill", prev_signal2kill);
                 }
-                JSON_DECREF(iter);
+                JSON_DECREF(iter)
                 JSON_DECREF(filterlist);
                 return msg_iev_build_webix(gobj,
                     -1,
@@ -4837,7 +4839,7 @@ PRIVATE json_t *cmd_kill_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
     }
 
     if(!total_killed) {
-        JSON_DECREF(iter);
+        JSON_DECREF(iter)
         JSON_DECREF(filterlist);
         return msg_iev_build_webix(gobj,
             -1,
@@ -4936,7 +4938,7 @@ PRIVATE json_t *cmd_play_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
         src
     );
     if(json_array_size(iter)==0) {
-        JSON_DECREF(iter);
+        JSON_DECREF(iter)
         return msg_iev_build_webix(gobj,
             -1,
             json_sprintf(
@@ -5005,7 +5007,7 @@ PRIVATE json_t *cmd_play_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
     }
 
     if(!total_to_played && !total_to_preplayed) {
-        JSON_DECREF(iter);
+        JSON_DECREF(iter)
         JSON_DECREF(filterlist);
         return msg_iev_build_webix(gobj,
             0,
@@ -5018,7 +5020,7 @@ PRIVATE json_t *cmd_play_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
         );
     }
     if(!total_to_played) {
-        JSON_DECREF(iter);
+        JSON_DECREF(iter)
         JSON_DECREF(filterlist);
         return msg_iev_build_webix(gobj,
             0,
@@ -5120,7 +5122,7 @@ PRIVATE json_t *cmd_pause_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
         src
     );
     if(json_array_size(iter)==0) {
-        JSON_DECREF(iter);
+        JSON_DECREF(iter)
         return msg_iev_build_webix(gobj,
             -1,
             json_sprintf(
@@ -5176,7 +5178,7 @@ PRIVATE json_t *cmd_pause_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
 
     if(!total_to_paused && !total_to_prepaused) {
         JSON_DECREF(filterlist);
-        JSON_DECREF(iter);
+        JSON_DECREF(iter)
         return msg_iev_build_webix(gobj,
             0,
             json_sprintf(
@@ -5188,7 +5190,7 @@ PRIVATE json_t *cmd_pause_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
         );
     }
     if(!total_to_paused) {
-        JSON_DECREF(iter);
+        JSON_DECREF(iter)
         JSON_DECREF(filterlist);
         return msg_iev_build_webix(gobj,
             0,
@@ -5289,7 +5291,7 @@ PRIVATE json_t* cmd_enable_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj s
         src
     );
     if(json_array_size(iter)==0) {
-        JSON_DECREF(iter);
+        JSON_DECREF(iter)
         return msg_iev_build_webix(gobj,
             -1,
             json_sprintf(
@@ -5360,7 +5362,7 @@ PRIVATE json_t* cmd_disable_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj 
         src
     );
     if(json_array_size(iter)==0) {
-        JSON_DECREF(iter);
+        JSON_DECREF(iter)
         return msg_iev_build_webix(gobj,
             -1,
             json_sprintf(
@@ -5450,7 +5452,7 @@ PRIVATE json_t *cmd_trace_on_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj
         src
     );
     if(json_array_size(iter)==0) {
-        JSON_DECREF(iter);
+        JSON_DECREF(iter)
         return msg_iev_build_webix(gobj,
             -1,
             json_sprintf(
@@ -5522,7 +5524,7 @@ PRIVATE json_t* cmd_trace_off_yuno(hgobj gobj, const char* cmd, json_t* kw, hgob
         src
     );
     if(json_array_size(iter)==0) {
-        JSON_DECREF(iter);
+        JSON_DECREF(iter)
         return msg_iev_build_webix(gobj,
             -1,
             json_sprintf(
@@ -5609,7 +5611,7 @@ PRIVATE json_t *cmd_command_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         src
     );
     if(json_array_size(iter)==0) {
-        JSON_DECREF(iter);
+        JSON_DECREF(iter)
         JSON_DECREF(jn_command);
         return msg_iev_build_webix(gobj,
             -1,
@@ -5633,7 +5635,7 @@ PRIVATE json_t *cmd_command_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj 
         json_t *kw_yuno = json_deep_copy(kw);
         command_to_yuno(gobj, yuno, json_string_value(jn_command), kw_yuno, src);
     }
-    JSON_DECREF(iter);
+    JSON_DECREF(iter)
     JSON_DECREF(jn_command);
 
     KW_DECREF(kw);
@@ -5664,7 +5666,7 @@ PRIVATE json_t *cmd_stats_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
         src
     );
     if(json_array_size(iter)==0) {
-        JSON_DECREF(iter);
+        JSON_DECREF(iter)
         return msg_iev_build_webix(gobj,
             -1,
             json_sprintf(
@@ -5687,7 +5689,7 @@ PRIVATE json_t *cmd_stats_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
         json_t *kw_yuno = json_deep_copy(kw);
         stats_to_yuno(gobj, yuno, stats, kw_yuno, src);
     }
-    JSON_DECREF(iter);
+    JSON_DECREF(iter)
 
     KW_DECREF(kw);
     return 0;   /* Asynchronous response */
@@ -5715,7 +5717,7 @@ PRIVATE json_t *cmd_authzs_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj s
         src
     );
     if(json_array_size(iter)==0) {
-        JSON_DECREF(iter);
+        JSON_DECREF(iter)
         return msg_iev_build_webix(gobj,
             -1,
             json_sprintf(
@@ -5738,7 +5740,7 @@ PRIVATE json_t *cmd_authzs_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj s
         json_t *kw_yuno = json_deep_copy(kw);
         authzs_to_yuno(yuno, kw_yuno, src);
     }
-    JSON_DECREF(iter);
+    JSON_DECREF(iter)
 
     KW_DECREF(kw);
     return 0;   /* Asynchronous response */
@@ -7373,7 +7375,7 @@ PRIVATE json_t *assigned_yuno_global_service_variables(
         json_object_set_new(jn_variables, "__port__", json_string(port));
         json_object_set_new(jn_variables, "__url__", json_string(url));
     }
-    JSON_DECREF(iter);
+    JSON_DECREF(iter)
 
     return jn_global_content;
 }
@@ -7386,7 +7388,8 @@ PRIVATE GBUFFER *build_yuno_running_script(
     GBUFFER* gbuf_script,
     json_t *yuno,
     char *bfbinary,
-    int bfbinary_size
+    int bfbinary_size,
+    BOOL only_double_quotes
 )
 {
     const char *work_dir = yuneta_work_dir();
@@ -7466,7 +7469,11 @@ PRIVATE GBUFFER *build_yuno_running_script(
         if(n_config > 0) {
             gbuf_printf(gbuf_script, ",");
         }
-        gbuf_printf(gbuf_script, "\"%s\"", config_path);
+        if(only_double_quotes) {
+            gbuf_printf(gbuf_script, "\\\"%s\\\"", config_path);
+        } else {
+            gbuf_printf(gbuf_script, "\"%s\"", config_path);
+        }
 
         n_config++;
 
@@ -7490,7 +7497,12 @@ PRIVATE GBUFFER *build_yuno_running_script(
             if(n_config > 0) {
                 gbuf_printf(gbuf_script, ",");
             }
-            gbuf_printf(gbuf_script, "\"%s\"", config_path);
+            if(only_double_quotes) {
+                gbuf_printf(gbuf_script, "\\\"%s\\\"", config_path);
+            } else {
+                gbuf_printf(gbuf_script, "\"%s\"", config_path);
+            }
+
             n_config++;
         }
 
@@ -7526,7 +7538,11 @@ PRIVATE GBUFFER *build_yuno_running_script(
             if(n_config > 0) {
                 gbuf_printf(gbuf_script, ",");
             }
-            gbuf_printf(gbuf_script, "\"%s\"", config_path);
+            if(only_double_quotes) {
+                gbuf_printf(gbuf_script, "\\\"%s\\\"", config_path);
+            } else {
+                gbuf_printf(gbuf_script, "\"%s\"", config_path);
+            }
             n_config++;
 
             json_decref(hs_config);
@@ -7609,7 +7625,11 @@ PRIVATE GBUFFER *build_yuno_running_script(
         if(n_config > 0) {
             gbuf_printf(gbuf_script, ",");
         }
-        gbuf_printf(gbuf_script, "\"%s\"", config_path);
+        if(only_double_quotes) {
+            gbuf_printf(gbuf_script, "\\\"%s\\\"", config_path);
+        } else {
+            gbuf_printf(gbuf_script, "\"%s\"", config_path);
+        }
         n_config++;
     }
     gbuf_printf(gbuf_script, "]");
@@ -7643,7 +7663,7 @@ PRIVATE int run_yuno(
 
     char bfbinary[NAME_MAX];
     GBUFFER *gbuf_sh = gbuf_create(4*1024, 32*1024, 0, 0);
-    build_yuno_running_script(gobj, gbuf_sh, yuno, bfbinary, sizeof(bfbinary));
+    build_yuno_running_script(gobj, gbuf_sh, yuno, bfbinary, sizeof(bfbinary), FALSE);
 
     const char *realm_id = kw_get_str(yuno, "realm_id`0", "", KW_REQUIRED);
     const char *yuno_id = kw_get_str(yuno, "id", "", KW_REQUIRED);
@@ -8414,7 +8434,7 @@ PRIVATE int restart_nodes(hgobj gobj)
             kill_yuno(gobj, yuno);
         }
     }
-    JSON_DECREF(iter);
+    JSON_DECREF(iter)
     // Restore kill
     gobj_write_int32_attr(gobj, "signal2kill", prev_signal2kill);
 
@@ -8472,7 +8492,7 @@ PRIVATE int ac_edit_config(hgobj gobj, const char *event, json_t *kw, hgobj src)
     );
     int found = json_array_size(iter);
     if(found != 1) {
-        JSON_DECREF(iter);
+        JSON_DECREF(iter)
         return gobj_send_event(
             src,
             event,
@@ -8549,7 +8569,7 @@ PRIVATE int ac_view_config(hgobj gobj, const char *event, json_t *kw, hgobj src)
     );
     int found = json_array_size(iter);
     if(found != 1) {
-        JSON_DECREF(iter);
+        JSON_DECREF(iter)
         return gobj_send_event(
             src,
             event,
@@ -8611,7 +8631,7 @@ PRIVATE int ac_edit_yuno_config(hgobj gobj, const char *event, json_t *kw, hgobj
         src
     );
     if(json_array_size(iter)==0) {
-        JSON_DECREF(iter);
+        JSON_DECREF(iter)
         return gobj_send_event(
             src,
             event,
@@ -8628,7 +8648,7 @@ PRIVATE int ac_edit_yuno_config(hgobj gobj, const char *event, json_t *kw, hgobj
         );
     }
     if(json_array_size(iter)!=1) {
-        JSON_DECREF(iter);
+        JSON_DECREF(iter)
         return gobj_send_event(
             src,
             event,
@@ -8653,7 +8673,7 @@ PRIVATE int ac_edit_yuno_config(hgobj gobj, const char *event, json_t *kw, hgobj
     json_t *iter_config_ids = SDATA_GET_ITER(yuno, "config_ids");
     int found = json_array_size(iter_config_ids);
     if(found == 0) {
-        JSON_DECREF(iter);
+        JSON_DECREF(iter)
         return gobj_send_event(
             src,
             event,
@@ -8668,7 +8688,7 @@ PRIVATE int ac_edit_yuno_config(hgobj gobj, const char *event, json_t *kw, hgobj
         );
     }
     if(found > 1) {
-        JSON_DECREF(iter);
+        JSON_DECREF(iter)
         return gobj_send_event(
             src,
             event,
@@ -8726,7 +8746,7 @@ PRIVATE int ac_view_yuno_config(hgobj gobj, const char *event, json_t *kw, hgobj
         src
     );
     if(json_array_size(iter)==0) {
-        JSON_DECREF(iter);
+        JSON_DECREF(iter)
         return gobj_send_event(
             src,
             event,
@@ -8743,7 +8763,7 @@ PRIVATE int ac_view_yuno_config(hgobj gobj, const char *event, json_t *kw, hgobj
         );
     }
     if(json_array_size(iter)!=1) {
-        JSON_DECREF(iter);
+        JSON_DECREF(iter)
         return gobj_send_event(
             src,
             event,
@@ -8768,7 +8788,7 @@ PRIVATE int ac_view_yuno_config(hgobj gobj, const char *event, json_t *kw, hgobj
     json_t *iter_config_ids = SDATA_GET_ITER(yuno, "config_ids");
     int found = json_array_size(iter_config_ids);
     if(found == 0) {
-        JSON_DECREF(iter);
+        JSON_DECREF(iter)
         return gobj_send_event(
             src,
             event,
@@ -8783,7 +8803,7 @@ PRIVATE int ac_view_yuno_config(hgobj gobj, const char *event, json_t *kw, hgobj
         );
     }
     if(found > 1) {
-        JSON_DECREF(iter);
+        JSON_DECREF(iter)
         return gobj_send_event(
             src,
             event,
@@ -9219,7 +9239,7 @@ PRIVATE int ac_read_running_keys(hgobj gobj, const char *event, json_t *kw, hgob
         src
     );
     if(json_array_size(iter)==0) {
-        JSON_DECREF(iter);
+        JSON_DECREF(iter)
         return gobj_send_event(
             src,
             event,
@@ -9236,7 +9256,7 @@ PRIVATE int ac_read_running_keys(hgobj gobj, const char *event, json_t *kw, hgob
         );
     }
     if(json_array_size(iter)!=1) {
-        JSON_DECREF(iter);
+        JSON_DECREF(iter)
         return gobj_send_event(
             src,
             event,
@@ -9258,7 +9278,7 @@ PRIVATE int ac_read_running_keys(hgobj gobj, const char *event, json_t *kw, hgob
      *------------------------------------------------*/
     char bfbinary[NAME_MAX];
     GBUFFER *gbuf_sh = gbuf_create(4*1024, 32*1024, 0, 0);
-    build_yuno_running_script(gobj, gbuf_sh, yuno, bfbinary, sizeof(bfbinary));
+    build_yuno_running_script(gobj, gbuf_sh, yuno, bfbinary, sizeof(bfbinary), FALSE);
     char *s = gbuf_cur_rd_pointer(gbuf_sh);
 
     char temp[4*1024];
@@ -9269,7 +9289,95 @@ PRIVATE int ac_read_running_keys(hgobj gobj, const char *event, json_t *kw, hgob
         "zcontent", jn_s?jn_s:json_string("Invalid content in filename")
     );
     gbuf_decref(gbuf_sh);
-    JSON_DECREF(iter);
+    JSON_DECREF(iter)
+
+    /*
+     *  Inform
+     */
+    return gobj_send_event(
+        src,
+        "EV_READ_FILE",
+        msg_iev_build_webix(gobj,
+            0,
+            0,
+            0,
+            jn_data, // owned
+            kw  // owned
+        ),
+        gobj
+    );
+}
+
+/***************************************************************************
+ *
+ ***************************************************************************/
+PRIVATE int ac_read_running_keys2(hgobj gobj, const char *event, json_t *kw, hgobj src)
+{
+    PRIVATE_DATA *priv = gobj_priv_data(gobj);
+    char *resource = "yunos";
+
+    /*------------------------------------------------*
+     *      Get the yunos
+     *------------------------------------------------*/
+    json_t *iter = gobj_list_nodes(
+        priv->resource,
+        resource,
+        kw_incref(kw), // filter
+        json_pack("{s:b, s:b}", "only_id", 1, "with_metadata", 1),
+        src
+    );
+    if(json_array_size(iter)==0) {
+        JSON_DECREF(iter)
+        return gobj_send_event(
+            src,
+            event,
+            msg_iev_build_webix(gobj,
+                -1,
+                json_sprintf(
+                    "Yuno not found"
+                ),
+                0,
+                0,
+                kw  // owned
+            ),
+            gobj
+        );
+    }
+    if(json_array_size(iter)!=1) {
+        JSON_DECREF(iter)
+        return gobj_send_event(
+            src,
+            event,
+            msg_iev_build_webix(gobj,
+                -1,
+                json_sprintf("Select only one yuno please"),
+                0,
+                0,
+                kw  // owned
+            ),
+            gobj
+        );
+    }
+
+    json_t *yuno = json_array_get(iter, 0);
+
+    /*------------------------------------------------*
+     *  Walk over yunos iter
+     *------------------------------------------------*/
+    char bfbinary[NAME_MAX];
+    GBUFFER *gbuf_sh = gbuf_create(4*1024, 32*1024, 0, 0);
+    build_yuno_running_script(gobj, gbuf_sh, yuno, bfbinary, sizeof(bfbinary), TRUE);
+    char *s = gbuf_cur_rd_pointer(gbuf_sh);
+
+    char temp[4*1024];
+    snprintf(temp, sizeof(temp), "--config-file=\"%s\"", s);
+    json_t *jn_s = json_string(temp);
+    json_t *jn_data = json_pack("{s:s, s:o}",
+        "name", "running-keys",
+        "zcontent", jn_s?jn_s:json_string("Invalid content in filename")
+    );
+    gbuf_decref(gbuf_sh);
+    JSON_DECREF(iter)
 
     /*
      *  Inform
@@ -9307,7 +9415,7 @@ PRIVATE int ac_read_running_bin(hgobj gobj, const char *event, json_t *kw, hgobj
         src
     );
     if(json_array_size(iter)==0) {
-        JSON_DECREF(iter);
+        JSON_DECREF(iter)
         return gobj_send_event(
             src,
             event,
@@ -9324,7 +9432,7 @@ PRIVATE int ac_read_running_bin(hgobj gobj, const char *event, json_t *kw, hgobj
         );
     }
     if(json_array_size(iter)!=1) {
-        JSON_DECREF(iter);
+        JSON_DECREF(iter)
         return gobj_send_event(
             src,
             event,
@@ -9346,7 +9454,7 @@ PRIVATE int ac_read_running_bin(hgobj gobj, const char *event, json_t *kw, hgobj
      *------------------------------------------------*/
     char bfbinary[NAME_MAX];
     GBUFFER *gbuf_sh = gbuf_create(4*1024, 32*1024, 0, 0);
-    build_yuno_running_script(gobj, gbuf_sh, yuno, bfbinary, sizeof(bfbinary));
+    build_yuno_running_script(gobj, gbuf_sh, yuno, bfbinary, sizeof(bfbinary), FALSE);
 
     json_t *jn_s = json_string(bfbinary);
     json_t *jn_data = json_pack("{s:s, s:o}",
@@ -9354,7 +9462,7 @@ PRIVATE int ac_read_running_bin(hgobj gobj, const char *event, json_t *kw, hgobj
         "zcontent", jn_s?jn_s:json_string("Invalid content in filename")
     );
     gbuf_decref(gbuf_sh);
-    JSON_DECREF(iter);
+    JSON_DECREF(iter)
 
     /*
      *  Inform
@@ -10323,6 +10431,7 @@ PRIVATE const EVENT input_events[] = {
     {"EV_READ_FILE",            EVF_PUBLIC_EVENT,  0,  "Read text filename"},
     {"EV_READ_BINARY_FILE",     EVF_PUBLIC_EVENT,  0,  "Read binary filename"},
     {"EV_READ_RUNNING_KEYS",    EVF_PUBLIC_EVENT,  0,  "Read running-keys"},
+    {"EV_READ_RUNNING_KEYS2",   EVF_PUBLIC_EVENT,  0,  "Read running-keys2"},
     {"EV_READ_RUNNING_BIN",     EVF_PUBLIC_EVENT,  0,  "Read running-bin path"},
 
     {"EV_PLAY_YUNO_ACK",        EVF_PUBLIC_EVENT,  0,  0},
@@ -10365,6 +10474,7 @@ PRIVATE EV_ACTION ST_IDLE[] = {
     {"EV_READ_FILE",            ac_read_file,           0},
     {"EV_READ_BINARY_FILE",     ac_read_binary_file,    0},
     {"EV_READ_RUNNING_KEYS",    ac_read_running_keys,   0},
+    {"EV_READ_RUNNING_KEYS2",   ac_read_running_keys2,  0},
     {"EV_READ_RUNNING_BIN",     ac_read_running_bin,    0},
 
     {"EV_PLAY_YUNO_ACK",        ac_play_yuno_ack,       0},

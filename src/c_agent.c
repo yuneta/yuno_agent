@@ -1027,7 +1027,7 @@ PRIVATE void mt_create(hgobj gobj)
     }
 
     /*
-     *  Chequea schema fichador, exit si falla.
+     *  Chequea schema, exit si falla.
      */
     helper_quote2doublequote(treedb_schema_yuneta_agent);
     json_t *jn_treedb_schema_yuneta_agent;
@@ -1048,10 +1048,50 @@ PRIVATE void mt_create(hgobj gobj)
 
     priv->timer = gobj_create("", GCLASS_TIMER, 0, gobj);
 
-    FILE *file = fopen("/yuneta/realms/agent/yuneta_agent.pid", "w");
-    if(file) {
-        fprintf(file, "%d\n", getpid());
-        fclose(file);
+    /*---------------------------------------*
+     *      Check if already running
+     *---------------------------------------*/
+    {
+        const char *pidfile = "/yuneta/realms/agent/yuneta_agent.pid";
+        int pid = 0;
+
+        FILE *file = fopen(pidfile, "r");
+        if(file) {
+            fscanf(file, "%d", &pid);
+            fclose(file);
+
+            int ret = kill(pid, 0);
+            if(ret == 0) {
+                log_info(0,
+                    "gobj",         "%s", gobj_full_name(gobj),
+                    "function",     "%s", __FUNCTION__,
+                    "msgset",       "%s", MSGSET_INFO,
+                    "msg",          "%s", "yuneta_agent already running, exiting",
+                    "pid",          "%d", pid,
+                    NULL
+                );
+                exit(0);
+            } else if(errno == ESRCH) {
+                unlink(pidfile);
+            } else {
+                log_error(0,
+                    "gobj",         "%s", gobj_full_name(gobj),
+                    "function",     "%s", __FUNCTION__,
+                    "msgset",       "%s", MSGSET_SYSTEM_ERROR,
+                    "msg",          "%s", "cannot check pid",
+                    "pid",          "%d", pid,
+                    "errno",        "%d", errno,
+                    "serrno",       "%s", strerror(errno),
+                    NULL
+                );
+            }
+
+        }
+        file = fopen(pidfile, "w");
+        if(file) {
+            fprintf(file, "%d\n", getpid());
+            fclose(file);
+        }
     }
 
     /*---------------------------*

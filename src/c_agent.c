@@ -7634,10 +7634,11 @@ PRIVATE GBUFFER *build_yuno_running_script(
             "realm_name", realm_name,
             "realm_env", realm_env
         );
-        json_t *jn_content = json_pack("{s:o, s:o, s:{s:s, s:s, s:s, s:s, s:b, s:I}}",
+        json_t *jn_content = json_pack("{s:o, s:o, s:{s:s, s:s, s:s, s:s, s:s, s:b, s:I}}",
             "global", jn_global,
             "environment", jn_environment,
             "yuno",
+                "yuno_id", yuno_id,
                 "yuno_name", yuno_name,
                 "yuno_tag", yuno_tag,
                 "yuno_release", yuno_release,

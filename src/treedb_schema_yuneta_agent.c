@@ -348,14 +348,14 @@ static char treedb_schema_yuneta_agent[]= "\
                 },                                                  \n\
                 'yuno_pid': {                                       \n\
                     'header': 'pid',                                \n\
-                    'fillspace': 5,                                 \n\
+                    'fillspace': 6,                                 \n\
                     'type': 'integer',                              \n\
                     'flag': [                                       \n\
                     ]                                               \n\
                 },                                                  \n\
                 'watcher_pid': {                                    \n\
                     'header': 'w_pid',                              \n\
-                    'fillspace': 5,                                 \n\
+                    'fillspace': 6,                                 \n\
                     'type': 'integer',                              \n\
                     'flag': [                                       \n\
                     ]                                               \n\
@@ -798,4 +798,3 @@ static char treedb_schema_yuneta_agent[]= "\
     ]                                                               \n\
 }                                                                   \n\
 ";
-

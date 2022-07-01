@@ -62,6 +62,7 @@ PRIVATE char *yuneta_repos_yuno_file(
 PRIVATE json_t *get_yuno_realm(hgobj gobj, json_t *yuno);
 PRIVATE char * build_yuno_private_domain(hgobj gobj, json_t *yuno, char *bf, int bfsize);
 PRIVATE int build_role_plus_name(char *bf, int bf_len, json_t *yuno);
+PRIVATE int build_role_plus_id(char *bf, int bf_len, json_t *yuno);
 PRIVATE char * build_yuno_bin_path(hgobj gobj, json_t *yuno, char *bf, int bfsize, BOOL create_dir);
 PRIVATE char * build_yuno_log_path(hgobj gobj, json_t *yuno, char *bf, int bfsize, BOOL create_dir);
 PRIVATE int run_yuno(
@@ -6773,6 +6774,28 @@ PRIVATE int build_role_plus_name(char *bf, int bf_len, json_t *yuno)
 }
 
 /***************************************************************************
+ *
+ ***************************************************************************/
+PRIVATE int build_role_plus_id(char *bf, int bf_len, json_t *yuno)
+{
+    const char *yuno_role = kw_get_str(yuno, "yuno_role", "", KW_REQUIRED);
+    const char *yuno_name = kw_get_str(yuno, "yuno_name", "", KW_REQUIRED);
+    const char *yuno_id = kw_get_str(yuno, "id", yuno_name, KW_REQUIRED);
+
+    if(empty_string(yuno_id)) {
+        snprintf(bf, bf_len, "%s",
+            yuno_role
+        );
+    } else {
+        snprintf(bf, bf_len, "%s^%s",
+            yuno_role,
+            yuno_id
+        );
+    }
+    return 0;
+}
+
+/***************************************************************************
  *  Convert json list of names into path
  ***************************************************************************/
 PRIVATE char *multiple_dir(char* bf, int bflen, json_t* jn_l)
@@ -6891,12 +6914,12 @@ PRIVATE char * build_yuno_private_domain(
     char url[NAME_MAX];
     snprintf(url, sizeof(url), "%s.%s.%s", realm_name, realm_role, realm_env);
 
-    char role_plus_name[NAME_MAX];
-    build_role_plus_name(role_plus_name, sizeof(role_plus_name), yuno);
+    char role_plus_id[NAME_MAX];
+    build_role_plus_id(role_plus_id, sizeof(role_plus_id), yuno);
 
     json_decref(realm);
 
-    return build_path4(bf, bfsize, "realms", realm_owner, url, role_plus_name);
+    return build_path4(bf, bfsize, "realms", realm_owner, url, role_plus_id);
 }
 
 /***************************************************************************

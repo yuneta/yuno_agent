@@ -94,8 +94,9 @@ else(NOT CYGWIN)
         /yuneta/development/output/lib/libcurl.a  # used by liboauth2
         /yuneta/development/output/lib/libssl.a
         /yuneta/development/output/lib/libcrypto.a
+        /yuneta/development/output/lib/libargp.a
 
-        argp intl
+        intl
         pthread dl  # used by libuv
         lzma        # used by libunwind
         rt m

@@ -157,6 +157,9 @@ PRIVATE int remove_console_route(
 /***************************************************************************
  *          Data: config, public data, private data
  ***************************************************************************/
+PRIVATE int atexit_registered = 0; /* Register atexit just 1 time. */
+PRIVATE const char *pidfile = "/yuneta/realms/agent/yuneta_agent.pid";
+
 // Deja que siga con insecure connection
 PRIVATE char agent_filter_chain_config[]= "\
 {                                           \n\
@@ -961,12 +964,25 @@ typedef struct _PRIVATE_DATA {
 
 
 
+/*****************************************************************
+ *
+ *****************************************************************/
+PUBLIC void program_end(void)
+{
+    unlink(pidfile);
+}
+
 /***************************************************************************
  *      Framework Method create
  ***************************************************************************/
 PRIVATE void mt_create(hgobj gobj)
 {
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
+
+    if (!atexit_registered) {
+        atexit(program_end);
+        atexit_registered = 1;
+    }
 
     /*----------------------------------------*
      *  Get node uuid
@@ -1053,7 +1069,6 @@ PRIVATE void mt_create(hgobj gobj)
      *      Check if already running
      *---------------------------------------*/
     {
-        const char *pidfile = "/yuneta/realms/agent/yuneta_agent.pid";
         int pid = 0;
 
         FILE *file = fopen(pidfile, "r");
@@ -1198,6 +1213,7 @@ PRIVATE void mt_destroy(hgobj gobj)
         rotatory_close(priv->audit_file);
         priv->audit_file = 0;
     }
+    unlink(pidfile);
 }
 
 /***************************************************************************

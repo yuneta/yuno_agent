@@ -157,7 +157,6 @@ PRIVATE int remove_console_route(
 /***************************************************************************
  *          Data: config, public data, private data
  ***************************************************************************/
-PRIVATE int atexit_registered = 0; /* Register atexit just 1 time. */
 PRIVATE const char *pidfile = "/yuneta/realms/agent/yuneta_agent.pid";
 
 // Deja que siga con insecure connection
@@ -967,9 +966,20 @@ typedef struct _PRIVATE_DATA {
 /*****************************************************************
  *
  *****************************************************************/
-PUBLIC void program_end(void)
+PRIVATE int is_yuneta_agent(unsigned int pid)
 {
-    unlink(pidfile);
+    struct pid_stats pst;
+    int ret = kill(pid, 0);
+    if(ret == 0) {
+        if(read_proc_pid_cmdline(pid, &pst, 0)==0) {
+            if(strstr(pst.cmdline, "yuneta_agent ")) {
+                return 0;
+            }
+        } else {
+            return -1;
+        }
+    }
+    return ret;
 }
 
 /***************************************************************************
@@ -978,11 +988,6 @@ PUBLIC void program_end(void)
 PRIVATE void mt_create(hgobj gobj)
 {
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
-
-    if (!atexit_registered) {
-        atexit(program_end);
-        atexit_registered = 1;
-    }
 
     /*----------------------------------------*
      *  Get node uuid
@@ -1076,9 +1081,9 @@ PRIVATE void mt_create(hgobj gobj)
             fscanf(file, "%d", &pid);
             fclose(file);
 
-            int ret = kill(pid, 0);
+            int ret = is_yuneta_agent(pid);
             if(ret == 0) {
-                log_info(0,
+                log_warning(0,
                     "gobj",         "%s", gobj_full_name(gobj),
                     "function",     "%s", __FUNCTION__,
                     "msgset",       "%s", MSGSET_INFO,
@@ -1100,6 +1105,7 @@ PRIVATE void mt_create(hgobj gobj)
                     "serrno",       "%s", strerror(errno),
                     NULL
                 );
+                unlink(pidfile);
             }
 
         }

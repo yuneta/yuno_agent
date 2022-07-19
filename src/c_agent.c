@@ -1023,6 +1023,7 @@ PRIVATE void mt_create(hgobj gobj)
     /*----------------------------------------*
      *  Check AUTHZS
      *----------------------------------------*/
+#ifndef __CYGWIN__
     BOOL is_yuneta = FALSE;
     struct passwd *pw = getpwuid(getuid());
     if(strcmp(pw->pw_name, "yuneta")==0) {
@@ -1047,6 +1048,7 @@ PRIVATE void mt_create(hgobj gobj)
         printf("User or group 'yuneta' is needed to run %s\n", gobj_yuno_role());
         exit(0);
     }
+#endif
 
     /*
      *  Chequea schema, exit si falla.

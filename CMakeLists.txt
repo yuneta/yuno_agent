@@ -18,7 +18,7 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
 
   if(CMAKE_COMPILER_IS_GNUCC)
     # GCC specific debug options
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0 -g3 -ggdb")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0 -g3 -ggdb3 -gdwarf-2")
     set(AVOID_VERSION -avoid-version)
   endif(CMAKE_COMPILER_IS_GNUCC)
 endif(CMAKE_BUILD_TYPE MATCHES Debug)
@@ -49,57 +49,29 @@ SET (YUNO_HDRS
 ##############################################
 ADD_EXECUTABLE(yuneta_agent ${YUNO_SRCS} ${YUNO_HDRS})
 
-if(NOT CYGWIN)
-    TARGET_LINK_LIBRARIES(yuneta_agent
-        /yuneta/development/output/lib/libyuneta-tls.a
-        /yuneta/development/output/lib/libyuneta-core.a
-        /yuneta/development/output/lib/libginsfsm.a
-        /yuneta/development/output/lib/libytls.a
-        /yuneta/development/output/lib/libghelpers.a
-        /yuneta/development/output/lib/libuv.a
-        /yuneta/development/output/lib/liboauth2.a
-        /yuneta/development/output/lib/libcjose.a
-        /yuneta/development/output/lib/libjansson.a
-        /yuneta/development/output/lib/libunwind.a
-        /yuneta/development/output/lib/libpcre2-posix.a
-        /yuneta/development/output/lib/libpcre2-8.a
-        /yuneta/development/output/lib/libcurl.a  # used by liboauth2
-        /yuneta/development/output/lib/libssl.a
-        /yuneta/development/output/lib/libcrypto.a
+TARGET_LINK_LIBRARIES(yuneta_agent
+    /yuneta/development/output/lib/libyuneta-tls.a
+    /yuneta/development/output/lib/libyuneta-core.a
+    /yuneta/development/output/lib/libginsfsm.a
+    /yuneta/development/output/lib/libytls.a
+    /yuneta/development/output/lib/libghelpers.a
+    /yuneta/development/output/lib/libuv.a
+    /yuneta/development/output/lib/liboauth2.a
+    /yuneta/development/output/lib/libcjose.a
+    /yuneta/development/output/lib/libjansson.a
+    /yuneta/development/output/lib/libunwind.a
+    /yuneta/development/output/lib/libpcre2-posix.a
+    /yuneta/development/output/lib/libpcre2-8.a
+    /yuneta/development/output/lib/libcurl.a  # used by liboauth2
+    /yuneta/development/output/lib/libssl.a
+    /yuneta/development/output/lib/libcrypto.a
 
-        pthread dl  # used by libuv
-        lzma        # used by libunwind
-        z rt m
-        uuid
-        util        # used by c_pty
-    )
-else(NOT CYGWIN)
-    TARGET_LINK_LIBRARIES(yuneta_agent
-        /yuneta/development/output/lib/libyuneta-tls.a
-        /yuneta/development/output/lib/libyuneta-core.a
-        /yuneta/development/output/lib/libginsfsm.a
-        /yuneta/development/output/lib/libytls.a
-        /yuneta/development/output/lib/libghelpers.a
-        /yuneta/development/output/lib/libuv.a
-        /yuneta/development/output/lib/liboauth2.a
-        /yuneta/development/output/lib/libcjose.a
-        /yuneta/development/output/lib/libjansson.a
-        /yuneta/development/output/lib/libpcre2-posix.a
-        /yuneta/development/output/lib/libpcre2-8.a
-        /yuneta/development/output/lib/libcurl.a  # used by liboauth2
-        /yuneta/development/output/lib/libssl.a
-        /yuneta/development/output/lib/libcrypto.a
-        /yuneta/development/output/lib/libargp.a
-
-        intl
-        pthread dl  # used by libuv
-        lzma        # used by libunwind
-        rt m
-        uuid
-        util        # used by c_pty
-    )
-endif(NOT CYGWIN)
-
+    pthread dl  # used by libuv
+    lzma        # used by libunwind
+    z rt m
+    uuid
+    util        # used by c_pty
+)
 
 ##############################################
 #   Installation

@@ -7001,10 +7001,28 @@ PRIVATE int save_pid_in_file(hgobj gobj, json_t *yuno, uint32_t pid)
 /***************************************************************************
  *
  ***************************************************************************/
-PRIVATE int find_required_services_size(hgobj gobj, json_t *hs_binary)
+PRIVATE json_t *find_required_services_size(
+    hgobj gobj,
+    json_t *hs_binary,
+    json_t *jn_config_required_services  // owned
+)
 {
-    json_t *jn_required_services = SDATA_GET_JSON(hs_binary, "required_services");
-    return json_array_size(jn_required_services);
+    json_t *jn_required_services = json_array();
+
+    json_t *_jn_required_services = SDATA_GET_JSON(hs_binary, "required_services");
+    if(_jn_required_services) {
+        json_array_extend(jn_required_services, _jn_required_services);
+    }
+    int idx; json_t *jn_service;
+    json_array_foreach(jn_config_required_services, idx, jn_service) {
+        const char *service = json_string_value(jn_service);
+        if(!json_str_in_list(jn_required_services, service, FALSE)) {
+            json_array_append_new(jn_required_services, json_string(service));
+        }
+    }
+    JSON_DECREF(jn_config_required_services)
+
+    return jn_required_services;
 }
 
 /***************************************************************************
@@ -7265,7 +7283,8 @@ PRIVATE json_t *find_service_for_client(
 PRIVATE int write_service_client_connectors(
     hgobj gobj,
     json_t *yuno,
-    const char *config_path
+    const char *config_path,
+    json_t *jn_required_services
 )
 {
     const char *realm_id_ = kw_get_str(yuno, "realm_id`0", "", KW_REQUIRED);
@@ -7274,16 +7293,12 @@ PRIVATE int write_service_client_connectors(
     const char *yuno_id_ = kw_get_str(yuno, "id", "", KW_REQUIRED);
 
     json_t *hs_binary = get_yuno_binary(gobj, yuno);
-    json_t *jn_required_services = kw_get_dict_value(
-        hs_binary,
-        "required_services",
-        0,
-        KW_REQUIRED
-    );
-    if(json_array_size(jn_required_services)==0) {
-        json_decref(hs_binary);
-        return 0;
-    }
+//    json_t *jn_required_services = kw_get_dict_value(
+//        hs_binary,
+//        "required_services",
+//        0,
+//        KW_REQUIRED
+//    );
     json_t *jn_services = json_array();
     json_t *jn_yuno_services = json_pack("{s:o}",
         "services", jn_services
@@ -7502,116 +7517,7 @@ PRIVATE GBUFFER *build_yuno_running_script(
     char config_path[(PATH_MAX+15)*2];
     int n_config = 0;
     gbuf_printf(gbuf_script, "[");
-    if(1) {
-        /*------------------------------------*
-         *      Put agent client service
-         *------------------------------------*/
-        snprintf(config_file_name, sizeof(config_file_name), "%d-%s",
-            n_config+1,
-            role_plus_name
-        );
-        snprintf(config_path, sizeof(config_path), "%s/%s.json", yuno_bin_path, config_file_name);
 
-        GBUFFER *gbuf_config = gbuf_create((size_t)4*1024, 256*1024, 0, 0);
-        char *client_agent_config = gbmem_strdup(agent_filter_chain_config);
-        helper_quote2doublequote(client_agent_config);
-
-        gbuf_printf(
-            gbuf_config,
-            client_agent_config,
-            SDATA_GET_STR(yuno, "realm_id`0"),
-            yuno_id
-        );
-
-        gbuf2file( // save: agent connector
-            gbuf_config, // owned
-            config_path,
-            yuneta_rpermission(),
-            TRUE
-        );
-        if(n_config > 0) {
-            gbuf_printf(gbuf_script, ",");
-        }
-        if(only_double_quotes) {
-            gbuf_printf(gbuf_script, "\\\"%s\\\"", config_path);
-        } else {
-            gbuf_printf(gbuf_script, "\"%s\"", config_path);
-        }
-
-        n_config++;
-
-        gbmem_free(client_agent_config);
-
-        /*--------------------------------------*
-         *      Put required service clients
-         *--------------------------------------*/
-        int required_services = find_required_services_size(gobj, binary);
-        if(required_services) {
-            snprintf(config_file_name, sizeof(config_file_name), "%d-%s",
-                n_config+1,
-                role_plus_name
-            );
-            snprintf(config_path, sizeof(config_path), "%s/%s.json", yuno_bin_path, config_file_name);
-            write_service_client_connectors( // save: service connectors
-                gobj,
-                yuno,
-                config_path
-            );
-            if(n_config > 0) {
-                gbuf_printf(gbuf_script, ",");
-            }
-            if(only_double_quotes) {
-                gbuf_printf(gbuf_script, "\\\"%s\\\"", config_path);
-            } else {
-                gbuf_printf(gbuf_script, "\"%s\"", config_path);
-            }
-
-            n_config++;
-        }
-
-        /*--------------------------------------*
-         *      Put yuno configuration
-         *--------------------------------------*/
-        json_t *hs_config = get_yuno_config(gobj, yuno);
-        if(hs_config) {
-            gbuf_config = gbuf_create(4*1024, 256*1024, 0, 0);
-            snprintf(config_file_name, sizeof(config_file_name), "%d-%s",
-                n_config+1,
-                role_plus_name
-            );
-            snprintf(config_path, sizeof(config_path),
-                "%s/%s.json",
-                yuno_bin_path,
-                config_file_name
-            );
-
-            json_t *content = SDATA_GET_JSON(hs_config, "zcontent");
-            JSON_INCREF(content);
-            json_append2gbuf(
-                gbuf_config,
-                content // owned
-            );
-
-            gbuf2file( // save: user configurations
-                gbuf_config, // owned
-                config_path,
-                yuneta_rpermission(),
-                TRUE
-            );
-            if(n_config > 0) {
-                gbuf_printf(gbuf_script, ",");
-            }
-            if(only_double_quotes) {
-                gbuf_printf(gbuf_script, "\\\"%s\\\"", config_path);
-            } else {
-                gbuf_printf(gbuf_script, "\"%s\"", config_path);
-            }
-            n_config++;
-
-            json_decref(hs_config);
-        }
-
-    }
     if(1) {
         /*-------------------------------------------*
          *      Put environment and yuno variables
@@ -7696,6 +7602,125 @@ PRIVATE GBUFFER *build_yuno_running_script(
         }
         n_config++;
     }
+
+    if(1) {
+        /*------------------------------------*
+         *      Put agent client service
+         *------------------------------------*/
+        snprintf(config_file_name, sizeof(config_file_name), "%d-%s",
+            n_config+1,
+            role_plus_name
+        );
+        snprintf(config_path, sizeof(config_path), "%s/%s.json", yuno_bin_path, config_file_name);
+
+        GBUFFER *gbuf_config = gbuf_create((size_t)4*1024, 256*1024, 0, 0);
+        char *client_agent_config = gbmem_strdup(agent_filter_chain_config);
+        helper_quote2doublequote(client_agent_config);
+
+        gbuf_printf(
+            gbuf_config,
+            client_agent_config,
+            SDATA_GET_STR(yuno, "realm_id`0"),
+            yuno_id
+        );
+
+        gbuf2file( // save: agent connector
+            gbuf_config, // owned
+            config_path,
+            yuneta_rpermission(),
+            TRUE
+        );
+        if(n_config > 0) {
+            gbuf_printf(gbuf_script, ",");
+        }
+        if(only_double_quotes) {
+            gbuf_printf(gbuf_script, "\\\"%s\\\"", config_path);
+        } else {
+            gbuf_printf(gbuf_script, "\"%s\"", config_path);
+        }
+
+        n_config++;
+
+        gbmem_free(client_agent_config);
+
+        /*--------------------------------------*
+         *      Put yuno configuration
+         *--------------------------------------*/
+        json_t *jn_config_required_services = 0;
+        json_t *hs_config = get_yuno_config(gobj, yuno);
+        if(hs_config) {
+            gbuf_config = gbuf_create(4*1024, 256*1024, 0, 0);
+            snprintf(config_file_name, sizeof(config_file_name), "%d-%s",
+                n_config+1,
+                role_plus_name
+            );
+            snprintf(config_path, sizeof(config_path),
+                "%s/%s.json",
+                yuno_bin_path,
+                config_file_name
+            );
+
+            json_t *content = SDATA_GET_JSON(hs_config, "zcontent");
+            JSON_INCREF(content);
+            json_append2gbuf(
+                gbuf_config,
+                content // owned
+            );
+
+            jn_config_required_services = kw_get_list(content, "yuno`required_services", 0, 0);
+            if(jn_config_required_services) {
+                json_incref(jn_config_required_services);
+            }
+
+            gbuf2file( // save: user configurations
+                gbuf_config, // owned
+                config_path,
+                yuneta_rpermission(),
+                TRUE
+            );
+            if(n_config > 0) {
+                gbuf_printf(gbuf_script, ",");
+            }
+            if(only_double_quotes) {
+                gbuf_printf(gbuf_script, "\\\"%s\\\"", config_path);
+            } else {
+                gbuf_printf(gbuf_script, "\"%s\"", config_path);
+            }
+            n_config++;
+
+            json_decref(hs_config);
+        }
+
+        /*--------------------------------------*
+         *      Put required service clients
+         *--------------------------------------*/
+        json_t *jn_required_services = find_required_services_size(gobj, binary, jn_config_required_services);
+        if(json_array_size(jn_required_services)>0) {
+            snprintf(config_file_name, sizeof(config_file_name), "%d-%s",
+                n_config+1,
+                role_plus_name
+            );
+            snprintf(config_path, sizeof(config_path), "%s/%s.json", yuno_bin_path, config_file_name);
+            write_service_client_connectors( // save: service connectors
+                gobj,
+                yuno,
+                config_path,
+                jn_required_services
+            );
+            if(n_config > 0) {
+                gbuf_printf(gbuf_script, ",");
+            }
+            if(only_double_quotes) {
+                gbuf_printf(gbuf_script, "\\\"%s\\\"", config_path);
+            } else {
+                gbuf_printf(gbuf_script, "\"%s\"", config_path);
+            }
+
+            n_config++;
+        }
+        JSON_DECREF(jn_required_services)
+    }
+
     gbuf_printf(gbuf_script, "]");
 
     json_decref(hs_realm);

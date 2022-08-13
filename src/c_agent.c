@@ -7293,12 +7293,6 @@ PRIVATE int write_service_client_connectors(
     const char *yuno_id_ = kw_get_str(yuno, "id", "", KW_REQUIRED);
 
     json_t *hs_binary = get_yuno_binary(gobj, yuno);
-//    json_t *jn_required_services = kw_get_dict_value(
-//        hs_binary,
-//        "required_services",
-//        0,
-//        KW_REQUIRED
-//    );
     json_t *jn_services = json_array();
     json_t *jn_yuno_services = json_pack("{s:o}",
         "services", jn_services

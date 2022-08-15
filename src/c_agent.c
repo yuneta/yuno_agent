@@ -7018,6 +7018,24 @@ PRIVATE char * build_yuno_log_path(hgobj gobj, json_t *yuno, char *bf, int bfsiz
     return bf;
 }
 
+ /***************************************************************************
+  *
+  ***************************************************************************/
+PRIVATE int save_pid_in_file(hgobj gobj, json_t *yuno, uint32_t pid)
+{
+    char yuno_bin_path[NAME_MAX];
+    char filename_pid_path[NAME_MAX*2];
+    /*
+     *  Let it create the bin_path. Can exist some zombi yuno.
+     */
+    build_yuno_bin_path(gobj, yuno, yuno_bin_path, sizeof(yuno_bin_path), TRUE);
+    snprintf(filename_pid_path, sizeof(filename_pid_path), "%s/yuno.pid", yuno_bin_path);
+    FILE *file = fopen(filename_pid_path, "w");
+    fprintf(file, "%d\n", pid);
+    fclose(file);
+    return 0;
+}
+
 /***************************************************************************
  *
  ***************************************************************************/
@@ -9902,6 +9920,8 @@ PRIVATE int ac_on_open(hgobj gobj, const char *event, json_t *kw, hgobj src)
         JSON_DECREF(iter_yunos);
         return -1;
     }
+
+    save_pid_in_file(gobj, yuno, pid); // TODO remove cuando pases los yunos a version 5.11.4
 
     if(strcmp(yuno_role, SDATA_GET_STR(yuno, "yuno_role"))!=0) {
         log_error(0,

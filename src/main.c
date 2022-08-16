@@ -219,7 +219,7 @@ PRIVATE char variable_config[]= "\
                         }                                                   \n\
                     ],                                                  \n\
                     '[^^zchilds^^]': {                                  \n\
-                        '__range__': [[0,2000]], #^^ max 2000 users     \n\
+                        '__range__': [[0,300]], #^^ max 300 users     \n\
                         '__vars__': {                                   \n\
                         },                                              \n\
                         '__content__': {                                \n\

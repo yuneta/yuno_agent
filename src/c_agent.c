@@ -6968,10 +6968,8 @@ PRIVATE char * build_yuno_bin_path(hgobj gobj, json_t *yuno, char *bf, int bfsiz
     char private_domain[PATH_MAX];
     build_yuno_private_domain(gobj, yuno, private_domain, sizeof(private_domain));
 
-    const char *yuno_id = SDATA_GET_ID(yuno);
-
     const char *work_dir = yuneta_work_dir();
-    build_path4(bf, bfsize, work_dir, private_domain, "bin", yuno_id);
+    build_path3(bf, bfsize, work_dir, private_domain, "bin");
 
     if(create_dir) {
         if(mkrdir(bf, 0, yuneta_xpermission())<0) {

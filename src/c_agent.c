@@ -1013,7 +1013,7 @@ PRIVATE void mt_create(hgobj gobj)
         "gobj",         "%s", gobj_full_name(gobj),
         "function",     "%s", __FUNCTION__,
         "msgset",       "%s", MSGSET_INFO,
-        "msg",          "%s", "node uuid",
+        "msg",          "%s", "yuneta_agent starting: node uuid",
         "uuid",         "%s", uuid,
         NULL
     );

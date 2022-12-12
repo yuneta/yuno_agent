@@ -167,7 +167,7 @@ PRIVATE char agent_filter_chain_config[]= "\
         {                                   \n\
             'name': 'agent_client',         \n\
             'gclass': 'IEvent_cli',         \n\
-            'as_unique': true,              \n\
+            'as_service': true,              \n\
             'autostart': true,              \n\
             'kw': {                         \n\
                 'remote_yuno_name': '',                 \n\

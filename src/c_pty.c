@@ -672,6 +672,8 @@ PRIVATE int write_data_to_pty(hgobj gobj, GBUFFER *gbuf)
             "msg",          "%s", "uv_req_write ALREADY ACTIVE",
             NULL
         );
+        // TODO enqueue or use dynamic uv_req_write
+        return -1;
     }
 
     priv->uv_req_write_active = 1;
@@ -712,6 +714,7 @@ PRIVATE int write_data_to_pty(hgobj gobj, GBUFFER *gbuf)
             "ln",           "%d", ln,
             NULL
         );
+        priv->uv_req_write_active = 0;
         if(gobj_is_running(gobj)) {
             gobj_stop(gobj); // auto-stop
         }

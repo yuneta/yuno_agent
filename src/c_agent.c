@@ -148,6 +148,7 @@ PRIVATE int remove_console_route(
     const char *route_service,
     const char *route_child
 );
+PRIVATE int get_last_public_port(hgobj gobj);
 
 /***************************************************************************
  *              Resources
@@ -8159,6 +8160,7 @@ PRIVATE int run_enabled_yunos(hgobj gobj)
         "msg",          "%s", "run_enabled_yunos",
         NULL
     );
+
     /*
      *  Esta bien así, no le paso nada, que devuelva all yunos de all reinos.
      */
@@ -8183,6 +8185,9 @@ PRIVATE int run_enabled_yunos(hgobj gobj)
         }
     }
     JSON_DECREF(iter_yunos);
+
+    get_last_public_port(gobj);
+
     return 0;
 }
 
@@ -8338,18 +8343,61 @@ PRIVATE int build_release_name(char *bf, int bfsize, json_t *hs_binary, json_t *
 /***************************************************************************
  *
  ***************************************************************************/
+PRIVATE int get_last_public_port(hgobj gobj)
+{
+    PRIVATE_DATA *priv = gobj_priv_data(gobj);
+    char *resource = "public_services";
+
+    /*
+     *  Get a iter of matched resources.
+     */
+    json_t *iter = gobj_list_nodes(
+        priv->resource,
+        resource,
+        json_object(), // filter
+        json_pack("{s:b, s:b}", "only_id", 1, "with_metadata", 1),
+        gobj
+    );
+
+    if(json_array_size(iter)==0) {
+        JSON_DECREF(iter)
+        return 0;
+    }
+
+    /*
+     *  Delete
+     */
+    uint32_t last_port = 0;
+
+    int idx; json_t *node;
+    json_array_foreach(iter, idx, node) {
+        uint32_t port = kw_get_int(node, "port", 0, KW_REQUIRED);
+        if(port > last_port) {
+            last_port = port;
+        }
+    }
+
+    gobj_write_uint32_attr(gobj, "last_port", last_port);
+
+    JSON_DECREF(iter)
+    return last_port;
+}
+
+/***************************************************************************
+ *
+ ***************************************************************************/
 PRIVATE int get_new_service_port(
     hgobj gobj,
     json_t *hs_realm // NOT owned
 )
 {
-    uint32_t new_port = 0;
     //json_t *jn_range_ports = SDATA_GET_JSON(hs_realm, "range_ports"); DEPRECATED
     json_t *jn_range_ports = gobj_read_json_attr(gobj, "range_ports");
     json_t *jn_port_list = json_expand_integer_list(jn_range_ports);
 
     //uint32_t last_port = SDATA_GET_INT(hs_realm, "last_port"); DEPRECATED
-    uint32_t last_port = gobj_read_uint32_attr(gobj, "last_port");
+    uint32_t new_port = 0;
+    uint32_t last_port = get_last_public_port(gobj);
     if(!last_port) {
         new_port = json_list_int(jn_port_list, 0);
     } else {
@@ -8379,6 +8427,8 @@ PRIVATE int get_new_service_port(
         }
         new_port = json_list_int(jn_port_list, idx);
     }
+
+    gobj_write_uint32_attr(gobj, "last_port", new_port);
 
     JSON_DECREF(jn_port_list);
     return new_port;
@@ -8482,7 +8532,6 @@ PRIVATE int register_public_services(
                 //    json_pack("{s:b, s:b}", "only_id", 1, "with_metadata", 1),
                 //    gobj
                 //);
-                gobj_write_uint32_attr(gobj, "last_port", port);
             }
 
             /*

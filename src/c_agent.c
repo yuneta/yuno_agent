@@ -2022,7 +2022,7 @@ PRIVATE json_t *cmd_replicate_node(hgobj gobj, const char *cmd, json_t *kw, hgob
 //      *----------------------------------*/
 //     if(!empty_string(url)) {
 //         //ybatch_json_command_file(gobj, url, path);
-//         // TODO exec json command
+//         // exec json command
 //     }
 //
 //     return msg_iev_build_webix(
@@ -2196,7 +2196,7 @@ PRIVATE json_t *cmd_replicate_binaries(hgobj gobj, const char *cmd, json_t *kw, 
 //      *----------------------------------*/
 //     if(!empty_string(url)) {
 //         //ybatch_json_command_file(gobj, url, path);
-//         // TODO exec json command
+//         // exec json command
 //     }
 //
 //     return msg_iev_build_webix(
@@ -4495,7 +4495,7 @@ json_t* cmd_create_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
     /*-----------------------------*
      *  Register public services
      *  TODO bug:
-     *  en find-new-yunos create=1 podemos crear yunos que todavían no están activos
+     *  en find-new-yunos create=1 podemos crear yunos que todavía no están activos
      *  (hasta deactivate-snap) y sin embargo se actualizan sus datos de public-service
      *-----------------------------*/
     result += register_public_services(gobj, yuno, hs_binary, hs_realm);
@@ -4605,11 +4605,11 @@ json_t* cmd_delete_yuno(hgobj gobj, const char* cmd, json_t* kw, hgobj src)
     json_array_foreach(iter, idx, node) {
         json_t *kw_delete = json_pack("{s:s}", "id", SDATA_GET_ID(node));
         if(gobj_delete_node(
-                priv->resource,
-                resource,
-                kw_delete,
-                json_pack("{s:b}", "force", force),
-                src
+            priv->resource,
+            resource,
+            kw_delete,
+            json_pack("{s:b}", "force", force),
+            src
         )<0) {
             result += -1;
         } else {

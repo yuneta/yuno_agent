@@ -24,8 +24,8 @@ scp -p \
     yuneta@$1:/yuneta/bin
 
 scp -p \
+    /yuneta/agent/yuneta_agent22 \
     /yuneta/agent/yuneta_agent \
     yuneta@$1:/yuneta/agent
 
 ssh yuneta@$1 "/yuneta/agent/yuneta_agent --config-file=/yuneta/agent/yuneta_agent.json --start"
-

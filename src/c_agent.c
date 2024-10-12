@@ -773,7 +773,6 @@ PRIVATE const char *a_read_json[] = {"EV_READ_JSON", 0};
 PRIVATE const char *a_read_file[] = {"EV_READ_FILE", 0};
 PRIVATE const char *a_read_binary_file[] = {"EV_READ_BINARY_FILE", 0};
 PRIVATE const char *a_read_running_keys[] = {"EV_READ_RUNNING_KEYS", 0};
-PRIVATE const char *a_read_running_keys2[] = {"EV_READ_RUNNING_KEYS2", 0};
 PRIVATE const char *a_read_running_bin[] = {"EV_READ_RUNNING_BIN", 0};
 PRIVATE const char *a_write_tty[] = {"EV_WRITE_TTY", 0};
 
@@ -819,8 +818,7 @@ SDATACM2 (ASN_SCHEMA,   "write-tty",        0,                  a_write_tty,    
 SDATACM2 (ASN_SCHEMA,   "read-json",        0,                  a_read_json,        pm_read_json,   0,              "Read json file"),
 SDATACM2 (ASN_SCHEMA,   "read-file",        0,                  a_read_file,        pm_read_file,   0,              "Read a text file"),
 SDATACM2 (ASN_SCHEMA,   "read-binary-file", 0,                  a_read_binary_file, pm_read_binary_file, 0,         "Read a binary file (encoded in base64)"),
-SDATACM2 (ASN_SCHEMA,   "running-keys",     0,                  a_read_running_keys,pm_running_keys,0,              "Read yuno running parameters"),
-SDATACM2 (ASN_SCHEMA,   "running-keys2",    0,                  a_read_running_keys2,pm_running_keys,0,             "Read yuno running parameters"),
+SDATACM2 (ASN_SCHEMA,   "running-keys",    0,                  a_read_running_keys,pm_running_keys,0,             "Read yuno running parameters"),
 SDATACM2 (ASN_SCHEMA,   "running-bin",      0,                  a_read_running_bin, pm_running_keys,0,              "Read yuno running bin path"),
 SDATACM2 (ASN_SCHEMA,   "check-json",       0,                  0,                  pm_check_json,  cmd_check_json, "Check json refcounts"),
 SDATACM2 (ASN_SCHEMA,   "",                 0,                  0,                  0,              0,              "\nDeploy\n------"),
@@ -9446,94 +9444,6 @@ PRIVATE int ac_read_running_keys(hgobj gobj, const char *event, json_t *kw, hgob
      *------------------------------------------------*/
     char bfbinary[NAME_MAX];
     GBUFFER *gbuf_sh = gbuf_create(4*1024, 32*1024, 0, 0);
-    build_yuno_running_script(gobj, gbuf_sh, yuno, bfbinary, sizeof(bfbinary), FALSE);
-    char *s = gbuf_cur_rd_pointer(gbuf_sh);
-
-    char temp[4*1024];
-    snprintf(temp, sizeof(temp), "--config-file='%s'", s);
-    json_t *jn_s = json_string(temp);
-    json_t *jn_data = json_pack("{s:s, s:o}",
-        "name", "running-keys",
-        "zcontent", jn_s?jn_s:json_string("Invalid content in filename")
-    );
-    gbuf_decref(gbuf_sh);
-    JSON_DECREF(iter)
-
-    /*
-     *  Inform
-     */
-    return gobj_send_event(
-        src,
-        "EV_READ_FILE",
-        msg_iev_build_webix(gobj,
-            0,
-            0,
-            0,
-            jn_data, // owned
-            kw  // owned
-        ),
-        gobj
-    );
-}
-
-/***************************************************************************
- *
- ***************************************************************************/
-PRIVATE int ac_read_running_keys2(hgobj gobj, const char *event, json_t *kw, hgobj src)
-{
-    PRIVATE_DATA *priv = gobj_priv_data(gobj);
-    char *resource = "yunos";
-
-    /*------------------------------------------------*
-     *      Get the yunos
-     *------------------------------------------------*/
-    json_t *iter = gobj_list_nodes(
-        priv->resource,
-        resource,
-        kw_incref(kw), // filter
-        json_pack("{s:b, s:b}", "only_id", 1, "with_metadata", 1),
-        src
-    );
-    if(json_array_size(iter)==0) {
-        JSON_DECREF(iter)
-        return gobj_send_event(
-            src,
-            event,
-            msg_iev_build_webix(gobj,
-                -1,
-                json_sprintf(
-                    "Yuno not found"
-                ),
-                0,
-                0,
-                kw  // owned
-            ),
-            gobj
-        );
-    }
-    if(json_array_size(iter)!=1) {
-        JSON_DECREF(iter)
-        return gobj_send_event(
-            src,
-            event,
-            msg_iev_build_webix(gobj,
-                -1,
-                json_sprintf("Select only one yuno please"),
-                0,
-                0,
-                kw  // owned
-            ),
-            gobj
-        );
-    }
-
-    json_t *yuno = json_array_get(iter, 0);
-
-    /*------------------------------------------------*
-     *  Walk over yunos iter
-     *------------------------------------------------*/
-    char bfbinary[NAME_MAX];
-    GBUFFER *gbuf_sh = gbuf_create(4*1024, 32*1024, 0, 0);
     build_yuno_running_script(gobj, gbuf_sh, yuno, bfbinary, sizeof(bfbinary), TRUE);
     char *s = gbuf_cur_rd_pointer(gbuf_sh);
 
@@ -9541,7 +9451,7 @@ PRIVATE int ac_read_running_keys2(hgobj gobj, const char *event, json_t *kw, hgo
     snprintf(temp, sizeof(temp), "--config-file=\"%s\"", s);
     json_t *jn_s = json_string(temp);
     json_t *jn_data = json_pack("{s:s, s:o}",
-        "name", "running-keys",
+        "name", "running-keys2",
         "zcontent", jn_s?jn_s:json_string("Invalid content in filename")
     );
     gbuf_decref(gbuf_sh);
@@ -9626,7 +9536,7 @@ PRIVATE int ac_read_running_bin(hgobj gobj, const char *event, json_t *kw, hgobj
 
     json_t *jn_s = json_string(bfbinary);
     json_t *jn_data = json_pack("{s:s, s:o}",
-        "name", "running-keys",
+        "name", "running-bin",
         "zcontent", jn_s?jn_s:json_string("Invalid content in filename")
     );
     gbuf_decref(gbuf_sh);
@@ -10642,7 +10552,6 @@ PRIVATE EV_ACTION ST_IDLE[] = {
     {"EV_READ_FILE",            ac_read_file,           0},
     {"EV_READ_BINARY_FILE",     ac_read_binary_file,    0},
     {"EV_READ_RUNNING_KEYS",    ac_read_running_keys,   0},
-    {"EV_READ_RUNNING_KEYS2",   ac_read_running_keys2,  0},
     {"EV_READ_RUNNING_BIN",     ac_read_running_bin,    0},
 
     {"EV_PLAY_YUNO_ACK",        ac_play_yuno_ack,       0},

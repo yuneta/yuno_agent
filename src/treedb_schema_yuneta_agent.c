@@ -147,7 +147,7 @@
 static char treedb_schema_yuneta_agent[]= "\
 {                                                                   \n\
     'id': 'treedb_yuneta_agent',                                    \n\
-    'schema_version': '12',                                         \n\
+    'schema_version': '13',                                         \n\
     'topics': [                                                     \n\
         {                                                           \n\
             'id': 'realms',                                         \n\
@@ -275,7 +275,7 @@ static char treedb_schema_yuneta_agent[]= "\
             'id': 'yunos',                                          \n\
             'pkey': 'id',                                           \n\
             'system_flag': 'sf_string_key',                         \n\
-            'topic_version': '9',                                   \n\
+            'topic_version': '10',                                   \n\
             'tkey': '',                                             \n\
             'pkey2s': 'yuno_release',                               \n\
             'cols': {                                               \n\
@@ -334,35 +334,35 @@ static char treedb_schema_yuneta_agent[]= "\
                 },                                                  \n\
                 'yuno_running': {                                   \n\
                     'header': 'running',                            \n\
-                    'fillspace': 7,                                 \n\
+                    'fillspace': 5,                                 \n\
                     'type': 'boolean',                              \n\
                     'flag': [                                       \n\
                     ]                                               \n\
                 },                                                  \n\
                 'yuno_playing': {                                   \n\
                     'header': 'playing',                            \n\
-                    'fillspace': 7,                                 \n\
+                    'fillspace': 5,                                 \n\
                     'type': 'boolean',                              \n\
                     'flag': [                                       \n\
                     ]                                               \n\
                 },                                                  \n\
                 'yuno_pid': {                                       \n\
                     'header': 'pid',                                \n\
-                    'fillspace': 6,                                 \n\
+                    'fillspace': 7,                                 \n\
                     'type': 'integer',                              \n\
                     'flag': [                                       \n\
                     ]                                               \n\
                 },                                                  \n\
                 'watcher_pid': {                                    \n\
                     'header': 'w_pid',                              \n\
-                    'fillspace': 6,                                 \n\
+                    'fillspace': 7,                                 \n\
                     'type': 'integer',                              \n\
                     'flag': [                                       \n\
                     ]                                               \n\
                 },                                                  \n\
                 'yuno_disabled': {                                  \n\
-                    'header': 'yuno_disabled',                      \n\
-                    'fillspace': 8,                                 \n\
+                    'header': 'disabled',                           \n\
+                    'fillspace': 6,                                 \n\
                     'type': 'boolean',                              \n\
                     'flag': [                                       \n\
                         'inherit',                                  \n\

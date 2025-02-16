@@ -10509,7 +10509,6 @@ PRIVATE const EVENT input_events[] = {
     {"EV_READ_FILE",            EVF_PUBLIC_EVENT,  0,  "Read text filename"},
     {"EV_READ_BINARY_FILE",     EVF_PUBLIC_EVENT,  0,  "Read binary filename"},
     {"EV_READ_RUNNING_KEYS",    EVF_PUBLIC_EVENT,  0,  "Read running-keys"},
-    {"EV_READ_RUNNING_KEYS2",   EVF_PUBLIC_EVENT,  0,  "Read running-keys2"},
     {"EV_READ_RUNNING_BIN",     EVF_PUBLIC_EVENT,  0,  "Read running-bin path"},
 
     {"EV_PLAY_YUNO_ACK",        EVF_PUBLIC_EVENT,  0,  0},

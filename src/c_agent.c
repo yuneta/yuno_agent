@@ -5841,6 +5841,17 @@ PRIVATE json_t *cmd_command_agent(hgobj gobj, const char *cmd, json_t *kw, hgobj
             kw  // owned
         );
     }
+    if(strcasecmp(command, cmd)==0) {
+        return msg_iev_build_webix(gobj,
+            -1,
+            json_sprintf(
+                "Loop command"
+            ),
+            0,
+            0,
+            kw  // owned
+        );
+    }
     const char *service = kw_get_str(kw, "service", "", 0);
 
     hgobj service_gobj;

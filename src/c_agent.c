@@ -7294,7 +7294,7 @@ PRIVATE json_t *find_service_for_client(
     char *resource = "public_services";
 
     char *service = gbmem_strdup(service_);
-    char *service_yuno_name = strchr(service, '.');     // TODO review: services with . ?
+    char *service_yuno_name = strchr(service, '.');     // TODO add alternative parameter: dict (jn_filter)
     if(service_yuno_name) {
         *service_yuno_name = 0;
         service_yuno_name++; // yuno_name of service required

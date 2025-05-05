@@ -21,6 +21,8 @@
 /***************************************************************************
  *              Constants
  ***************************************************************************/
+#define EXPIRATION_TIMEOUT (10*1000)
+
 #define SDATA_GET_ID(hs)  kw_get_str((hs), "id", "", KW_REQUIRED)
 #define SDATA_GET_STR(hs, field)  kw_get_str((hs), (field), "", KW_REQUIRED)
 #define SDATA_GET_INT(hs, field)  kw_get_int((hs), (field), 0, KW_REQUIRED)
@@ -4763,7 +4765,7 @@ PRIVATE json_t *cmd_run_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src)
     json_t *kw_counter = json_pack("{s:s, s:i, s:i, s:o, s:{s:o, s:o}}",
         "info", info,
         "max_count", total_run,
-        "expiration_timeout", 10*1000,
+        "expiration_timeout", EXPIRATION_TIMEOUT,
         "input_schema", filterlist, // owned
         "__user_data__",
             "iter", iter,                   // HACK free en diferido, en ac_final_count()
@@ -4943,7 +4945,7 @@ PRIVATE json_t *cmd_kill_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
     json_t *kw_counter = json_pack("{s:s, s:i, s:i, s:o, s:{s:o, s:o}}",
         "info", info,
         "max_count", total_killed,
-        "expiration_timeout", 10*1000,
+        "expiration_timeout", EXPIRATION_TIMEOUT,
         "input_schema", filterlist, // owned
         "__user_data__",
             "iter", iter,                   // HACK free en diferido, en ac_final_count()
@@ -5298,7 +5300,7 @@ PRIVATE json_t *cmd_pause_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj sr
     json_t *kw_counter = json_pack("{s:s, s:i, s:i, s:o, s:{s:o, s:o}}",
         "info", info,
         "max_count", total_to_paused,
-        "expiration_timeout", 10*1000,
+        "expiration_timeout", EXPIRATION_TIMEOUT,
         "input_schema", filterlist, // owned
         "__user_data__",
             "iter", iter,                   // HACK free en diferido, en ac_final_count()

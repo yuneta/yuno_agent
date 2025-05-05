@@ -21,7 +21,7 @@
 /***************************************************************************
  *              Constants
  ***************************************************************************/
-#define EXPIRATION_TIMEOUT (10*1000)
+#define EXPIRATION_TIMEOUT (30*1000)
 
 #define SDATA_GET_ID(hs)  kw_get_str((hs), "id", "", KW_REQUIRED)
 #define SDATA_GET_STR(hs, field)  kw_get_str((hs), (field), "", KW_REQUIRED)

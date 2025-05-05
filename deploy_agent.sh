@@ -123,14 +123,14 @@
 BINARY_AGENT=/yuneta/development/output/agent/yuneta_agent
 CONFIG_AGENT=/yuneta/development/output/agent/yuneta_agent.json
 cp -v $BINARY_AGENT /yuneta/agent/
-cp -v --update=none $CONFIG_AGENT /yuneta/agent/
+cp -v -n $CONFIG_AGENT /yuneta/agent/
 
 SERVICE_SCRIPTS=/yuneta/development/output/agent/service/
 cp -v -a $SERVICE_SCRIPTS /yuneta/agent/
 
 mkdir -p /yuneta/agent/certs
 CERTS_SCRIPTS=/yuneta/development/output/agent/certs/*
-cp -v --update=none -a $CERTS_SCRIPTS /yuneta/agent/certs
+cp -v -n -a $CERTS_SCRIPTS /yuneta/agent/certs
 
 BINARY_CLI=/yuneta/development/output/agent/yuneta
 BINARY_BATCH=/yuneta/development/output/agent/ybatch

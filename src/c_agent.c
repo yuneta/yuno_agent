@@ -5131,7 +5131,7 @@ PRIVATE json_t *cmd_play_yuno(hgobj gobj, const char *cmd, json_t *kw, hgobj src
     json_t *kw_counter = json_pack("{s:s, s:i, s:i, s:o, s:{s:o, s:o}}",
         "info", info,
         "max_count", total_to_played,
-        "expiration_timeout", 10*1000,
+        "expiration_timeout", EXPIRATION_TIMEOUT,
         "input_schema", filterlist, // owned
         "__user_data__",
             "iter", iter,                   // HACK free en diferido, en ac_final_count()

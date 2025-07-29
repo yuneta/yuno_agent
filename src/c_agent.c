@@ -10165,6 +10165,9 @@ PRIVATE int ac_on_close(hgobj gobj, const char *event, json_t *kw, hgobj src)
  ***************************************************************************/
 PRIVATE int ac_final_count(hgobj gobj, const char *event, json_t *kw, hgobj src)
 {
+    /*
+     *  is agent changing the destine (perhaps in ac_final_count)? ievent_cli.c
+     */
     PRIVATE_DATA *priv = gobj_priv_data(gobj);
     const char *info = kw_get_str(kw, "info", "", 0);
     int max_count = kw_get_int(kw, "max_count", 0, 0);
